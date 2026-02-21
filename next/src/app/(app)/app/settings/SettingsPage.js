@@ -176,12 +176,12 @@ export default function ({ user, storage }) {
           <div>
             <p className="text-gray-600">
               Unfortunately, you cannot downgrade your subscription directly from the dashboard yet.
-              Please contact us at <a className="text-primary hover:underline" href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`}>{process.env.NEXT_PUBLIC_SUPPORT_EMAIL}</a> to request a downgrade, and we will respond promply.
+              Please <a className="text-primary hover:underline" href="/contact">contact us</a> to request a downgrade, and we will respond promply.
             </p>
           </div>
           <DialogFooter className={"sm:justify-start"}>
             <Button onClick={() => {
-              window.location.href = `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}?subject=Downgrade%20Subscription`
+              window.location.href = `/contact`
             }}>Contact Us</Button>
             <DialogClose asChild>
               <Button variant={"outline"}>Cancel</Button>
@@ -198,7 +198,7 @@ export default function ({ user, storage }) {
             </div>
             {!IS_SELFHOST && (
               <p className="text-gray-600 text-sm/6 mt-4">
-                To change your email or delete your account, <a className="text-primary" href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`}>contact us</a>.
+                To change your email or delete your account, <a className="text-primary" href={`/contact`}>contact us</a>.
               </p>
             )}
           </div>

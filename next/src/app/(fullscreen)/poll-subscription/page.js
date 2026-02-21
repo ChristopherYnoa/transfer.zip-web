@@ -70,7 +70,7 @@ export default function PollSubscriptionPage() {
               window.megadeskSendText("I paid for my subscription, but it didn't get activated. Please open a support ticket so they can take a look.")
             }
             else {
-              window.location.href = `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`
+              window.location.href = `/contact`
             }
           }}>Contact Support</Button>
         </>
