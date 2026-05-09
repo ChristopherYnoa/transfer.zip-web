@@ -62,7 +62,7 @@ export async function sendPasswordReset(email, { link }) {
 export async function sendMagicLink(email, { link }) {
   await sendMail(MagicLinkEmail({ link }), {
     to: email,
-    subject: `Log In - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
+    subject: `Log In - ${process.env.NEXT_PUBLIC_SITE_NAME} | ${new Date().toISOString().replace('T', ' ').slice(0, 19)}`,
   });
 }
 

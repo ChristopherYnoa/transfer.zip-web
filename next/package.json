@@ -39,6 +39,7 @@
     "disposable-email-domains-js": "^1.18.0",
     "email-validator": "^2.0.4",
     "eslint-config-next": "^16.1.1",
+    "facehash": "^0.1.0",
     "framer-motion": "^12.15.0",
     "globby": "^14.1.0",
     "google-auth-library": "^10.1.0",

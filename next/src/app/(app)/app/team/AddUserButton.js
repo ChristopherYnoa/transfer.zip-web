@@ -15,7 +15,7 @@ import { Plus } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { inviteTeamMember } from "@/lib/client/Api"
+import { sendTeamInvite } from "@/lib/client/Api"
 import { ROLES } from "@/lib/roles"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -50,7 +50,7 @@ export default function AddUserButton() {
     const email = formData.get("email")
 
     try {
-      const res = await inviteTeamMember(email, formData.get("role"))
+      const res = await sendTeamInvite(email, formData.get("role"))
       if (!res || !res.success) {
         throw new Error(res?.message || "Could not send invite")
       }
@@ -111,7 +111,7 @@ export default function AddUserButton() {
                 </Select>
                 <input type="hidden" name="role" value={selectedRole} />
                 {selectedRoleMeta ? (
-                  <p className="text-xs text-slate-500">{selectedRoleMeta.description}</p>
+                  <p className="text-xs text-gray-500">{selectedRoleMeta.description}</p>
                 ) : null}
               </div>
             </div>

@@ -19,13 +19,15 @@ export default function FloatingBar({ user }) {
   const prepend = "/app";
   const pathname = usePathname();
 
+  const canSeeTeam = user?.hasTeam && (user?.role === "owner" || user?.role === "admin");
+
   const navigation = [
     { name: "Sent", href: "/sent" },
     { name: "Received", href: "/received" },
     { name: "Requests", href: "/requests" },
     { name: "Branding", href: "/branding" },
     { name: "Account", href: "/settings" },
-    { name: "Team", href: "/team" },
+    ...(canSeeTeam ? [{ name: "Team", href: "/team" }] : []),
     { name: "Transfer", href: "" },
   ].map((item) => ({ ...item, href: prepend + item.href }));
 

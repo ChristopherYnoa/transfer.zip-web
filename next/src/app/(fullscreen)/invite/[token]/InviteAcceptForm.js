@@ -1,14 +1,56 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import Spinner from "@/components/elements/Spinner"
+import { Button } from "@/components/ui/button"
 import { redeemInvite } from "@/lib/client/Api"
 
-export default function InviteAcceptForm({ invite, token }) {
-  const router = useRouter()
+export default function InviteAcceptForm({ invite, token, userExists, isLoggedInAsInvitee, currentUserEmail }) {
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const acceptAsExistingUser = async () => {
+    setMessage("")
+    setLoading(true)
+    try {
+      await redeemInvite(token)
+      window.location.href = "/app"
+    } catch (err) {
+      setMessage(err.message || "Could not accept invite")
+      setLoading(false)
+    }
+  }
+
+  if (userExists && !isLoggedInAsInvitee) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-gray-700">
+          An account already exists for <span className="font-medium">{invite.email}</span>.
+          {currentUserEmail
+            ? ` You're currently signed in as ${currentUserEmail}. Please sign in as ${invite.email} to accept this invite.`
+            : ` Please sign in to accept this invite.`}
+        </p>
+        <Button asChild className="w-full">
+          <Link href="/signin">Sign in</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  if (userExists && isLoggedInAsInvitee) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-gray-700">
+          Signed in as <span className="font-medium">{invite.email}</span>. Click below to join the team.
+        </p>
+        {message && <span className="text-red-600 text-sm block">{message}</span>}
+        <Button onClick={acceptAsExistingUser} disabled={loading} className="w-full">
+          Accept invite {loading && <Spinner className="ms-2" />}
+        </Button>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()

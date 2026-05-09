@@ -5,6 +5,8 @@ import TeamInvite from "@/lib/server/mongoose/models/TeamInvite"
 import Team from "@/lib/server/mongoose/models/Team"
 import User from "@/lib/server/mongoose/models/User"
 import Session from "@/lib/server/mongoose/models/Session"
+import { useServerAuth } from "@/lib/server/wrappers/auth"
+import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
 
 export async function GET(req, { params }) {
   const { token } = await params
@@ -53,30 +55,58 @@ export async function POST(req, { params }) {
   }
 
   const existingUser = await User.findOne({ email: { $eq: invite.email } })
+
+  let user
+  let session
+
   if (existingUser) {
-    return NextResponse.json(resp("User already exists"), { status: 409 })
+    const auth = await useServerAuth()
+    if (!auth || !auth.user._id.equals(existingUser._id)) {
+      return NextResponse.json(resp(`Please sign in as ${invite.email} to accept this invite`), { status: 401 })
+    }
+
+    if (team.users.some(u => u.equals(existingUser._id))) {
+      return NextResponse.json(resp("You are already in this team"), { status: 409 })
+    }
+    if (existingUser.team) {
+      return NextResponse.json(resp("You are already a member of another team"), { status: 409 })
+    }
+    if (await userHasLiveStripeSubscription(existingUser)) {
+      return NextResponse.json(resp("You have an active subscription. Cancel it before joining a team."), { status: 409 })
+    }
+
+    existingUser.team = team._id
+    existingUser.role = invite.role
+    await existingUser.save()
+
+    user = existingUser
+    session = auth
+  } else {
+    const newUser = new User({
+      email: invite.email,
+      role: invite.role,
+      team: team._id,
+    })
+
+    if (password) {
+      newUser.setPassword(password)
+    }
+
+    await newUser.save()
+
+    user = newUser
   }
-
-  const user = new User({
-    email: invite.email,
-    role: invite.role
-  })
-
-  if (password) {
-    user.setPassword(password)
-  }
-
-  await user.save()
 
   team.users.push(user._id)
   await team.save()
 
   await TeamInvite.deleteOne({ _id: invite._id })
 
-  const session = new Session({ user: user._id })
-  await session.save()
-
   const response = NextResponse.json(resp({}), { status: 200 })
-  response.cookies.set("token", session.token, createCookieParams())
+  if (!session) {
+    const newSession = new Session({ user: user._id })
+    await newSession.save()
+    response.cookies.set("token", newSession.token, createCookieParams())
+  }
   return response
 }

@@ -34,18 +34,16 @@ function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
   const isSelf = currentUser.id === user.id
 
   return (
-    <li className="flex items-center gap-4 p-3 bg-white rounded-lg border hover:bg-slate-50 transition">
-      <div className="flex items-center w-10 h-10 justify-center bg-slate-100 rounded-full">
-        <ProfilePic />
-      </div>
+    <li className="flex items-center gap-4 p-3 bg-white rounded-lg border hover:bg-gray-50 transition">
+      <ProfilePic name={user.email} />
       <div>
-        <div className="font-semibold text-slate-900">{user.fullName}</div>
-        <div className="text-sm text-slate-500">{user.email}</div>
+        <div className="font-semibold text-gray-900">{user.fullName}</div>
+        <div className="text-sm text-gray-500">{user.email}</div>
       </div>
       <div className="ml-auto flex flex-row gap-1 ">
         {user.roles.map(elem => {
           return (
-            <div key={elem} className={"text-sm text-slate px-2 rounded-full " + (elem === ROLES.OWNER ? "bg-amber-50 text-amber-600" : "bg-slate-50 text-tone-800")}>
+            <div key={elem} className={"text-sm text-slate px-2 rounded-full " + (elem === ROLES.OWNER ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-tone-800")}>
               {capitalizeFirstLetter(elem)}
             </div>
           )
@@ -55,7 +53,7 @@ function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
       <div className=" relative">
         <DropdownMenu>
           {(canManageRoles && !isSelf) && <DropdownMenuTrigger asChild>
-            <Button variant="ghost" ><EllipsisVerticalIcon className="w-8 h-8 text-slate-700 text-xlr" /></Button>
+            <Button variant="ghost" ><EllipsisVerticalIcon className="w-8 h-8 text-gray-700 text-xlr" /></Button>
           </DropdownMenuTrigger>}
           <DropdownMenuContent>
             {canManageRoles && !isOwner && !isSelf && (
@@ -113,15 +111,9 @@ function InviteEntry({ invite }) {
 
   return (
     <li className="flex items-center gap-4 p-3  rounded-xl border border-dashed transition">
-      <div className="flex items-center w-10 h-10 justify-center bg-slate-100  rounded-full">
-        {/* <Image
-                    src={no_profile}
-                    alt={invite.email}
-                    className="w-6 h-6 rounded-full object-cover"
-                /> */}
-      </div>
+      <ProfilePic name={invite.email} />
       <div>
-        <div className="text-sm text-slate-500">{invite.email}</div>
+        <div className="text-sm text-gray-500">{invite.email}</div>
       </div>
       <div className="flex items-center justify-center text-sm bg-amber-50 text-amber-600 px-2 rounded-full">
         Invite pending
@@ -129,7 +121,7 @@ function InviteEntry({ invite }) {
       <div className="ml-auto relative">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" ><EllipsisVerticalIcon className="w-8 h-8 text-slate-700 text-xlr" /></Button>
+            <Button variant="ghost" ><EllipsisVerticalIcon className="w-8 h-8 text-gray-700 text-xlr" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setShowDeleteModal(true)} className="text-destructive">
@@ -165,7 +157,7 @@ function InviteEntry({ invite }) {
   )
 }
 
-export default function UserList({ user, users, maxUsers, invites }) {
+export default function UserList({ user, users, invites }) {
   const router = useRouter()
 
   const getErrorMessage = (err, fallback) => {
@@ -179,8 +171,6 @@ export default function UserList({ user, users, maxUsers, invites }) {
       return fallback
     }
   }
-
-  const amountOfUsers = users.length
 
   const handleDeleteUser = async (targetUser) => {
     try {
@@ -211,9 +201,6 @@ export default function UserList({ user, users, maxUsers, invites }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-slate-600 mb-4">
-        Using {amountOfUsers}/{maxUsers} members on your plan
-      </p>
       <ul className="space-y-2">
         {users.flat().map(listUser => (
           <Entry

@@ -1,11 +1,13 @@
 import dbConnect from "@/lib/server/mongoose/db"
 import TeamInvite from "@/lib/server/mongoose/models/TeamInvite"
 import Team from "@/lib/server/mongoose/models/Team"
+import User from "@/lib/server/mongoose/models/User"
 import InviteAcceptForm from "./InviteAcceptForm"
 import Image from "next/image"
 import logo from "@/img/icon.png"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useServerAuth } from "@/lib/server/wrappers/auth"
 
 export default async function InviteAcceptPage({ params }) {
   const { token } = await params
@@ -50,12 +52,24 @@ export default async function InviteAcceptPage({ params }) {
     )
   }
 
+  const existingUser = await User.findOne({ email: { $eq: invite.email } })
+  const auth = await useServerAuth()
+  const currentUserEmail = auth?.user?.email || null
+  const userExists = !!existingUser
+  const isLoggedInAsInvitee = userExists && currentUserEmail === invite.email
+
   return (
     <InviteLayout
       title="Join your team"
       description={`You've been invited to join ${team.name}.`}
     >
-      <InviteAcceptForm invite={invite.friendlyObj()} token={token} />
+      <InviteAcceptForm
+        invite={invite.friendlyObj()}
+        token={token}
+        userExists={userExists}
+        isLoggedInAsInvitee={isLoggedInAsInvitee}
+        currentUserEmail={currentUserEmail}
+      />
     </InviteLayout>
   )
 }

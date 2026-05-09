@@ -4,6 +4,7 @@ import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { redirect } from "next/navigation";
 import TeamPage from "./TeamPage";
 import UserList from "./UserList";
+import AddUserButton from "./AddUserButton";
 import TeamInvite from "@/lib/server/mongoose/models/TeamInvite";
 
 export default async function () {
@@ -39,13 +40,17 @@ export default async function () {
           <UserList
             users={teamUsers}
             user={currentUser}
-            maxUsers={team.seats}
             invites={invites.map(inv => inv.friendlyObj())}
           />
+          <div className="mt-4 flex items-center gap-4">
+            <p className="text-gray-600 flex-1 whitespace-nowrap">
+              Using {teamUsers.length}/{team.seats} members on your plan
+            </p>
+            <AddUserButton />
+          </div>
         </div>
-        
       </div>
-      <TeamPage user={user.friendlyObj()} storage={storage} team={team.friendlyObj()}/>
+      <TeamPage user={user.friendlyObj()} storage={storage} team={team.friendlyObj()} />
     </GenericPage>
   )
 }

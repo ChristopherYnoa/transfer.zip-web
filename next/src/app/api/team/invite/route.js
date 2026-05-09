@@ -6,6 +6,7 @@ import Team from "@/lib/server/mongoose/models/Team"
 import User from "@/lib/server/mongoose/models/User"
 import { sendTeamInvite } from "@/lib/server/mail/mail"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
+import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
 import { ROLES } from "@/lib/roles"
 
 export async function POST(req) {
@@ -35,9 +36,14 @@ export async function POST(req) {
 
   const existingUser = await User.findOne({ email: { $eq: email } })
   if (existingUser) {
-    const alreadyInTeam = team.users.some(u => u.equals(existingUser._id))
-    if (alreadyInTeam) {
+    if (team.users.some(u => u.equals(existingUser._id))) {
       return NextResponse.json({ success: false, message: "User is already in this team" }, { status: 409 })
+    }
+    if (existingUser.team) {
+      return NextResponse.json({ success: false, message: "User is already a member of another team" }, { status: 409 })
+    }
+    if (await userHasLiveStripeSubscription(existingUser)) {
+      return NextResponse.json({ success: false, message: "User has an active subscription. They must cancel it before joining a team." }, { status: 409 })
     }
   }
 
