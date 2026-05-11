@@ -12,7 +12,7 @@ Legend: 🔴 blocks production · 🟠 broken core team value · 🟡 needs to w
 
 - [x] **Stripe seat quantity never persists to `Team.seats`.** `next/src/app/api/stripe/webhook/route.js:74` reads `const seats = item.quantity` but `handleSubscription` never writes it. `Team.seats` only reflects what was set at checkout — any seat upgrade/downgrade in Stripe is silently ignored. Pass `seats` through `updateSubscription({...})` and persist it on the Team model.
 
-- [ ] **No seat enforcement.** Neither `POST /api/team/invite` (`route.js`) nor `POST /api/invite/[token]` checks `team.users.length + pendingInvites < team.seats`. Owners can invite unlimited members regardless of paid quantity. Add a guard in both routes, and ideally surface remaining seats in the UI.
+- [x] **No seat enforcement.** Neither `POST /api/team/invite` (`route.js`) nor `POST /api/invite/[token]` checks `team.users.length + pendingInvites < team.seats`. Owners can invite unlimited members regardless of paid quantity. Add a guard in both routes, and ideally surface remaining seats in the UI.
 
 - [ ] **Sessions not invalidated on member removal.** `api/team/users/[userId]/route.js` `$pull`s the user and unsets `team`, but their session cookie is still valid until expiry — they continue to act as a logged-in user with stale team context cached. Delete the user's sessions on removal.
 
@@ -47,6 +47,8 @@ These are the things that make "team plan" actually mean something. Today the fe
 
 - [ ] **Block invite if user already on another team / has live sub.** The invite *creation* route checks this (good), but the invite *acceptance* should re-check at accept time too — the invitee's state may have changed between send and accept.
 
+- [ ] **Surface remaining seats in the UI.** Seat enforcement now blocks invites server-side, but the invite UI gives no warning until the request fails. Disable / hint when full. Same on the accept-invite page if the team has filled up since send. We should upsell, asking if they want to pay for more seats.
+
 ### Billing & lifecycle
 - [ ] **Seat downgrade handling.** If the Owner reduces seats in Stripe from 10→5 but the team has 8 members, today nothing happens — they're over capacity silently. Decide policy: block the downgrade via portal config (preferred), or enter a grace state and notify Owner to remove N members before next renewal.
 
@@ -77,6 +79,8 @@ These are the things that make "team plan" actually mean something. Today the fe
 - [ ] **API error handling.** `Api.js:10,42` flagged as ugly. Standardise so client-side surfaces the actual server message instead of "unknown error" — especially relevant for invite/seat errors users will hit.
 
 - [ ] **Better empty/loading states** on `/app/team` (no invites yet, no members beyond owner, etc.).
+
+- [ ] **Per-user transfer count + drill-in on the team user list.** Each row in `/app/team`'s user list should show the member's active transfer count (omit if 0) and a button to view that member's transfers. Depends on team-scoped transfer visibility (see 🟠 "Transfers are not team-scoped").
 
 - [ ] **Lightweight team activity feed.** Not a compliance audit log — just an in-app list: "Alice invited bob@…", "Bob joined", "Charlie was made Admin", "Dana left." Gives Owners visibility without building enterprise tooling. Single `TeamEvent` collection, capped TTL.
 

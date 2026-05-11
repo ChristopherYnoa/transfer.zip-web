@@ -54,6 +54,10 @@ export async function POST(req, { params }) {
     return NextResponse.json(resp("Team not found"), { status: 404 })
   }
 
+  if (team.users.length >= (team.seats || 0)) {
+    return NextResponse.json(resp("This team has no available seats. Ask an owner or admin to free up a seat."), { status: 409 })
+  }
+
   const existingUser = await User.findOne({ email: { $eq: invite.email } })
 
   let user

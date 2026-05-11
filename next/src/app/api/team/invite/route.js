@@ -34,6 +34,15 @@ export async function POST(req) {
     return NextResponse.json({ success: false, message: "Team not found" }, { status: 404 })
   }
 
+  const seats = team.seats || 0
+  const existingInvite = await TeamInvite.findOne({ team: team._id, email })
+  if (!existingInvite) {
+    const pendingCount = await TeamInvite.countDocuments({ team: team._id })
+    if (team.users.length + pendingCount + 1 > seats) {
+      return NextResponse.json({ success: false, message: "No seats available. Upgrade your plan or remove a member or pending invite." }, { status: 409 })
+    }
+  }
+
   const existingUser = await User.findOne({ email: { $eq: email } })
   if (existingUser) {
     if (team.users.some(u => u.equals(existingUser._id))) {
