@@ -1,13 +1,7 @@
-import { Upload } from "tus-js-client";
-import Bottleneck from "bottleneck";
 import { getUploadToken, markTransferComplete } from "./Api";
 import { generateUUID } from "./clientUtils";
 import { trackError } from "./errorTracking";
 import { getUppy } from "./uppy";
-
-function clampWeight(size, WINDOW) {
-  return Math.min(size, WINDOW)
-}
 
 export function prepareTransferFiles(files) {
   files.forEach(f => f.tmpId = generateUUID())

@@ -7,6 +7,7 @@ import Head from "next/head";
 import Script from "next/script";
 import "./globals.css";
 import { IS_DEV } from "@/lib/server/serverUtils";
+import { Toaster } from "sonner";
 
 const roboto = Bricolage_Grotesque({
   weight: ['400', '500', '600', '700', '800'],
@@ -60,6 +61,7 @@ export default function RootLayout({ children }) {
             {children}
           </FileProvider>
         </GlobalProvider>
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   );
