@@ -1,6 +1,6 @@
 "use client"
 
-import { DashboardContext } from "@/context/DashboardContext"
+import { toast } from "sonner"
 import { deleteTransfer, getTransferDownloadLink, putTransfer, sendTransferByEmail } from "@/lib/client/Api"
 import { EXPIRATION_TIMES } from "@/lib/constants"
 import { humanFileSize } from "@/lib/transferUtils"
@@ -8,7 +8,7 @@ import { parseTransferExpiryDate, tryCopyToClipboard } from "@/lib/utils"
 import { DotIcon, LinkIcon, PencilIcon } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useContext, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import QRCode from "react-qr-code"
 import Modal from "../elements/Modal"
 import { Button } from "../ui/button"
@@ -29,15 +29,13 @@ import BIcon from "../BIcon"
 
 export default function ({ user, transfer }) {
 
-  const { displayNotification, displayErrorModal } = useContext(DashboardContext)
-
   const router = useRouter()
 
   const transferLink = getTransferDownloadLink(transfer)
 
   const handleCopy = async e => {
     if (await tryCopyToClipboard(transferLink)) {
-      displayNotification("success", "Copied Link", "The Transfer link was successfully copied to the clipboard!")
+      toast.success("Copied Link", { description: "The Transfer link was successfully copied to the clipboard!" })
     }
   }
 
@@ -73,7 +71,7 @@ export default function ({ user, transfer }) {
 
     await putTransfer(transfer.id, { expiresAt })
 
-    displayNotification("success", "Expiration Changed", `The expiration date was successfully changed to ${expiresAt.toLocaleDateString()}`)
+    toast.success("Expiration Changed", { description: `The expiration date was successfully changed to ${expiresAt.toLocaleDateString()}` })
     router.refresh()
   }
 
@@ -107,11 +105,11 @@ export default function ({ user, transfer }) {
     e.preventDefault()
 
     if (user.plan == "starter" && transfer.emailsSharedWith.length >= 25) {
-      displayErrorModal("With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer.")
+      toast.error("Limit reached", { description: "With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer." })
       return
     }
     if (user.plan == "pro" && transfer.emailsSharedWith.length >= 200) {
-      displayErrorModal("With the Pro plan, you can only send a file transfer to up to 200 email recipients at once.")
+      toast.error("Limit reached", { description: "With the Pro plan, you can only send a file transfer to up to 200 email recipients at once." })
       return
     }
 
@@ -127,7 +125,7 @@ export default function ({ user, transfer }) {
 
     await sendTransferByEmail(transfer.id, [email])
 
-    displayNotification("success", "Email sent", `The Transfer link was successfully sent to ${email}!`)
+    toast.success("Email sent", { description: `The Transfer link was successfully sent to ${email}!` })
     setShowForwardTransfer(false)
     router.refresh()
   }

@@ -3,7 +3,7 @@
 import BIcon from "@/components/BIcon"
 import Modal from "@/components/elements/Modal"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DashboardContext } from "@/context/DashboardContext"
+import { toast } from "sonner"
 import { SelectedTransferContext } from "@/context/SelectedTransferProvider"
 import { deleteTransfer, getTransferDownloadLink, putTransfer, sendTransferByEmail } from "@/lib/client/Api"
 import { EXPIRATION_TIMES } from "@/lib/constants"
@@ -18,7 +18,6 @@ export default function ({ user, selectedTransfer }) {
 
   const router = useRouter()
 
-  const { displayNotification, displayErrorModal } = useContext(DashboardContext)
   const { refreshTransfer } = useContext(SelectedTransferContext)
 
   const [showEmailList, setShowEmailList] = useState(false)
@@ -57,7 +56,7 @@ export default function ({ user, selectedTransfer }) {
 
     await putTransfer(selectedTransfer.id, { expiresAt })
 
-    displayNotification("success", "Expiration Changed", `The expiration date was successfully changed to ${expiresAt.toLocaleDateString()}`)
+    toast.success("Expiration Changed", { description: `The expiration date was successfully changed to ${expiresAt.toLocaleDateString()}` })
     router.refresh()
     refreshTransfer()
   }
@@ -108,7 +107,7 @@ export default function ({ user, selectedTransfer }) {
 
   const handleCopy = async e => {
     if (await tryCopyToClipboard(transferLink)) {
-      displayNotification("success", "Copied Link", "The Transfer link was successfully copied to the clipboard!")
+      toast.success("Copied Link", { description: "The Transfer link was successfully copied to the clipboard!" })
     }
   }
 
@@ -151,11 +150,11 @@ export default function ({ user, selectedTransfer }) {
     e.preventDefault()
 
     if (user.plan == "starter" && selectedTransfer.emailsSharedWith.length >= 25) {
-      displayErrorModal("With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer.")
+      toast.error("Limit reached", { description: "With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer." })
       return
     }
     if (user.plan == "pro" && selectedTransfer.emailsSharedWith.length >= 200) {
-      displayErrorModal("With the Pro plan, you can only send a file transfer to up to 200 email recipients at once.")
+      toast.error("Limit reached", { description: "With the Pro plan, you can only send a file transfer to up to 200 email recipients at once." })
       return
     }
 
@@ -171,7 +170,7 @@ export default function ({ user, selectedTransfer }) {
 
     await sendTransferByEmail(selectedTransfer.id, [email])
 
-    displayNotification("success", "Email sent", `The Transfer link was successfully sent to ${email}!`)
+    toast.success("Email sent", { description: `The Transfer link was successfully sent to ${email}!` })
     refreshTransfer()
     setShowForwardTransfer(false)
   }

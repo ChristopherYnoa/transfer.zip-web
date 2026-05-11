@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/label"
 import { API_URL, changeSubscription, changeSubscriptionPreview, logout, putUserSettings } from "@/lib/client/Api"
 import pricing from "@/lib/pricing"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Spinner from "@/components/elements/Spinner"
-import { DashboardContext } from "@/context/DashboardContext"
+import { toast } from "sonner"
 import { humanTimeUntil, sleep } from "@/lib/utils"
 import { IS_SELFHOST } from "@/lib/isSelfHosted"
 import { User, UserIcon } from "lucide-react"
@@ -61,7 +61,6 @@ function TierCard({ isCurrent, isTrial, planCancelling, planValidUntil, planInte
 
 export default function ({ user, storage }) {
 
-  const { displayNotification } = useContext(DashboardContext)
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -96,7 +95,7 @@ export default function ({ user, storage }) {
       window.location.reload()
     }
     catch (err) {
-      displayNotification("error", "Error", err?.message || err)
+      toast.error("Error", { description: err?.message || err })
     }
     finally {
       setLoading(false)

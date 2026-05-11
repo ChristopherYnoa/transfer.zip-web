@@ -2,9 +2,9 @@
 
 import { ApplicationContext } from "@/context/ApplicationContext"
 import { useParams, useRouter } from "next/navigation"
-import { useContext, useMemo } from "react"
+import { useMemo } from "react"
 import EmptySpace from "../elements/EmptySpace"
-import { DashboardContext } from "@/context/DashboardContext"
+import { toast } from "sonner"
 import { cn, tryCopyToClipboard } from "@/lib/utils"
 import { activateTransferRequest, deactivateTransferRequest, getTransferRequestUploadLink } from "@/lib/client/Api"
 import BIcon from "../BIcon"
@@ -13,8 +13,6 @@ import { Link2OffIcon, LinkIcon } from "lucide-react"
 
 const Entry = ({ transferRequest }) => {
   const router = useRouter()
-
-  const { displayNotification } = useContext(DashboardContext)
 
   const { transferId: displayedTransferId } = useParams()
 
@@ -26,7 +24,7 @@ const Entry = ({ transferRequest }) => {
 
   const handleCopy = async e => {
     if (await tryCopyToClipboard(uploadLink)) {
-      displayNotification("success", "Copied Link", "The request link was successfully copied to the clipboard!")
+      toast.success("Copied Link", { description: "The request link was successfully copied to the clipboard!" })
     }
   }
 
