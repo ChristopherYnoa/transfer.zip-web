@@ -140,7 +140,7 @@ export async function redeemInvite(token, password) {
 }
 
 export async function deleteUser(userId) {
-    return await del(`/team/users/${userId}`)
+    return await withBody("delete", `/team/users/${userId}`)
 }
 
 export async function updateUserRole(userId, role) {

@@ -82,6 +82,8 @@ const handleSubscription = async object => {
     });
 
     if(type == "team") {
+      subscriber.seats = seats
+
       // TODO: come up with better and more reliable solution than this
       // maybe to check if there is an owner in users already
       if(subscriber.users.length == 0) {

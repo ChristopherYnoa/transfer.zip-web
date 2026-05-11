@@ -8,9 +8,9 @@ Legend: 🔴 blocks production · 🟠 broken core team value · 🟡 needs to w
 
 ## 🔴 Critical bugs — broken right now
 
-- [ ] **`deleteUser` API call is broken.** `next/src/lib/client/Api.js:143` calls `del(...)` which doesn't exist (only `withBody` is exported). Removing a team member from the UI throws `ReferenceError`. Change to `withBody("delete", \`/team/users/${userId}\`)`.
+- [x] **`deleteUser` API call is broken.** `next/src/lib/client/Api.js:143` calls `del(...)` which doesn't exist (only `withBody` is exported). Removing a team member from the UI throws `ReferenceError`. Change to `withBody("delete", \`/team/users/${userId}\`)`.
 
-- [ ] **Stripe seat quantity never persists to `Team.seats`.** `next/src/app/api/stripe/webhook/route.js:74` reads `const seats = item.quantity` but `handleSubscription` never writes it. `Team.seats` only reflects what was set at checkout — any seat upgrade/downgrade in Stripe is silently ignored. Pass `seats` through `updateSubscription({...})` and persist it on the Team model.
+- [x] **Stripe seat quantity never persists to `Team.seats`.** `next/src/app/api/stripe/webhook/route.js:74` reads `const seats = item.quantity` but `handleSubscription` never writes it. `Team.seats` only reflects what was set at checkout — any seat upgrade/downgrade in Stripe is silently ignored. Pass `seats` through `updateSubscription({...})` and persist it on the Team model.
 
 - [ ] **No seat enforcement.** Neither `POST /api/team/invite` (`route.js`) nor `POST /api/invite/[token]` checks `team.users.length + pendingInvites < team.seats`. Owners can invite unlimited members regardless of paid quantity. Add a guard in both routes, and ideally surface remaining seats in the UI.
 
