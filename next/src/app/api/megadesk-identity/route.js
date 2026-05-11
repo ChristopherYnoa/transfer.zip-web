@@ -11,10 +11,6 @@ export async function GET() {
   const payload = {
     userDetail: {
       email: auth.user.email,
-
-      plan: auth.user.getPlan(),
-      planValidUntil: auth.user.planValidUntil,
-      planCancelling: auth.user.planCancelling,
     },
     integrations: {
       stripe: {
