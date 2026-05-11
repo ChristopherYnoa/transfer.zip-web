@@ -41,6 +41,7 @@ export async function POST(req, { params }) {
 
   const body = await req.json()
   const password = body.password
+  const fullName = typeof body.fullName === "string" ? body.fullName.trim() : ""
 
   await dbConnect()
 
@@ -91,6 +92,10 @@ export async function POST(req, { params }) {
       role: invite.role,
       team: team._id,
     })
+
+    if (fullName) {
+      newUser.fullName = fullName
+    }
 
     if (password) {
       newUser.setPassword(password)

@@ -60,7 +60,7 @@ export async function POST(req) {
         name: name || "Untitled Transfer Request",
         description: description,
         link: getTransferRequestUploadLink(transferRequest),
-        brand: brandProfile ? brandProfile.friendlyObj() : undefined
+        brand: brandProfile ? brandProfile.toJsonAsClient() : undefined
       })
       await transferRequest.addSharedEmail(email)
     }
@@ -73,5 +73,5 @@ export async function POST(req) {
     await brandProfile.save()
   }
 
-  return NextResponse.json(resp({ transferRequest: transferRequest.friendlyObj() }))
+  return NextResponse.json(resp({ transferRequest: transferRequest.toJsonAsOwner() }))
 }

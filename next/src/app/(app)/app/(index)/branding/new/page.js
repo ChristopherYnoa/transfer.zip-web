@@ -8,6 +8,6 @@ export default async function () {
   const brandProfile = new BrandProfile()
 
   return (
-    <BrandProfileEditor isNew={true} initialProfile={brandProfile.friendlyObj()}/>
+    <BrandProfileEditor isNew={true} initialProfile={brandProfile.toJsonAsClient()}/>
   )
 }

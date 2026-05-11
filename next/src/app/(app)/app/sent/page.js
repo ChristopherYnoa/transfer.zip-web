@@ -14,7 +14,7 @@ export default async function ({ children }) {
 
   return (
     <GenericPage title={"Sent"}>
-      <TransferList transfers={sentTransfers.map(transfer => transfer.friendlyObj())} emptyFallback={(
+      <TransferList transfers={sentTransfers.map(transfer => transfer.toJsonAsOwner())} emptyFallback={(
         <EmptySpace title={"Your Sent Transfers"} subtitle={"Transfers you have sent will appear here. Go ahead and send some files!"} />
       )} />
       {children}

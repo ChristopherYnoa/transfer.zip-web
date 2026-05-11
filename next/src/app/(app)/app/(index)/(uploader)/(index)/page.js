@@ -36,7 +36,7 @@ export default async function () {
         </h1>
       </div>
       <div className="flex fade-in-up-slow">
-        <NewTransferFileUploadNew isDashboard={true} loaded={true} user={user.friendlyObj()} storage={storage} brandProfiles={brandProfiles.map(x => x.friendlyObj())} />
+        <NewTransferFileUploadNew isDashboard={true} loaded={true} user={user.toJsonAsClient()} storage={storage} brandProfiles={brandProfiles.map(x => x.toJsonAsClient())} />
       </div>
     </div>
   )

@@ -114,7 +114,7 @@ export const PLANS = {
     },
     limits: {
       [LIMIT.MAX_EXPIRY_DAYS]: 365,
-      [LIMIT.STORAGE]: 500e9, // 500GB per seat (handled separately)
+      [LIMIT.STORAGE]: 1e12, // 1TB per seat — each team member independently gets this. No realistic user will exceed it, so no pooling/aggregation needed.
     },
     displayFeatures: [
       <span><b>Unlimited transfers</b></span>,

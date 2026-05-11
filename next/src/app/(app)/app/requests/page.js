@@ -16,7 +16,7 @@ export default async function () {
     });
 
     return {
-      ...request.friendlyObj(),
+      ...request.toJsonAsOwner(),
       receivedTransfersCount
     };
   }));

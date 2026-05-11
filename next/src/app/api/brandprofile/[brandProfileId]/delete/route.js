@@ -19,5 +19,5 @@ export async function POST(req, { params }) {
 
   await profile.deleteOne()
 
-  return NextResponse.json(resp({ brandProfile: profile.friendlyObj() }));
+  return NextResponse.json(resp({ brandProfile: profile.toJsonAsClient() }));
 }

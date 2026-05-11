@@ -63,7 +63,7 @@ export default async function ({ params }) {
             src={brandProfile.backgroundUrl}
           />
         )}
-        <NewTransferFileUploadForRequest brandProfile={brandProfile?.friendlyObj()} transferRequest={transferRequest.friendlyObj()} />
+        <NewTransferFileUploadForRequest brandProfile={brandProfile?.toJsonAsClient()} transferRequest={transferRequest.toJsonAsUploader()} />
       </div>
       {(!IS_SELFHOST && !brandProfile) && (
         <>

@@ -44,5 +44,5 @@ export async function PUT(req, { params }) {
   profile.lastUsed = new Date();
   await profile.save();
 
-  return NextResponse.json(resp({ brandProfile: profile.friendlyObj() }));
+  return NextResponse.json(resp({ brandProfile: profile.toJsonAsClient() }));
 }

@@ -18,7 +18,7 @@ const NotificationSettingsSchema = new mongoose.Schema({
     expiryWarnings: { type: Boolean, default: true },
 }, { _id: false })
 
-NotificationSettingsSchema.methods.friendlyObj = function () {
+NotificationSettingsSchema.methods.toJsonAsClient = function () {
     return {
         transferDownloaded: this.transferDownloaded,
         transferReceived: this.transferReceived,
@@ -27,6 +27,7 @@ NotificationSettingsSchema.methods.friendlyObj = function () {
 }
 
 const UserSchema = new mongoose.Schema({
+    fullName: { type: String },
     username: {
         type: String,
         lowercase: true,
@@ -89,9 +90,10 @@ UserSchema.methods.validatePassword = function (pass) {
     return this.hash === hashFunc(pass, this.salt)
 }
 
-UserSchema.methods.friendlyObj = function () {
+UserSchema.methods.toJsonAsClient = function () {
     return {
         id: this._id.toString(),
+        fullName: this.fullName,
         email: this.email,
         plan: this.getPlan(),
         verified: this.verified,
@@ -100,7 +102,7 @@ UserSchema.methods.friendlyObj = function () {
         planInterval: this.planInterval,
         isTrial: this.planStatus == "trialing",
         onboarded: this.onboarded,
-        notificationSettings: this.notificationSettings.friendlyObj(),
+        notificationSettings: this.notificationSettings.toJsonAsClient(),
         hasPassword: this.hasPassword,
         role: this.role,
         hasTeam: this.hasTeam

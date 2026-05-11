@@ -236,7 +236,7 @@ export async function POST(req) {
       id: transferFile._id.toString()
     }))
 
-    return NextResponse.json(resp({ transfer: transfer.friendlyObj(), idMap }))
+    return NextResponse.json(resp({ transfer: transfer.toJsonAsOwner(), idMap }))
   }
   catch (err) {
     logError(err).forRoute("/api/transfer/new").forUserId(auth?.user?._id?.toString())

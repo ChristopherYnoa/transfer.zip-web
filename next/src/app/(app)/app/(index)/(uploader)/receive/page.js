@@ -36,7 +36,7 @@ export default async function () {
         </h1>
       </div>
       <div className="flex">
-        <NewTransferFileRequest isDashboard={true} loaded={true} user={user.friendlyObj()} storage={storage} brandProfiles={brandProfiles.map(x => x.friendlyObj())} />
+        <NewTransferFileRequest isDashboard={true} loaded={true} user={user.toJsonAsClient()} storage={storage} brandProfiles={brandProfiles.map(x => x.toJsonAsClient())} />
       </div>
     </div>
   )

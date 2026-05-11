@@ -63,7 +63,7 @@ export async function POST(req) {
     { new: true, upsert: true, setDefaultsOnInsert: true }
   )
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || ""
+  const baseUrl = process.env.SITE_URL
   const link = `${baseUrl}/invite/${token}`
   await sendTeamInvite(email, {
     teamName: team.name,

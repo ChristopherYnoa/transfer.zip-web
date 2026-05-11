@@ -29,7 +29,7 @@ const File = new mongoose.Schema({
     type: String
 }, { _id: true })
 
-File.methods.friendlyObj = function () {
+File.methods.toJsonAsClient = function () {
     return {
         id: this._id?.toString(),
         relativePath: this.relativePath,
@@ -129,7 +129,7 @@ TransferSchema.methods.registerFile = function (fileInfo) {
 }
 
 // TODO: Fix this mess
-TransferSchema.methods.friendlyObj = function () {
+TransferSchema.methods.toJsonAsOwner = function () {
     const { _id, name, description, expiresAt, secretCode, emailsSharedWith, createdAt, downloads, views, files, size } = this
     return {
         id: _id.toString(),
@@ -144,7 +144,7 @@ TransferSchema.methods.friendlyObj = function () {
             downloads: { length: downloads?.length },
             views: { length: views?.length },
         },
-        files: this.files.map(file => file.friendlyObj()),
+        files: this.files.map(file => file.toJsonAsClient()),
         size,
         createdAt,
         hasName: !!name,
@@ -152,27 +152,27 @@ TransferSchema.methods.friendlyObj = function () {
         finishedUploading: this.finishedUploading,
         nodeUrl: this.nodeUrl,
         brandProfileId: this.brandProfile ? this.brandProfile.toString() : undefined,
-        brandProfile: (this.brandProfile && typeof this.brandProfile.friendlyObj === 'function') ? this.brandProfile.friendlyObj() : undefined
+        brandProfile: (this.brandProfile && typeof this.brandProfile.toJsonAsClient === 'function') ? this.brandProfile.toJsonAsClient() : undefined
     }
 }
 
-TransferSchema.methods.downloadObj = function () {
-    const { _id, name, description, expiresAt, secretCode, files, size } = this
-    return {
-        id: _id.toString(),
-        name: name || "Untitled Transfer",
-        description,
-        expiresAt,
-        secretCode,
-        hasPassword: this.hasPassword(),
-        files: this.files.map(file => file.friendlyObj()),
-        size,
-        hasName: !!name,
-        finishedUploading: this.finishedUploading,
-        nodeUrl: this.nodeUrl,
-        brandProfileId: this.brandProfile ? this.brandProfile.toString() : undefined
-    }
-}
+// TransferSchema.methods.toJsonAsDownloader = function () {
+//     const { _id, name, description, expiresAt, secretCode, files, size } = this
+//     return {
+//         id: _id.toString(),
+//         name: name || "Untitled Transfer",
+//         description,
+//         expiresAt,
+//         secretCode,
+//         hasPassword: this.hasPassword(),
+//         files: this.files.map(file => file.toJsonAsClient()),
+//         size,
+//         hasName: !!name,
+//         finishedUploading: this.finishedUploading,
+//         nodeUrl: this.nodeUrl,
+//         brandProfileId: this.brandProfile ? this.brandProfile.toString() : undefined
+//     }
+// }
 
 TransferSchema.methods.getDownloadLink = function () {
     if (process.env.NEXT_PUBLIC_DL_DOMAIN) {

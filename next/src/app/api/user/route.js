@@ -12,6 +12,6 @@ export async function GET() {
   }
 
   return NextResponse.json(resp({
-    user: auth.user.friendlyObj()
+    user: auth.user.toJsonAsClient()
   }))
 }

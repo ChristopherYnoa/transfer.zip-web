@@ -64,7 +64,7 @@ export default async function InviteAcceptPage({ params }) {
       description={`You've been invited to join ${team.name}.`}
     >
       <InviteAcceptForm
-        invite={invite.friendlyObj()}
+        invite={invite.toJsonAsClient()}
         token={token}
         userExists={userExists}
         isLoggedInAsInvitee={isLoggedInAsInvitee}

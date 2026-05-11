@@ -51,7 +51,7 @@ export async function PUT(req, { params }) {
 
   await transfer.save()
 
-  return NextResponse.json(resp({ transfer: transfer.friendlyObj() }))
+  return NextResponse.json(resp({ transfer: transfer.toJsonAsOwner() }))
 }
 
 export async function GET(req, { params }) {
@@ -68,5 +68,5 @@ export async function GET(req, { params }) {
     return NextResponse.json(resp("transfer not found"), { status: 404 })
   }
 
-  return NextResponse.json(resp({ transfer: transfer.friendlyObj() }))
+  return NextResponse.json(resp({ transfer: transfer.toJsonAsOwner() }))
 }

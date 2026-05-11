@@ -45,5 +45,5 @@ export async function POST(req) {
     return NextResponse.json(resp(e.message), { status: 400 });
   }
 
-  return NextResponse.json(resp({ brandProfile: profile.friendlyObj() }));
+  return NextResponse.json(resp({ brandProfile: profile.toJsonAsClient() }));
 }

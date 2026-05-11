@@ -10,7 +10,7 @@ const BrandProfileSchema = new mongoose.Schema({
   lastUsed: { type: Date }
 }, { timestamps: true })
 
-BrandProfileSchema.methods.friendlyObj = function () {
+BrandProfileSchema.methods.toJsonAsClient = function () {
   return {
     id: this._id.toString(),
     name: this.name,

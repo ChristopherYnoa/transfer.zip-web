@@ -26,7 +26,7 @@ export default async function () {
         profiles.length > 0 ?
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {profiles.map(profile => {
-              const { id, name, iconUrl, backgroundUrl } = profile.friendlyObj()
+              const { id, name, iconUrl, backgroundUrl } = profile.toJsonAsClient()
               return (
                 <BrandProfileCard
                   key={id}

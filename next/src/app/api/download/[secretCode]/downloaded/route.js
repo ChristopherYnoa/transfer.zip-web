@@ -30,7 +30,7 @@ export async function POST(req, { params }) {
     author.notificationSettings?.transferDownloaded !== false &&
     (!transfer.lastDownloadEmailSentAt || now - transfer.lastDownloadEmailSentAt > DOWNLOAD_EMAIL_COOLDOWN_MS)
   ) {
-    const brand = transfer.brandProfile ? transfer.brandProfile.friendlyObj() : undefined;
+    const brand = transfer.brandProfile ? transfer.brandProfile.toJsonAsClient() : undefined;
     await sendTransferDownloaded(author.email, {
       name: transfer.name || 'Untitled Transfer',
       link: `${process.env.SITE_URL}/app/sent/${transfer._id.toString()}`,

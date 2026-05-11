@@ -12,7 +12,7 @@ export default async function () {
 
   return (
     <GenericPage title={"Received"}>
-      <TransferList transfers={receivedTransfers.map(transfer => transfer.friendlyObj())} emptyFallback={(
+      <TransferList transfers={receivedTransfers.map(transfer => transfer.toJsonAsOwner())} emptyFallback={(
         <EmptySpace title={"Your Received Transfers"} subtitle={"Received files from transfer requests will appear here."} />
       )} />
     </GenericPage>

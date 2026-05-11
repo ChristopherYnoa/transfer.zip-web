@@ -36,7 +36,7 @@ export default async function DashboardLayout({ children }) {
         <ApplicationProvider>
           <DashboardProvider>
             {children}
-            <FloatingBar user={auth.user.friendlyObj()} />
+            <FloatingBar user={auth.user.toJsonAsClient()} />
           </DashboardProvider>
         </ApplicationProvider>
       </div>

@@ -9,11 +9,11 @@ export default async function () {
   const { user } = auth
 
   const storage = await user.getStorage()
-  const team = user.team ? user.team.friendlyObj() : null
+  const team = user.team ? user.team.toJsonAsClient() : null
 
   return (
     <GenericPage title={"Account"}>
-      <SettingsPage user={user.friendlyObj()} storage={storage} team={team} />
+      <SettingsPage user={user.toJsonAsClient()} storage={storage} team={team} />
     </GenericPage>
   )
 }

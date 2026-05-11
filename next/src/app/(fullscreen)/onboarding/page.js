@@ -17,5 +17,5 @@ export default async function () {
 
   let hasFreeTrial = await doesUserHaveFreeTrial(auth.user, await cookies())
 
-  return <OnboardingPage user={auth.user.friendlyObj()} hasStripeAccount={!!auth.user.stripe_customer_id} hasFreeTrial={hasFreeTrial} />
+  return <OnboardingPage user={auth.user.toJsonAsClient()} hasStripeAccount={!!auth.user.stripe_customer_id} hasFreeTrial={hasFreeTrial} />
 }

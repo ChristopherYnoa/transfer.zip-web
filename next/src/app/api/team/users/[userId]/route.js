@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import dbConnect from "@/lib/server/mongoose/db"
 import Team from "@/lib/server/mongoose/models/Team"
 import User from "@/lib/server/mongoose/models/User"
+import Session from "@/lib/server/mongoose/models/Session"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { resp } from "@/lib/server/serverUtils"
 import { ROLES } from "@/lib/roles"
@@ -51,6 +52,8 @@ export async function DELETE(req, { params }) {
     { _id: userId },
     { $unset: { team: 1 }, $set: { role: ROLES.OWNER } }
   )
+
+  await Session.deleteMany({ user: userId })
 
   return NextResponse.json(resp({}))
 }

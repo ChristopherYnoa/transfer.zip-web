@@ -21,7 +21,7 @@ export default async function ({ params }) {
     });
 
     return {
-      ...request.friendlyObj(),
+      ...request.toJsonAsOwner(),
       receivedTransfersCount
     };
   }));
@@ -46,13 +46,13 @@ export default async function ({ params }) {
   return (
     <>
       <TransfersPage
-        transfers={transfers.map(transfer => transfer.friendlyObj())}
+        transfers={transfers.map(transfer => transfer.toJsonAsOwner())}
         transferRequests={transferRequestsWithCount}
       />
       <TransferSidebarWrapper
-        user={auth.user.friendlyObj()}
-        transfer={selectedTransfer?.friendlyObj()}
-      // brandProfiles={brandProfiles.map(profile => profile.friendlyObj())}
+        user={auth.user.toJsonAsClient()}
+        transfer={selectedTransfer?.toJsonAsOwner()}
+      // brandProfiles={brandProfiles.map(profile => profile.toJsonAsClient())}
       />
     </>
   )

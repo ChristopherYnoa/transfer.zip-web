@@ -43,7 +43,7 @@ export async function POST(req, { params }) {
   await transfer.save();
 
   if (transfer.finishedUploading) {
-    const brand = transfer.brandProfile ? transfer.brandProfile.friendlyObj() : undefined;
+    const brand = transfer.brandProfile ? transfer.brandProfile.toJsonAsClient() : undefined;
     for (const email of uniqueNew) {
       const sentEmailsLastDay = await SentEmail.countDocuments({ userEmail: auth.user.email})
       if (sentEmailsLastDay >= EMAILS_PER_DAY_LIMIT) {

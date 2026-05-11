@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { deleteTeamInvite, deleteUser, updateUserRole } from "@/lib/client/Api";
+import { deleteTeamInvite, deleteUser, sendTeamInvite, updateUserRole } from "@/lib/client/Api";
 import { ROLES } from "@/lib/roles";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { EllipsisVerticalIcon } from "lucide-react";
@@ -27,28 +27,23 @@ import ProfilePic from "@/components/ProfilePic";
 
 function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const isOwner = user.roles.includes(ROLES.OWNER)
-  const currIsOwner = currentUser.roles.includes(ROLES.OWNER)
-  const canManageRoles = (currentUser.roles.includes(ROLES.ADMIN) ? (isOwner ? false : true) : false) || currIsOwner
-  const canDeleteUsers = currentUser.roles.includes(ROLES.OWNER)
+  const isOwner = user.role === ROLES.OWNER
+  const currIsOwner = currentUser.role === ROLES.OWNER
+  const canManageRoles = (currentUser.role === ROLES.ADMIN ? (isOwner ? false : true) : false) || currIsOwner
+  const canDeleteUsers = currentUser.role === ROLES.OWNER
   const isSelf = currentUser.id === user.id
 
   return (
     <li className="flex items-center gap-4 p-3 bg-white rounded-lg border hover:bg-gray-50 transition">
-      <ProfilePic name={user.email} />
+      <ProfilePic name={user.fullName || user.email} />
       <div>
         <div className="font-semibold text-gray-900">{user.fullName}</div>
         <div className="text-sm text-gray-500">{user.email}</div>
       </div>
       <div className="ml-auto flex flex-row gap-1 ">
-        {user.roles.map(elem => {
-          return (
-            <div key={elem} className={"text-sm text-slate px-2 rounded-full " + (elem === ROLES.OWNER ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-tone-800")}>
-              {capitalizeFirstLetter(elem)}
-            </div>
-          )
-        })
-        }
+        <div className={"text-sm text-slate px-2 rounded-full " + (user.role === ROLES.OWNER ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-tone-800")}>
+          {capitalizeFirstLetter(user.role)}
+        </div>
       </div>
       <div className=" relative">
         <DropdownMenu>
@@ -58,7 +53,7 @@ function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
           <DropdownMenuContent>
             {canManageRoles && !isOwner && !isSelf && (
               <DropdownMenuItem onClick={() => onUpdateRole(user)}>
-                {user.roles.includes(ROLES.ADMIN) ? "Demote to Member" : "Promote to Admin"}
+                {user.role === ROLES.ADMIN ? "Demote to Member" : "Promote to Admin"}
               </DropdownMenuItem>
             )}
             {canDeleteUsers && !isOwner && (
@@ -98,14 +93,28 @@ function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
 
 function InviteEntry({ invite }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [resending, setResending] = useState(false)
   const router = useRouter()
 
   const handleDeleteInvite = async (_id) => {
     try {
       await deleteTeamInvite(_id)
       router.refresh()
-    } catch {
-      toast.error("Deletetion failed");
+    } catch (err) {
+      toast.error(err.message)
+    }
+  }
+
+  const handleResendInvite = async () => {
+    setResending(true)
+    try {
+      await sendTeamInvite(invite.email, invite.role)
+      toast.success("Invite resent", { description: `A new invitation was sent to ${invite.email}` })
+      router.refresh()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setResending(false)
     }
   }
 
@@ -124,6 +133,9 @@ function InviteEntry({ invite }) {
             <Button variant="ghost" ><EllipsisVerticalIcon className="w-8 h-8 text-gray-700 text-xlr" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuItem disabled={resending} onClick={handleResendInvite}>
+              {resending ? "Resending..." : "Resend invite"}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShowDeleteModal(true)} className="text-destructive">
               Delete
             </DropdownMenuItem>
@@ -160,42 +172,24 @@ function InviteEntry({ invite }) {
 export default function UserList({ user, users, invites }) {
   const router = useRouter()
 
-  const getErrorMessage = (err, fallback) => {
-    if (!err) return fallback
-    if (typeof err === "string") return err
-    if (typeof err.message === "string") return err.message
-    if (err.error && typeof err.error.message === "string") return err.error.message
-    try {
-      return JSON.stringify(err)
-    } catch {
-      return fallback
-    }
-  }
-
   const handleDeleteUser = async (targetUser) => {
     try {
-      const res = await deleteUser(targetUser.id)
-      if (!res || !res.success) {
-        throw new Error(res?.message || "Could not delete user")
-      }
+      await deleteUser(targetUser.id)
       toast.success("User removed")
       router.refresh()
     } catch (err) {
-      toast.error(getErrorMessage(err, "Could not delete user"))
+      toast.error(err.message)
     }
   }
 
   const handleUpdateRole = async (targetUser) => {
-    const nextRole = targetUser.roles.includes(ROLES.ADMIN) ? ROLES.MEMBER : ROLES.ADMIN
+    const nextRole = targetUser.role === ROLES.ADMIN ? ROLES.MEMBER : ROLES.ADMIN
     try {
-      const res = await updateUserRole(targetUser.id, nextRole)
-      if (!res || !res.success) {
-        throw new Error(res?.message || "Could not update role")
-      }
+      await updateUserRole(targetUser.id, nextRole)
       toast.success("Role updated")
       router.refresh()
     } catch (err) {
-      toast.error(getErrorMessage(err, "Could not update role"))
+      toast.error(err.message)
     }
   }
 

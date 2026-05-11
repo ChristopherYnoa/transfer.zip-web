@@ -19,17 +19,8 @@ export default async function () {
 
   const invites = await TeamInvite.find({ team: team._id })
 
-  const teamUsers = team.users.map(u => ({
-    id: u._id.toString(),
-    email: u.email,
-    fullName: u.email.split("@")[0],
-    roles: [u.role]
-  }))
-
-  const currentUser = {
-    id: user._id.toString(),
-    roles: [user.role]
-  }
+  const teamUsers = team.users.map(u => u.toJsonAsClient())
+  const currentUser = user.toJsonAsClient()
 
   const storage = await user.getStorage()
 
@@ -40,7 +31,7 @@ export default async function () {
           <UserList
             users={teamUsers}
             user={currentUser}
-            invites={invites.map(inv => inv.friendlyObj())}
+            invites={invites.map(inv => inv.toJsonAsClient())}
           />
           <div className="mt-4 flex items-center gap-4">
             <p className="text-gray-600 flex-1 whitespace-nowrap">
@@ -50,7 +41,7 @@ export default async function () {
           </div>
         </div>
       </div>
-      <TeamPage user={user.friendlyObj()} storage={storage} team={team.friendlyObj()} />
+      <TeamPage user={currentUser} storage={storage} team={team.toJsonAsClient()} />
     </GenericPage>
   )
 }

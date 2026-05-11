@@ -10,7 +10,7 @@ const TeamInviteSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now, expires: "7d" }
 })
 
-TeamInviteSchema.methods.friendlyObj = function () {
+TeamInviteSchema.methods.toJsonAsClient = function () {
   return {
     id: this._id.toString(),
     email: this.email,

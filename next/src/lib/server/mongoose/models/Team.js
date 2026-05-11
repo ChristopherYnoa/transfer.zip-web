@@ -81,7 +81,7 @@ TeamSchema.methods.updateSubscription = function ({ plan, status, validUntil, ca
     }
 }
 
-TeamSchema.methods.friendlyObj = function () {
+TeamSchema.methods.toJsonAsClient = function () {
     return {
         name: this.name,
         seats: this.seats,

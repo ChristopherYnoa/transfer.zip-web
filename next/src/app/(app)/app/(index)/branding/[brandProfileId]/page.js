@@ -18,6 +18,6 @@ export default async function ({ params }) {
   }
 
   return (
-    <BrandProfileEditor initialProfile={profile.friendlyObj()} isNew={false}/>
+    <BrandProfileEditor initialProfile={profile.toJsonAsClient()} isNew={false}/>
   )
 }

@@ -4,7 +4,7 @@ import BIcon from "@/components/BIcon"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { API_URL, logout, putUserSettings } from "@/lib/client/Api"
-import pricing, { getPlanById, FREE_PLAN } from "@/lib/pricing"
+import pricing, { getPlanById, FREE_PLAN, PLANS } from "@/lib/pricing"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { IS_SELFHOST } from "@/lib/isSelfHosted"
@@ -14,6 +14,7 @@ import { humanFileSize } from "@/lib/transferUtils"
 import { humanTimeUntil } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ROLES } from "@/lib/roles"
+import ProfilePic from "@/components/ProfilePic"
 
 function CurrentPlanCard({ plan, isTrial, planCancelling, planValidUntil }) {
   const tier = getPlanById(plan) || FREE_PLAN
@@ -48,7 +49,10 @@ function CurrentPlanCard({ plan, isTrial, planCancelling, planValidUntil }) {
       <div className="flex flex-wrap gap-4 items-center justify-between">
         <div>
           <p className="font-medium text-gray-900">Looking for more?</p>
-          <p className="text-sm text-gray-500">Switch plans to share bigger transfers with your team</p>
+          {name == PLANS.teams.name ?
+            <p className="text-sm text-gray-500">Switch plans to share bigger transfers with your team</p>
+            : <p className="text-sm text-gray-500">Switch plans to share bigger ideas with more features</p>
+          }
         </div>
         <Button asChild>
           <Link
@@ -86,17 +90,44 @@ export default function ({ user, storage, team }) {
   return (
     <div className="p-5 sm:p-6 bg-white rounded-xl">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        <div className="sm:col-span-full">
+        <div className="sm:col-span-full flex gap-4">
           <div className="flex items-center gap-4">
-            <UserIcon size={48} className="text-white bg-primary p-3 rounded-full" />
-            <span className="text-gray-800 text-lg font-semibold">{user.email}</span>
+            {/* <UserIcon size={48} className="text-white bg-primary p-3 rounded-full" /> */}
+            <ProfilePic size={48} name={user.email} />
+            {user.fullName ?
+              <div className="flex flex-col justify-center">
+                <p className="text-gray-800 text-lg font-semibold">{user.fullName}</p>
+                <span className="text-gray-600 text-sm">{user.email}</span>
+              </div>
+              : <span className="text-gray-800 text-lg font-semibold">{user.email}</span>
+            }
+
           </div>
-          {!IS_SELFHOST && (
+          {/* {!IS_SELFHOST && (
             <p className="text-gray-600 text-sm/6 mt-4">
               To change your email or delete your account, <a className="text-primary" href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`}>contact us</a>.
             </p>
-          )}
+          )} */}
         </div>
+        {user.hasTeam && user.role !== ROLES.OWNER && (
+          <div className="col-span-full">
+            <div className="inline-flex items-start gap-3 rounded-xl border border-primary-400 bg-primary-50 p-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-gray-900">
+                    Managed by {team?.name || "your team"}
+                  </span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white text-gray-600 border capitalize">
+                    {user.role}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Your plan, storage, and billing are handled by the team owner.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="sm:col-span-1">
           <h2 className="text-lg font-semibold text-gray-900 ">Notifications</h2>
           <div className="space-y-4 mt-4">

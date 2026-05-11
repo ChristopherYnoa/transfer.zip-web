@@ -24,7 +24,7 @@ TransferRequestSchema.methods.addSharedEmail = function (email) {
     this.emailsSharedWith.push({ email })
 }
 
-TransferRequestSchema.methods.friendlyObj = function () {
+TransferRequestSchema.methods.toJsonAsOwner = function () {
     const { _id, active, name, description, secretCode, emailsSharedWith, createdAt, brandProfile } = this
     return {
         id: _id.toString(),
@@ -39,7 +39,7 @@ TransferRequestSchema.methods.friendlyObj = function () {
     }
 }
 
-TransferRequestSchema.methods.uploadObj = function () {
+TransferRequestSchema.methods.toJsonAsUploader = function () {
     const { _id, name, description, secretCode, brandProfile } = this
     return {
         id: _id,

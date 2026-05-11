@@ -57,6 +57,7 @@ export default function InviteAcceptForm({ invite, token, userExists, isLoggedIn
     setMessage("")
 
     const formData = new FormData(e.target)
+    const fullName = formData.get("fullName")?.trim() || ""
     const password = formData.get("password")
     const confirmPassword = formData.get("confirmPassword")
 
@@ -72,7 +73,7 @@ export default function InviteAcceptForm({ invite, token, userExists, isLoggedIn
 
     setLoading(true)
     try {
-      await redeemInvite(token, password)
+      await redeemInvite(token, password, fullName)
       window.location.href = "/app"
     } catch (err) {
       setMessage(err.message || "Could not accept invite")
@@ -94,6 +95,22 @@ export default function InviteAcceptForm({ invite, token, userExists, isLoggedIn
             value={invite.email}
             disabled
             className="block w-full rounded-md border-0 py-1.5 text-gray-500 bg-gray-50 shadow-sm ring-1 ring-inset ring-gray-300 sm:text-sm/6"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="fullName" className="block text-sm/6 font-medium text-gray-900">
+          Full name <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <div className="mt-2">
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            autoComplete="name"
+            placeholder="Jane Doe"
+            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6"
           />
         </div>
       </div>

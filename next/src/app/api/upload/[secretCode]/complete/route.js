@@ -29,13 +29,13 @@ export async function POST(req, { params }) {
   transfer.finishedUploading = true
 
 
-  const filesList = transfer.files.map(file => file.friendlyObj())
+  const filesList = transfer.files.map(file => file.toJsonAsClient())
 
   await workerUploadComplete(transfer.nodeUrl, transfer._id.toString(), filesList)
 
   if (!transfer.transferRequest && transfer.emailsSharedWith?.length) {
     const unique = [...new Set(transfer.emailsSharedWith.map(e => e.email))];
-    const brand = transfer.brandProfile ? transfer.brandProfile.friendlyObj() : undefined;
+    const brand = transfer.brandProfile ? transfer.brandProfile.toJsonAsClient() : undefined;
     for (const email of unique) {
       const sentEmailsLastDay = await SentEmail.countDocuments({ userEmail: transfer.authorEmail })
       if (sentEmailsLastDay >= EMAILS_PER_DAY_LIMIT) {
@@ -61,7 +61,7 @@ export async function POST(req, { params }) {
       await sendTransferRequestReceived(request.author.email, {
         name: request.name || 'Untitled Request',
         link: `${process.env.SITE_URL}/app/received`,
-        brand: request.brandProfile ? request.brandProfile.friendlyObj() : undefined,
+        brand: request.brandProfile ? request.brandProfile.toJsonAsClient() : undefined,
       });
     }
   }

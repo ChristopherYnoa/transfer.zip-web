@@ -15,12 +15,12 @@ export default async function ConditionalLandingFileRequest({ }) {
     BrandProfile.find({ author: auth.user._id }).sort({ lastUsed: -1 }),
   ])
 
-  const brandProfiles = brandProfilesDocs.map(profile => profile.friendlyObj())
+  const brandProfiles = brandProfilesDocs.map(profile => profile.toJsonAsClient())
 
   return (
     <NewTransferFileRequest
       loaded={true}
-      user={auth.user.friendlyObj()}
+      user={auth.user.toJsonAsClient()}
       storage={storage}
       brandProfiles={brandProfiles}
     />

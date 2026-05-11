@@ -8,7 +8,7 @@ import { listTransfersForUser } from "@/lib/server/serverUtils";
 export default async function ({ }) {
   let auth = await useServerAuth();
 
-  const _user = auth.user.friendlyObj()
+  const _user = auth.user.toJsonAsClient()
 
   const transfers = await listTransfersForUser(auth.user)
 
@@ -18,10 +18,10 @@ export default async function ({ }) {
     <GenericPage title={"Overview"}>
       <div className="mb-4">
         {/* <h3 className="text-base font-semibold leading-6 text-gray-900">Statistics</h3> */}
-        <Stats user={_user} transfers={transfers.map(transfer => transfer.friendlyObj())} storagePercent={storagePercent} />
+        <Stats user={_user} transfers={transfers.map(transfer => transfer.toJsonAsOwner())} storagePercent={storagePercent} />
       </div>
       <h3 className="font-semibold mb-1 text-gray-500">Recent</h3>
-      <TransferList transfers={transfers.slice(0, 5).map(transfer => transfer.friendlyObj())} />
+      <TransferList transfers={transfers.slice(0, 5).map(transfer => transfer.toJsonAsOwner())} />
     </GenericPage>
   )
 }

@@ -31,18 +31,6 @@ export default function AddUserButton() {
   const [selectedRole, setSelectedRole] = useState(roles[1].id)
   const [error, setError] = useState("")
 
-  const getErrorMessage = (err, fallback) => {
-    if (!err) return fallback
-    if (typeof err === "string") return err
-    if (typeof err.message === "string") return err.message
-    if (err.error && typeof err.error.message === "string") return err.error.message
-    try {
-      return JSON.stringify(err)
-    } catch {
-      return fallback
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     const formData = new FormData(e.target)
@@ -50,17 +38,14 @@ export default function AddUserButton() {
     const email = formData.get("email")
 
     try {
-      const res = await sendTeamInvite(email, formData.get("role"))
-      if (!res || !res.success) {
-        throw new Error(res?.message || "Could not send invite")
-      }
+      await sendTeamInvite(email, formData.get("role"))
       setError("")
       e.target.reset()
       setShowModal(false)
       toast.success("Invite sent", { description: `An invitation was sent to ${email}` })
       router.refresh()
     } catch (err) {
-      setError(getErrorMessage(err, "Could not send invite"))
+      setError(err.message)
     }
   }
 

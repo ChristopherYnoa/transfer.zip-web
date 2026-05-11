@@ -135,8 +135,8 @@ export async function getInvite(token) {
     return await get(`/invite/${token}`)
 }
 
-export async function redeemInvite(token, password) {
-    return await post(`/invite/${token}`, { password })
+export async function redeemInvite(token, password, fullName) {
+    return await post(`/invite/${token}`, { password, fullName })
 }
 
 export async function deleteUser(userId) {

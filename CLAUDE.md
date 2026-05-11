@@ -92,7 +92,15 @@ if (!auth) throw new Error("Unauthorized");
 
 ### Mongoose models
 
-In [next/src/lib/server/mongoose/models/](next/src/lib/server/mongoose/models/). Models export the standard `mongoose.models.X || mongoose.model("X", ...)` pattern (required for Next hot-reload). Most have a `friendlyObj()` instance method that returns the safe public shape — use it instead of returning raw documents from API routes.
+In [next/src/lib/server/mongoose/models/](next/src/lib/server/mongoose/models/). Models export the standard `mongoose.models.X || mongoose.model("X", ...)` pattern (required for Next hot-reload). Each model exposes one or more `toJsonAs*()` instance methods that return the shape safe to send over the wire.
+
+**Always use a `toJsonAs*()` method when passing model data from server to client** — through API route JSON responses, props returned from server components, or any other server→client boundary. Never serialize raw Mongoose documents directly to the client, as they may leak internal fields (password hashes, tokens, internal flags, etc.). If a model is missing one, add it rather than hand-picking fields at the call site.
+
+**Naming convention:**
+- `toJsonAsClient()` — the default. Use when there's only one shape the model is sent in (regardless of who the caller is — auth is enforced upstream, not by the serializer).
+- `toJsonAsOwner()`, `toJsonAsDownloader()`, `toJsonAsUploader()`, etc. — when the same model has materially different shapes for different audiences (e.g. `Transfer` returns the plaintext password to the owner, but not to a public downloader). Pick the name that matches the trust boundary you're crossing.
+
+The presence of an audience-specific method on a model (e.g. `toJsonAsOwner`) signals "this model has a trust boundary inside it — pick the right variant carefully." A model with only `toJsonAsClient()` is saying "nothing sensitive varies by audience here."
 
 ### Logging
 
@@ -124,6 +132,20 @@ const { id } = await params;
 - Use **template strings** when interpolating or multi-line strings
 - Use **Tailwind CSS** for styling
 - Minimize use of optional chaining (`?.`) — use it only for genuinely optional values, not to hide errors
+
+### Do not code defensively
+
+This is non-negotiable. Before writing a check, **read the function you're calling** and find out what it actually returns or throws. Then trust it.
+
+Concretely, do **not** write any of these:
+
+- `if (!res || !res.success) throw new Error(res?.message || "fallback")` when calling a helper that already throws on failure. The [Api.js](next/src/lib/client/Api.js) helpers (`get`/`post`/`put`/`withBody`) throw a real `Error` on `!res.ok` or `!json.success` — the success path is guaranteed.
+- `getErrorMessage(err, fallback)` ladders that probe `typeof err.message === "string"`, then `err.error.message`, then `JSON.stringify(err)`. The thrown error is always an `Error` with a string `.message`. Just write `toast.error(err.message)`.
+- `res?.field`, `err?.message`, `obj?.foo?.bar` to "be safe" when the value is not actually optional. Optional chaining is for values that are *genuinely* sometimes absent (e.g. a populated relation that may be unpopulated). It is not a shield against not having read the code.
+- `try/catch` blocks that swallow the error and substitute a generic string. The thrown message is the actual cause — surface it.
+- Fallback strings for cases that can't happen ("Could not send invite" after a helper that has already thrown a more specific message).
+
+When in doubt, **read the callee** before adding a guard. Three lines of clean code that match the actual contract beat ten lines of paranoia that obscure it.
 
 ### Behavior
 - Be critical of implementation ideas — challenge approaches if they seem suboptimal rather than just executing them.
