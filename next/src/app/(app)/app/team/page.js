@@ -15,7 +15,8 @@ export default async function () {
     redirect("/app")
   }
 
-  await team.populate("users")
+  // Nested populate so each user's "team" ref is also populated - User.getPlan/hasFeature/getLimit delegate to it.
+  await team.populate({ path: "users", populate: { path: "team" } })
 
   const invites = await TeamInvite.find({ team: team._id })
 

@@ -115,7 +115,7 @@ UserSchema.methods.setPassword = function (pass) {
 }
 
 UserSchema.methods.getPlan = function () {
-    if(this.team) {
+    if (this.team) {
         return this.team.getPlan()
     }
     if (this.planStatus == "active" || this.planStatus == "trialing") {
@@ -171,7 +171,7 @@ UserSchema.methods.updateSubscription = function ({ plan, status, validUntil, ca
         this.planCancelling = cancelling;
     }
 
-    if(interval !== undefined) {
+    if (interval !== undefined) {
         this.planInterval = interval
     }
 }
