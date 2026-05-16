@@ -26,7 +26,7 @@ These are the things that make "team plan" actually mean something. Today the fe
 
 - [x] **BrandProfile is team-scoped.** Added `BrandProfile.team` (set once at creation from the creator's team) and a single scope helper in [next/src/lib/server/brandProfiles.js](next/src/lib/server/brandProfiles.js) that every route goes through. Team Owner/Admin manage profiles from `/app/admin/branding`; Members see team profiles in the transfer picker but can't manage. Solo Pro users keep `/app/branding` unchanged. Shared UI in [components/dashboard/branding/](next/src/components/dashboard/branding/).
 
-- [ ] **TransferRequest (request links) is per-user.** Same problem — `TransferRequest.author` is a single user. A teammate can't pick up incoming files when the requester is OOO. Add team scoping or at minimum a "team request link" mode.
+<!-- - [ ] **TransferRequest (request links) is per-user.** Same problem — `TransferRequest.author` is a single user. A teammate can't pick up incoming files when the requester is OOO. Add team scoping or at minimum a "team request link" mode. -->
 
 - [x] **Storage limits are ambiguous and probably wrong.** ~~Pricing says 500GB *per seat* but `User.getStorage()` just calls `getMaxStorageForPlan(this.getPlan())` — each member independently gets 500GB regardless of seat count.~~ Bumped Teams plan storage to **1TB per seat, each user gets 1TB independently** (no aggregation). At 1TB per member this will never realistically be hit, so pooled storage isn't worth building.
 
@@ -37,15 +37,15 @@ These are the things that make "team plan" actually mean something. Today the fe
 ### Membership lifecycle
 - [ ] **Transfer ownership on member exit.** Today when a member is removed (or leaves), their transfers stay tied to them but they're now outside the team. Define: reassign to team Owner? Keep but mark orphaned? Force deletion with grace window? Implement the chosen policy in the DELETE user route and the "leave team" flow.
 
-- [ ] **"Leave team" flow for members.** Members can be removed by an Owner but have no self-service way to leave. Add `POST /api/team/leave`. Block the Owner from leaving until ownership is transferred.
+<!-- - [ ] **"Leave team" flow for members.** Members can be removed by an Owner but have no self-service way to leave. Add `POST /api/team/leave`. Block the Owner from leaving until ownership is transferred. -->
 
-- [ ] **Owner transfer.** Owner is currently immutable — if they get hit by a bus the team is stuck. Add an "Transfer ownership" action (Owner-only, confirmation required, target must be an existing ADMIN or MEMBER).
+<!-- - [ ] **Owner transfer.** Owner is currently immutable — if they get hit by a bus the team is stuck. Add an "Transfer ownership" action (Owner-only, confirmation required, target must be an existing ADMIN or MEMBER). -->
 
-- [ ] **Email validation on invite.** `api/team/invite/route.js` doesn't validate the email format — typos create un-redeemable invites. Add a simple regex/`z.string().email()` check.
+<!-- - [ ] **Email validation on invite.** `api/team/invite/route.js` doesn't validate the email format — typos create un-redeemable invites. Add a simple regex/`z.string().email()` check. -->
 
 - [x] **Invite re-send / reminder.** Added a "Resend invite" action in the pending-invite dropdown — reuses `POST /api/team/invite`, which already upserts on `(team, email)`: regenerates the token, resets the 7d TTL, and re-sends the email. Skipped the optional reminder email at day 3/6.
 
-- [ ] **Block invite if user already on another team / has live sub.** The invite *creation* route checks this (good), but the invite *acceptance* should re-check at accept time too — the invitee's state may have changed between send and accept.
+- [x] **Block invite if user already on another team / has live sub.** Both routes check this. Creation: [api/team/invite/route.js:48-58](next/src/app/api/team/invite/route.js#L48-L58). Acceptance re-checks at accept time in [api/invite/[token]/route.js:74-82](next/src/app/api/invite/[token]/route.js#L74-L82).
 
 - [ ] **Surface remaining seats in the UI.** Seat enforcement now blocks invites server-side, but the invite UI gives no warning until the request fails. Disable / hint when full. Same on the accept-invite page if the team has filled up since send. We should upsell, asking if they want to pay for more seats.
 
@@ -66,13 +66,13 @@ These are the things that make "team plan" actually mean something. Today the fe
 - [ ] **User has no name field.** `team/page.js:24` falls back to `email.split("@")[0]` for `fullName`. Add `User.name` (optional), let users set it on signup / in settings, and use it in the team member list, invite emails, and brand-profile defaults.
 
 ### Notifications
-- [ ] **Transactional emails for team events.** Minimum set: invite sent (exists), invite accepted (notify Owner), member removed (notify the removed user), role changed (notify the affected user), seat capacity reached (notify Owner). Pretty self-explanatory and expected behavior.
+- [x] **Transactional emails for team events.** Templates in [mail/templates/](next/src/lib/server/mail/templates/) — `TeamInviteAcceptedEmail`, `TeamMemberRemovedEmail`, `TeamRoleChangedEmail`, `TeamSeatCapacityReachedEmail` — wired up fire-and-forget from the invite acceptance route and the user DELETE/PUT routes. Seat-capacity email fires when the last seat fills on accept.
 
-- [ ] **Cancellation / expiry warning email.** When subscription is cancelled or about to lapse, email all team members so they don't lose access without warning.
+<!-- - [ ] **Cancellation / expiry warning email.** When subscription is cancelled or about to lapse, email all team members so they don't lose access without warning. -->
 
 ## 🟢 Polish & nice-to-haves
 
-- [ ] **Typo: "Deletetion failed"** in `next/src/app/(app)/app/team/UserList.js:110`.
+- [x] **Typo: "Deletetion failed"** — gone, the team UserList now lives at [app/(admin)/admin/UserList.js](next/src/app/(app)/app/(admin)/admin/UserList.js) and the catch surfaces `err.message` directly.
 
 - [ ] **Team name editing.** Name is set at team creation and never shown editable in UI. Add a rename action in `/app/team` (Owner/Admin).
 

@@ -7,6 +7,8 @@ import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { resp } from "@/lib/server/serverUtils"
 import { ROLES } from "@/lib/roles"
 import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { sendTeamMemberRemoved, sendTeamRoleChanged } from "@/lib/server/mail/mail"
+import { logError } from "@/lib/server/errors"
 
 export async function DELETE(req, { params }) {
   const { userId } = await params
@@ -65,6 +67,12 @@ export async function DELETE(req, { params }) {
       email: user?.email,
     },
   })
+
+  if (user?.email) {
+    sendTeamMemberRemoved(user.email, {
+      teamName: team.name,
+    }).catch(err => logError(err).forRoute("api/team/users/[userId]/DELETE"))
+  }
 
   return NextResponse.json(resp({}))
 }
@@ -128,6 +136,12 @@ export async function PUT(req, { params }) {
         to: role,
       },
     })
+
+    sendTeamRoleChanged(user.email, {
+      teamName: team.name,
+      role,
+      link: `${process.env.SITE_URL}/app`,
+    }).catch(err => logError(err).forRoute("api/team/users/[userId]/PUT"))
   }
 
   return NextResponse.json(resp({}))

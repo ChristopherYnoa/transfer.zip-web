@@ -7,6 +7,10 @@ import TransferRequestShareEmail from './templates/TransferRequestShareEmail.jsx
 import PasswordResetEmail from './templates/PasswordResetEmail.jsx';
 import MagicLinkEmail from './templates/MagicLinkEmail.jsx';
 import TeamInviteEmail from './templates/TeamInviteEmail.jsx';
+import TeamInviteAcceptedEmail from './templates/TeamInviteAcceptedEmail.jsx';
+import TeamMemberRemovedEmail from './templates/TeamMemberRemovedEmail.jsx';
+import TeamRoleChangedEmail from './templates/TeamRoleChangedEmail.jsx';
+import TeamSeatCapacityReachedEmail from './templates/TeamSeatCapacityReachedEmail.jsx';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -70,5 +74,33 @@ export async function sendTeamInvite(email, { teamName, inviterEmail, link }) {
   await sendMail(TeamInviteEmail({ teamName, inviterEmail, link }), {
     to: email,
     subject: `You've been invited to join ${teamName} - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
+  });
+}
+
+export async function sendTeamInviteAccepted(email, { teamName, memberEmail, link }) {
+  await sendMail(TeamInviteAcceptedEmail({ teamName, memberEmail, link }), {
+    to: email,
+    subject: `${memberEmail} joined ${teamName} - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
+  });
+}
+
+export async function sendTeamMemberRemoved(email, { teamName }) {
+  await sendMail(TeamMemberRemovedEmail({ teamName }), {
+    to: email,
+    subject: `You've been removed from ${teamName} - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
+  });
+}
+
+export async function sendTeamRoleChanged(email, { teamName, role, link }) {
+  await sendMail(TeamRoleChangedEmail({ teamName, role, link }), {
+    to: email,
+    subject: `Your role in ${teamName} has changed - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
+  });
+}
+
+export async function sendTeamSeatCapacityReached(email, { teamName, seats, link }) {
+  await sendMail(TeamSeatCapacityReachedEmail({ teamName, seats, link }), {
+    to: email,
+    subject: `${teamName} has reached its seat limit - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
   });
 }

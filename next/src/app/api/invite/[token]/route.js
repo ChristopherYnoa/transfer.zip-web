@@ -8,6 +8,9 @@ import Session from "@/lib/server/mongoose/models/Session"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
 import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { sendTeamInviteAccepted, sendTeamSeatCapacityReached } from "@/lib/server/mail/mail"
+import { logError } from "@/lib/server/errors"
+import { ROLES } from "@/lib/roles"
 
 export async function GET(req, { params }) {
   const { token } = await params
@@ -118,6 +121,24 @@ export async function POST(req, { params }) {
     actor: user,
     data: { email: user.email, role: user.role },
   })
+
+  const owner = await User.findOne({ _id: { $in: team.users }, role: ROLES.OWNER })
+  if (owner) {
+    const manageLink = `${process.env.SITE_URL}/app/admin/members`
+    sendTeamInviteAccepted(owner.email, {
+      teamName: team.name,
+      memberEmail: user.email,
+      link: manageLink,
+    }).catch(err => logError(err).forRoute("api/invite/[token]/POST"))
+
+    if (team.users.length >= (team.seats || 0)) {
+      sendTeamSeatCapacityReached(owner.email, {
+        teamName: team.name,
+        seats: team.seats || 0,
+        link: manageLink,
+      }).catch(err => logError(err).forRoute("api/invite/[token]/POST"))
+    }
+  }
 
   const response = NextResponse.json(resp({}), { status: 200 })
   if (!session) {
