@@ -3,6 +3,7 @@ import UserList from "../UserList";
 import AdminCard from "../AdminCard";
 
 export default function MembersSection({ currentUser, teamUsers, invites, seats }) {
+  const atCapacity = teamUsers.length + invites.length >= seats
   return (
     <AdminCard>
       <UserList user={currentUser} users={teamUsers} invites={invites} />
@@ -11,7 +12,7 @@ export default function MembersSection({ currentUser, teamUsers, invites, seats 
           {teamUsers.length}/{seats} seats used
           {invites.length > 0 && ` · ${invites.length} pending`}
         </p>
-        <AddUserButton />
+        <AddUserButton atCapacity={atCapacity} />
       </div>
     </AdminCard>
   );

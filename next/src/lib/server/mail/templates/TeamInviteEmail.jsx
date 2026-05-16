@@ -1,12 +1,12 @@
 import { Button, Heading, Hr, Text } from '@react-email/components';
 import EmailLayout from './EmailLayout.jsx';
 
-export default function TeamInviteEmail({ teamName, inviterEmail, link }) {
+export default function TeamInviteEmail({ teamName, inviterName, link }) {
   return (
     <EmailLayout>
       <Heading style={h1}>You've been invited to join a team on Transfer.zip</Heading>
       <Text style={text}>
-        {inviterEmail} has invited you to join "{teamName}".
+        {inviterName} has invited you to join "{teamName}".
       </Text>
       <Text style={text}>
         Click the button below to accept the invitation and join the team.

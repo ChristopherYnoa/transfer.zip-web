@@ -7,6 +7,8 @@ import User from "@/lib/server/mongoose/models/User"
 import { sendTeamInvite } from "@/lib/server/mail/mail"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
+import { purchaseSeats } from "@/lib/server/teamSeats"
+import { logError } from "@/lib/server/errors"
 import { ROLES } from "@/lib/roles"
 import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
 
@@ -23,6 +25,7 @@ export async function POST(req) {
   const body = await req.json()
   const email = body.email?.trim().toLowerCase()
   const role = body.role === ROLES.ADMIN ? ROLES.ADMIN : ROLES.MEMBER
+  const autoPurchaseSeat = body.autoPurchaseSeat === true
 
   if (!email) {
     return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 })
@@ -35,15 +38,9 @@ export async function POST(req) {
     return NextResponse.json({ success: false, message: "Team not found" }, { status: 404 })
   }
 
-  const seats = team.seats || 0
-  const existingInvite = await TeamInvite.findOne({ team: team._id, email })
-  if (!existingInvite) {
-    const pendingCount = await TeamInvite.countDocuments({ team: team._id })
-    if (team.users.length + pendingCount + 1 > seats) {
-      return NextResponse.json({ success: false, message: "No seats available. Upgrade your plan or remove a member or pending invite." }, { status: 409 })
-    }
-  }
-
+  // Validate the invitee BEFORE any Stripe-side seat purchase, so we don't
+  // charge for a seat and then bail because (e.g.) the user is already in
+  // another team.
   const existingUser = await User.findOne({ email: { $eq: email } })
   if (existingUser) {
     if (team.users.some(u => u.equals(existingUser._id))) {
@@ -54,6 +51,25 @@ export async function POST(req) {
     }
     if (await userHasLiveStripeSubscription(existingUser)) {
       return NextResponse.json({ success: false, message: "User has an active subscription. They must cancel it before joining a team." }, { status: 409 })
+    }
+  }
+
+  const existingInvite = await TeamInvite.findOne({ team: team._id, email })
+  let seatsPurchased = 0
+  if (!existingInvite) {
+    const pendingCount = await TeamInvite.countDocuments({ team: team._id })
+    const requiredSeats = team.users.length + pendingCount + 1
+    if (requiredSeats > (team.seats || 0)) {
+      if (!autoPurchaseSeat) {
+        return NextResponse.json({ success: false, message: "No seats available. Upgrade your plan or remove a member or pending invite.", code: "SEATS_FULL" }, { status: 409 })
+      }
+      seatsPurchased = requiredSeats - (team.seats || 0)
+      try {
+        await purchaseSeats(team, seatsPurchased)
+      } catch (err) {
+        logError(err).forRoute("api/team/invite/POST")
+        return NextResponse.json({ success: false, message: `Could not add a seat to your subscription: ${err.message}` }, { status: 402 })
+      }
     }
   }
 
@@ -68,7 +84,7 @@ export async function POST(req) {
   const link = `${baseUrl}/invite/${token}`
   await sendTeamInvite(email, {
     teamName: team.name,
-    inviterEmail: auth.user.email,
+    inviterName: auth.user.fullName || auth.user.email,
     link
   })
 
@@ -79,7 +95,16 @@ export async function POST(req) {
     data: { email, role, resent: !!existingInvite },
   })
 
-  return NextResponse.json({ success: true })
+  if (seatsPurchased > 0) {
+    logTeamEvent({
+      team,
+      type: TEAM_EVENT.SEAT_PURCHASED,
+      actor: auth.user,
+      data: { count: seatsPurchased, reason: "invite", email },
+    })
+  }
+
+  return NextResponse.json({ success: true, seatsPurchased })
 }
 
 export async function DELETE(req) {

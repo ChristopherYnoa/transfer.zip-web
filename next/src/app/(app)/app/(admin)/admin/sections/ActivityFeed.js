@@ -7,6 +7,7 @@ import {
   ShieldIcon,
   SendIcon,
   Trash2Icon,
+  CreditCardIcon,
 } from "lucide-react";
 
 const TYPES = {
@@ -29,6 +30,14 @@ const TYPES = {
   role_changed: {
     icon: ShieldIcon,
     label: (e) => `Changed ${e.data.email}'s role from ${e.data.from} to ${e.data.to}`,
+  },
+  seat_purchased: {
+    icon: CreditCardIcon,
+    label: (e) => {
+      const n = e.data.count || 1
+      const seat = n === 1 ? "seat" : "seats"
+      return `Added ${n} ${seat}${e.data.email ? ` for ${e.data.email}` : ""}`
+    },
   },
   transfer_created: {
     icon: SendIcon,

@@ -7,6 +7,7 @@ import User from "@/lib/server/mongoose/models/User"
 import Session from "@/lib/server/mongoose/models/Session"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
+import { purchaseSeats } from "@/lib/server/teamSeats"
 import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
 import { sendTeamInviteAccepted, sendTeamSeatCapacityReached } from "@/lib/server/mail/mail"
 import { logError } from "@/lib/server/errors"
@@ -59,15 +60,13 @@ export async function POST(req, { params }) {
     return NextResponse.json(resp("Team not found"), { status: 404 })
   }
 
-  if (team.users.length >= (team.seats || 0)) {
-    return NextResponse.json(resp("This team has no available seats. Ask an owner or admin to free up a seat."), { status: 409 })
-  }
-
   const existingUser = await User.findOne({ email: { $eq: invite.email } })
 
   let user
   let session
 
+  // Validate the accepting user fully BEFORE attempting any Stripe-side seat
+  // purchase. Otherwise a rejected accept would still have charged the team.
   if (existingUser) {
     const auth = await useServerAuth()
     if (!auth || !auth.user._id.equals(existingUser._id)) {
@@ -84,12 +83,29 @@ export async function POST(req, { params }) {
       return NextResponse.json(resp("You have an active subscription. Cancel it before joining a team."), { status: 409 })
     }
 
+    user = existingUser
+    session = auth
+  }
+
+  // The invite was already accounted for at creation time (seats include
+  // pending invites). If capacity has been eroded since — Stripe downgrade,
+  // a concurrent invite acceptance, etc. — auto-purchase the seat needed to
+  // honor this invite rather than rejecting a user who was legitimately invited.
+  let seatsPurchasedOnAccept = 0
+  if (team.users.length >= (team.seats || 0)) {
+    try {
+      seatsPurchasedOnAccept = (team.users.length + 1) - (team.seats || 0)
+      await purchaseSeats(team, seatsPurchasedOnAccept)
+    } catch (err) {
+      logError(err).forRoute("api/invite/[token]/POST")
+      return NextResponse.json(resp("This team has no available seats. Ask an owner or admin to free up a seat."), { status: 409 })
+    }
+  }
+
+  if (existingUser) {
     existingUser.team = team._id
     existingUser.role = invite.role
     await existingUser.save()
-
-    user = existingUser
-    session = auth
   } else {
     const newUser = new User({
       email: invite.email,
@@ -121,6 +137,14 @@ export async function POST(req, { params }) {
     actor: user,
     data: { email: user.email, role: user.role },
   })
+
+  if (seatsPurchasedOnAccept > 0) {
+    logTeamEvent({
+      team,
+      type: TEAM_EVENT.SEAT_PURCHASED,
+      data: { count: seatsPurchasedOnAccept, reason: "accept", email: user.email },
+    })
+  }
 
   const owner = await User.findOne({ _id: { $in: team.users }, role: ROLES.OWNER })
   if (owner) {

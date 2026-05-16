@@ -3,6 +3,7 @@
 import BIcon from "@/components/BIcon"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { API_URL, logout, putUserSettings } from "@/lib/client/Api"
 import pricing, { getPlanById, FREE_PLAN, PLANS } from "@/lib/pricing"
 import { useRouter } from "next/navigation"
@@ -15,6 +16,8 @@ import { humanTimeUntil } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ROLES } from "@/lib/roles"
 import ProfilePic from "@/components/ProfilePic"
+import { useState } from "react"
+import { toast } from "sonner"
 
 function CurrentPlanCard({ plan, isTrial, planCancelling, planValidUntil }) {
   const tier = getPlanById(plan) || FREE_PLAN
@@ -85,29 +88,81 @@ export default function ({ user, storage, team }) {
     router.refresh()
   }
 
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState(user.fullName || "")
+  const [savingName, setSavingName] = useState(false)
+
+  const handleSaveName = async () => {
+    const trimmed = nameDraft.trim()
+    if (trimmed === (user.fullName || "")) {
+      setEditingName(false)
+      return
+    }
+    setSavingName(true)
+    try {
+      await putUserSettings({ fullName: trimmed })
+      toast.success(trimmed ? "Name updated" : "Name cleared")
+      setEditingName(false)
+      router.refresh()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setSavingName(false)
+    }
+  }
+
   const { notificationSettings } = user
 
   return (
     <div className="p-5 sm:p-6 bg-white rounded-xl">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         <div className="sm:col-span-full flex gap-4">
-          <div className="flex items-center gap-4">
-            {/* <UserIcon size={48} className="text-white bg-primary p-3 rounded-full" /> */}
-            <ProfilePic size={48} name={user.email} />
-            {user.fullName ?
-              <div className="flex flex-col justify-center">
-                <p className="text-gray-800 text-lg font-semibold">{user.fullName}</p>
-                <span className="text-gray-600 text-sm">{user.email}</span>
-              </div>
-              : <span className="text-gray-800 text-lg font-semibold">{user.email}</span>
-            }
-
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <ProfilePic size={48} name={user.fullName || user.email} />
+            <div className="flex flex-col justify-center min-w-0 flex-1">
+              {editingName ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    autoFocus
+                    value={nameDraft}
+                    onChange={e => setNameDraft(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") handleSaveName()
+                      if (e.key === "Escape") {
+                        setNameDraft(user.fullName || "")
+                        setEditingName(false)
+                      }
+                    }}
+                    placeholder="Your name"
+                    maxLength={80}
+                    disabled={savingName}
+                    className="max-w-xs"
+                  />
+                  <Button size="sm" onClick={handleSaveName} disabled={savingName}>Save</Button>
+                  <Button size="sm" variant="ghost" onClick={() => {
+                    setNameDraft(user.fullName || "")
+                    setEditingName(false)
+                  }} disabled={savingName}>Cancel</Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-800 text-lg font-semibold truncate">
+                      {user.fullName || user.email}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setEditingName(true)}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {user.fullName ? "Edit" : "Add name"}
+                    </button>
+                  </div>
+                  {user.fullName && <span className="text-gray-600 text-sm truncate">{user.email}</span>}
+                </>
+              )}
+            </div>
           </div>
-          {/* {!IS_SELFHOST && (
-            <p className="text-gray-600 text-sm/6 mt-4">
-              To change your email or delete your account, <a className="text-primary" href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`}>contact us</a>.
-            </p>
-          )} */}
         </div>
         {user.hasTeam && user.role !== ROLES.OWNER && (
           <div className="col-span-full">

@@ -123,8 +123,12 @@ export async function useMagicLink(token) {
 
 // team invite
 
-export async function sendTeamInvite(email, role) {
-    return await post("/team/invite", { email, role })
+export async function sendTeamInvite(email, role, autoPurchaseSeat) {
+    return await post("/team/invite", { email, role, autoPurchaseSeat: !!autoPurchaseSeat })
+}
+
+export async function previewTeamSeatPurchase(count = 1) {
+    return await post("/team/seats/preview", { count })
 }
 
 export async function deleteTeamInvite(_id) {

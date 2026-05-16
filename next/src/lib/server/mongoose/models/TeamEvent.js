@@ -6,6 +6,7 @@ export const TEAM_EVENT = {
     INVITE_ACCEPTED: "invite_accepted",
     MEMBER_REMOVED: "member_removed",
     ROLE_CHANGED: "role_changed",
+    SEAT_PURCHASED: "seat_purchased",
     TRANSFER_CREATED: "transfer_created",
     TRANSFER_DELETED: "transfer_deleted",
 }

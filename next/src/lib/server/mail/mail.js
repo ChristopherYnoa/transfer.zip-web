@@ -70,8 +70,8 @@ export async function sendMagicLink(email, { link }) {
   });
 }
 
-export async function sendTeamInvite(email, { teamName, inviterEmail, link }) {
-  await sendMail(TeamInviteEmail({ teamName, inviterEmail, link }), {
+export async function sendTeamInvite(email, { teamName, inviterName, link }) {
+  await sendMail(TeamInviteEmail({ teamName, inviterName, link }), {
     to: email,
     subject: `You've been invited to join ${teamName} - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
   });
