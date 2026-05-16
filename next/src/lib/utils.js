@@ -259,6 +259,52 @@ export function humanTimeUntil(targetDate) {
     return `${seconds}s`;
 }
 
+export function humanTimeSince(pastDate) {
+    const now = new Date();
+    let diff = now - pastDate;
+
+    if (diff <= 0) {
+        return "now";
+    }
+
+    const msInSecond = 1000;
+    const msInMinute = msInSecond * 60;
+    const msInHour = msInMinute * 60;
+    const msInDay = msInHour * 24;
+    const msInYear = msInDay * 365;
+
+    const years = Math.floor(diff / msInYear);
+    if (years > 0) {
+        const remaining = diff - years * msInYear;
+        if (remaining >= msInYear / 2) return `${years + 1}y`;
+        return `${years}y`;
+    }
+
+    const days = Math.floor(diff / msInDay);
+    if (days > 0) {
+        const remaining = diff - days * msInDay;
+        if (remaining >= msInDay / 2) return `${days + 1}d`;
+        return `${days}d`;
+    }
+
+    const hours = Math.floor(diff / msInHour);
+    if (hours > 0) {
+        const remaining = diff - hours * msInHour;
+        if (remaining >= msInHour / 2) return `${hours + 1}h`;
+        return `${hours}h`;
+    }
+
+    const minutes = Math.floor(diff / msInMinute);
+    if (minutes > 0) {
+        const remaining = diff - minutes * msInMinute;
+        if (remaining >= msInMinute / 2) return `${minutes + 1}m`;
+        return `${minutes}m`;
+    }
+
+    const seconds = Math.floor(diff / msInSecond);
+    return `${seconds}s`;
+}
+
 export function addSecondsToCurrentDate(seconds) {
     return new Date(Date.now() + (seconds * 1000))
 }

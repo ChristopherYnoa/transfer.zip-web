@@ -42,7 +42,7 @@ TransferRequestSchema.methods.toJsonAsOwner = function () {
 TransferRequestSchema.methods.toJsonAsUploader = function () {
     const { _id, name, description, secretCode, brandProfile } = this
     return {
-        id: _id,
+        id: _id.toString(),
         name: name || "Untitled Request",
         description,
         secretCode,

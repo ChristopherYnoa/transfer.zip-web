@@ -6,7 +6,7 @@ import { ApplicationContext } from "@/context/ApplicationContext"
 import { useContext, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { deleteTransfer, getDownloadToken, getTransferDownloadLink, registerTransferDownloaded, sendTransferByEmail } from "@/lib/client/Api"
-import { humanTimeUntil, parseTransferExpiryDate, sleep, tryCopyToClipboard } from "@/lib/utils"
+import { humanTimeSince, humanTimeUntil, parseTransferExpiryDate, sleep, tryCopyToClipboard } from "@/lib/utils"
 import BIcon from "../BIcon"
 import Link from "next/link"
 import { SelectedTransferContext } from "@/context/SelectedTransferProvider"
@@ -21,8 +21,9 @@ const Entry = ({ transfer }) => {
   
   const transferLink = useMemo(() => getTransferDownloadLink(transfer), [transfer])
 
-  const { id, name, files, expiresAt, hasTransferRequest, finishedUploading, secretCode } = transfer
+  const { id, name, files, expiresAt, createdAt, hasTransferRequest, finishedUploading, secretCode } = transfer
   const expiryDate = parseTransferExpiryDate(expiresAt)
+  const receivedAt = createdAt ? new Date(createdAt) : null
   const isSelected = id === selectedTransferId
 
   const disabled = !finishedUploading || hasTransferRequest
@@ -119,7 +120,9 @@ const Entry = ({ transfer }) => {
           <div className="flex">
             <h3 className={`text-lg font-bold mb-0.5 me-1 text-nowrap ${isSelected ? "text-black" : "text-gray-800"}`}>{name}</h3>
             {hasTransferRequest && <div className="ms-1">
-              <span className="text-xs bg-gray-400 text-white font-semibold rounded-full px-1.5 py-0.5">Received</span>
+              <span className="text-xs bg-gray-400 text-white font-semibold rounded-full px-1.5 py-0.5">
+                {receivedAt ? `Received ${humanTimeSince(receivedAt)} ago` : "Received"}
+              </span>
             </div>}
           </div>
           <div className="text-sm text-gray-600 font-medium group-hover:hidden">
@@ -144,9 +147,9 @@ const Entry = ({ transfer }) => {
             {expiryDate && <span>
               <BIcon name="dot" />
               {expiresSoon ?
-                <span className="text-red-500"><i className="bi bi-clock-fill me-1"></i>Expires in {humanTimeUntil(expiryDate)}</span>
+                <span className="text-red-500">Expires in {humanTimeUntil(expiryDate)}</span>
                 :
-                <><i className="bi bi-clock me-1"></i>{humanTimeUntil(expiryDate)}</>
+                <>Expires in {humanTimeUntil(expiryDate)}</>
               }
             </span>}
           </div>

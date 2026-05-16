@@ -1,5 +1,6 @@
 import "server-only"
 import Transfer from "./mongoose/models/Transfer"
+import TransferRequest from "./mongoose/models/TransferRequest"
 import { getStripe } from "./stripe"
 import { getLimit, LIMIT } from "@/lib/pricing"
 
@@ -29,22 +30,18 @@ export const createCookieParams = () => {
 }
 
 export const listTransfersForUser = async (user) => {
-  const transfers = await Transfer.find({
+  // Two sources: transfers the user authored, plus transfers uploaded into
+  // any TransferRequest the user owns. Resolving the request IDs up front
+  // keeps the candidate set tight and means an orphan transfer (whose request
+  // was deleted) can never match — important because populate maps deleted
+  // refs to null, which would otherwise sneak past a post-query filter.
+  const myRequestIds = await TransferRequest.find({ author: user._id }).distinct("_id")
+  return Transfer.find({
     $or: [
       { author: user._id },
-      { transferRequest: { $exists: true } } // Only consider transfers with a transferRequest
+      { transferRequest: { $in: myRequestIds } }
     ]
-  })
-    .populate({
-      path: 'transferRequest', // Populate the transferRequest field
-      populate: {
-        path: 'author', // Populate the author within transferRequest
-      },
-    })
-    .sort({ createdAt: -1 })
-
-  const filteredTransfers = transfers.filter(transfer => !transfer.transferRequest || (transfer.transferRequest && transfer.transferRequest.author._id.toString() === user._id.toString()))
-  return filteredTransfers
+  }).sort({ createdAt: -1 })
 }
 
 // Team-wide list for the Owner/Admin dashboard.

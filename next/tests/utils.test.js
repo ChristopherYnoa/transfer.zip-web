@@ -3,6 +3,7 @@ import {
   capitalizeFirstLetter,
   capitalizeAllWords,
   humanTimeUntil,
+  humanTimeSince,
   parseTransferExpiryDate,
   buildNestedStructure,
   removeLastEntry,
@@ -127,6 +128,37 @@ describe("humanTimeUntil", () => {
   it("returns years for very large deltas", () => {
     const target = new Date(Date.now() + 3 * 365 * 24 * 60 * 60 * 1000);
     expect(humanTimeUntil(target)).toMatch(/^\dy$/);
+  });
+});
+
+describe("humanTimeSince", () => {
+  it("returns 'now' for a date in the future or now", () => {
+    expect(humanTimeSince(new Date(Date.now() + 1000))).toBe("now");
+  });
+
+  it("returns seconds for sub-minute deltas", () => {
+    const past = new Date(Date.now() - 30 * 1000);
+    expect(humanTimeSince(past)).toMatch(/^\d+s$/);
+  });
+
+  it("returns minutes for sub-hour deltas", () => {
+    const past = new Date(Date.now() - 10 * 60 * 1000);
+    expect(humanTimeSince(past)).toMatch(/^\d+m$/);
+  });
+
+  it("returns hours for sub-day deltas", () => {
+    const past = new Date(Date.now() - 5 * 60 * 60 * 1000);
+    expect(humanTimeSince(past)).toMatch(/^\d+h$/);
+  });
+
+  it("returns days for sub-year deltas", () => {
+    const past = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+    expect(humanTimeSince(past)).toMatch(/^\d+d$/);
+  });
+
+  it("returns years for very large deltas", () => {
+    const past = new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000);
+    expect(humanTimeSince(past)).toMatch(/^\dy$/);
   });
 });
 

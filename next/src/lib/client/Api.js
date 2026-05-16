@@ -230,8 +230,13 @@ export const getTransferAttachmentLink = (transfer) => {
 
 // transferrequest
 
-export async function getTransferRequestList() {
-    return await get(`/transferrequest/list`)
+export async function getTransferRequestList({ active, skip = 0, limit = 20 } = {}) {
+    const params = new URLSearchParams({
+        active: String(active),
+        skip: String(skip),
+        limit: String(limit),
+    })
+    return await get(`/transferrequest/list?${params.toString()}`)
 }
 
 export async function newTransferRequest(data) {
@@ -254,6 +259,10 @@ export async function activateTransferRequest(transferRequestId) {
 
 export async function deactivateTransferRequest(transferRequestId) {
     return await post(`/transferrequest/${transferRequestId}/deactivate`)
+}
+
+export async function deleteTransferRequest(transferRequestId) {
+    return await post(`/transferrequest/${transferRequestId}/delete`)
 }
 
 // brand profile
