@@ -1,4 +1,4 @@
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
+import { listBrandProfilesForUser } from "@/lib/server/brandProfiles";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 
 import NewTransferFileRequest from "@/components/newtransfer/NewTransferFileRequest";
@@ -6,7 +6,7 @@ import NewTransferFileRequest from "@/components/newtransfer/NewTransferFileRequ
 export default async function () {
   const { user } = await useServerAuth()
   const storage = await user.getStorage()
-  const brandProfiles = await BrandProfile.find({ author: user._id }).sort({ lastUsed: -1 })
+  const brandProfiles = await listBrandProfilesForUser(user)
   return (
     <div className="mb-16">
       <div className="mx-auto max-w-xl mb-4 sm:mb-16 px-4">

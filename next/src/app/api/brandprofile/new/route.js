@@ -2,9 +2,12 @@ import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
 import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";
+import { processAndUploadBrandProfileImages } from "@/app/api/brandprofile/brandProfileUtils";
 import {
-  processAndUploadBrandProfileImages
-} from "@/app/api/brandprofile/brandProfileUtils";
+  brandProfileOwnershipFor,
+  canManageBrandProfiles,
+} from "@/lib/server/brandProfiles";
+import { FEATURE } from "@/lib/pricing";
 
 export async function POST(req) {
   const auth = await useServerAuth();
@@ -13,7 +16,12 @@ export async function POST(req) {
   }
   const { user } = auth;
 
-  if(user.getPlan() != "pro") return NextResponse.json(resp("User needs to upgrade."), { status: 409 });
+  if (!user.hasFeature(FEATURE.CUSTOM_BRANDING)) {
+    return NextResponse.json(resp("User needs to upgrade."), { status: 409 });
+  }
+  if (!canManageBrandProfiles(user)) {
+    return NextResponse.json(resp("Only the team Owner or Admin can manage branding."), { status: 403 });
+  }
 
   const { name, iconUrl, backgroundUrl } = await req.json();
 
@@ -22,7 +30,7 @@ export async function POST(req) {
   }
 
   const profile = new BrandProfile({
-    author: user._id,
+    ...brandProfileOwnershipFor(user),
     name,
     iconUrl: null,
     backgroundUrl: null,

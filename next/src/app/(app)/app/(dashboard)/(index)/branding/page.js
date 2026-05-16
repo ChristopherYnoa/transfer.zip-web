@@ -1,51 +1,38 @@
-import BIcon from "@/components/BIcon";
-import GenericPage from "@/components/dashboard/GenericPage";
-import EmptySpace from "@/components/elements/EmptySpace";
-import { Button } from "@/components/ui/button";
-import BrandProfileCard from "./BrandProfileCard";
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
-import { useServerAuth } from "@/lib/server/wrappers/auth";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import BrandingPageShell from "@/components/dashboard/branding/BrandingPageShell";
+import { listBrandProfilesForUser, canManageBrandProfiles } from "@/lib/server/brandProfiles";
+import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { FEATURE } from "@/lib/pricing";
+import { ROLES } from "@/lib/roles";
 
 export default async function () {
-  const { user } = await useServerAuth()
+  const { user } = await useServerAuth();
 
-  const profiles = await BrandProfile.find({ author: user._id })
+  // Team users manage branding inside the admin panel. Members lose
+  // access entirely; Owner/Admin are redirected to the team-scoped view.
+  if (user.hasTeam) {
+    if (user.role === ROLES.OWNER || user.role === ROLES.ADMIN) {
+      redirect("/app/admin/branding");
+    }
+    redirect("/app");
+  }
 
-  const hasFeature = user.hasFeature(FEATURE.CUSTOM_BRANDING)
-
-  const side = hasFeature ?
-    <Button variant={"white"} asChild><Link href={"/app/branding/new"}><BIcon name={"plus-lg"} />New Brand Profile</Link></Button>
-    :
-    <Button variant={"white"} disabled><BIcon name={"plus-lg"} />New Brand Profile</Button>
+  const profiles = (await listBrandProfilesForUser(user)).map(p => p.toJsonAsClient());
 
   return (
-    <GenericPage title={"Branding"} side={side}>
-      {
-        profiles.length > 0 ?
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {profiles.map(profile => {
-              const { id, name, iconUrl, backgroundUrl } = profile.toJsonAsClient()
-              return (
-                <BrandProfileCard
-                  key={id}
-                  id={id}
-                  name={name}
-                  iconUrl={iconUrl}
-                  backgroundUrl={backgroundUrl}
-                />
-              )
-            })}
-          </div>
-          :
-          <EmptySpace
-            title={"Showcase Your Unique Brand Identity"}
-            subtitle={"Add your own logo, customize backgrounds, and include your branding directly in emails and download pages for a seamless, professional look."}
-          >
-            {!hasFeature && <Button asChild><Link className="mt-4" href={"/app/settings?upgrade"}>Upgrade to Pro &rarr;</Link></Button>}
-          </EmptySpace>
+    <BrandingPageShell
+      profiles={profiles}
+      hasFeature={user.hasFeature(FEATURE.CUSTOM_BRANDING)}
+      canManage={canManageBrandProfiles(user)}
+      newHref="/app/branding/new"
+      editHref={(id) => `/app/branding/${id}`}
+      emptyCta={
+        <Button asChild>
+          <Link className="mt-4" href="/app/settings?upgrade">Upgrade to Pro &rarr;</Link>
+        </Button>
       }
-    </GenericPage>
-  )
+    />
+  );
 }

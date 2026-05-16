@@ -26,12 +26,14 @@ export default function FloatingBar({ user }) {
   const inAdmin = pathname.startsWith("/app/admin");
 
   const canSeeAdmin = user?.hasTeam && (user?.role === "owner" || user?.role === "admin");
+  // Team users manage branding inside the admin panel, not the dashboard.
+  const showBrandingInDashboard = !user?.hasTeam;
 
   const navigation = [
     { name: "Sent", href: "/sent" },
     { name: "Received", href: "/received" },
     { name: "Requests", href: "/requests" },
-    { name: "Branding", href: "/branding" },
+    ...(showBrandingInDashboard ? [{ name: "Branding", href: "/branding" }] : []),
     { name: "Account", href: "/settings" },
     ...(canSeeAdmin ? [{ name: "Admin", href: "/admin" }] : []),
     { name: "Transfer", href: "" },
@@ -55,6 +57,7 @@ export default function FloatingBar({ user }) {
       { name: "Overview", href: "/app/admin", icon: LayoutDashboardIcon },
       { name: "Members", href: "/app/admin/members", icon: UsersIcon },
       { name: "Transfers", href: "/app/admin/transfers", icon: ArrowUpIcon },
+      { name: "Branding", href: "/app/admin/branding", icon: PaintbrushIcon },
       { name: "Activity", href: "/app/admin/activity", icon: ActivityIcon },
       ...(user?.role === "owner"
         ? [{ name: "Billing", href: "/app/admin/billing", icon: CreditCardIcon }]

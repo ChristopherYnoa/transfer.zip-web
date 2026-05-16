@@ -24,7 +24,7 @@ These are the things that make "team plan" actually mean something. Today the fe
 
 - [ ] **Transfers are not team-scoped.** `Transfer.author` is a single user; `listTransfersForUser` only returns the caller's own. The Owner can't see, manage, or hand off other members' transfers. Decide & implement: add `Transfer.team` (denormalized at creation), and let the Owner *view*, delete, or extend any team member's transfer. Members should only see their own transfers — no cross-member visibility.
 
-- [ ] **BrandProfile is per-user, not per-team.** `BrandProfile.author` is a single user. Team members can't share or apply company branding. Add `team` on BrandProfile, scope the editor + picker by team when the user has one.
+- [x] **BrandProfile is team-scoped.** Added `BrandProfile.team` (set once at creation from the creator's team) and a single scope helper in [next/src/lib/server/brandProfiles.js](next/src/lib/server/brandProfiles.js) that every route goes through. Team Owner/Admin manage profiles from `/app/admin/branding`; Members see team profiles in the transfer picker but can't manage. Solo Pro users keep `/app/branding` unchanged. Shared UI in [components/dashboard/branding/](next/src/components/dashboard/branding/).
 
 - [ ] **TransferRequest (request links) is per-user.** Same problem — `TransferRequest.author` is a single user. A teammate can't pick up incoming files when the requester is OOO. Add team scoping or at minimum a "team request link" mode.
 

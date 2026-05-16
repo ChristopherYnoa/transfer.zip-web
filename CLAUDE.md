@@ -18,7 +18,11 @@ The actual file-storage backend (handles uploads/zips/S3) lives in a separate re
 
 Don't run commands to (re)start the server. When developing, everything is already running correctly.
 
-There are **no automated tests** in this repo. Don't add a "run the tests" step to your plan.
+### Tests
+
+There is a small Vitest suite for pure-logic code in [next/tests/](next/tests/). No DB, no Stripe, no UI — just plan resolution, feature/limit fallback ladders, password encryption round-trip, utility helpers, and the `useTeamAdminAuth` permission gate. Run with `npm run test:run` from inside `next/` (one-shot) or `npm run test` (watch).
+
+When you change anything in: `lib/pricing.js`, `User`/`Team`/`Transfer`/`TeamEvent` model methods, `useTeamAdminAuth`, or the small utility helpers in `lib/utils.js` / `lib/transferUtils.js` — run the suite and add a test for the new behavior. Skip writing tests for: Mongoose CRUD, React UI, Stripe webhooks (until we wire fixtures), WebRTC/signaling code, anything needing a live DB.
 
 ## Architecture
 

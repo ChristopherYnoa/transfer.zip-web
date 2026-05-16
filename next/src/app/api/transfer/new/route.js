@@ -1,6 +1,6 @@
 import Transfer from "@/lib/server/mongoose/models/Transfer"
 import TransferRequest from '@/lib/server/mongoose/models/TransferRequest'
-import BrandProfile from '@/lib/server/mongoose/models/BrandProfile'
+import { findUsableBrandProfile } from "@/lib/server/brandProfiles"
 import { useServerAuth } from '@/lib/server/wrappers/auth'
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
@@ -143,10 +143,11 @@ export async function POST(req) {
 
     const { name, description, expiresInDays, files, emails, brandProfileId } = data
 
-    // Validate brand profile ownership (only for regular transfers)
+    // Validate brand profile is one the user can use (own profile, or
+    // a team profile if the user is on a team)
     let brandProfile
     if (brandProfileId && !transferRequest) {
-      brandProfile = await BrandProfile.findOne({ _id: brandProfileId, author: auth.user._id })
+      brandProfile = await findUsableBrandProfile(auth.user, brandProfileId)
       if (!brandProfile) {
         return NextResponse.json(resp("Brand profile not found"), { status: 404 })
       }

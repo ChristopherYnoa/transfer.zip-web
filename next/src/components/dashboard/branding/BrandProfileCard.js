@@ -6,9 +6,9 @@ import Link from "next/link";
 import transfer_zip_grid from "@/img/transfer-zip-grid.png"
 import { BuildingIcon, HexagonIcon } from "lucide-react";
 
-export default function ({ id, name, iconUrl, backgroundUrl }) {
+export default function ({ id, name, iconUrl, backgroundUrl, editHref }) {
   return (
-    <Link href={`/app/branding/${id}`} className="border shadow-xs rounded-xl bg-white border-gray-200 p-5 sm:p-6 hover:bg-gray-50 group">
+    <Link href={editHref} className="border shadow-xs rounded-xl bg-white border-gray-200 p-5 sm:p-6 hover:bg-gray-50 group">
       <div className="flex items-center gap-2">
         <div className="">
           {iconUrl ?

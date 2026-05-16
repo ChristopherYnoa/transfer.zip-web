@@ -1,6 +1,6 @@
 import { sendTransferRequestReceived, sendTransferRequestShare, sendTransferShare } from "@/lib/server/mail/mail";
 import TransferRequest from "@/lib/server/mongoose/models/TransferRequest";
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
+import { findUsableBrandProfile } from "@/lib/server/brandProfiles";
 import { getTransferRequestUploadLink, resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";
@@ -26,7 +26,7 @@ export async function POST(req) {
     if (!mongoose.Types.ObjectId.isValid(brandProfileId)) {
       return NextResponse.json(resp("invalid brandProfileId"), { status: 400 })
     }
-    brandProfile = await BrandProfile.findOne({ _id: brandProfileId, author: user._id })
+    brandProfile = await findUsableBrandProfile(user, brandProfileId)
     if (!brandProfile) {
       return NextResponse.json(resp("brand profile not found"), { status: 404 })
     }

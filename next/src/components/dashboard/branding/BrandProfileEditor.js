@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ImageIcon, SaveIcon, XIcon } from "lucide-react"
 
-export default function ({ initialProfile, isNew }) {
+export default function ({ initialProfile, isNew, backHref = "/app/branding" }) {
   const [profile, setProfile] = useState(initialProfile)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -40,10 +40,10 @@ export default function ({ initialProfile, isNew }) {
     try {
       if (isNew) {
         const { brandProfile } = await newBrandProfile(payload)
-        window.location.replace(`/app/branding`)
+        window.location.replace(backHref)
       } else {
         await updateBrandProfile(initialProfile.id, payload)
-        window.location.replace(`/app/branding`)
+        window.location.replace(backHref)
       }
     }
     catch {
@@ -83,7 +83,7 @@ export default function ({ initialProfile, isNew }) {
   const handleDelete = async () => {
     setDeleting(true)
     await deleteBrandProfile(profile.id)
-    window.location.replace("/app/branding")
+    window.location.replace(backHref)
   }
 
   const side = <div className="flex gap-2">

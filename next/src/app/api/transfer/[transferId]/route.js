@@ -1,5 +1,5 @@
 import { EXPIRATION_TIMES } from "@/lib/constants";
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
+import { findUsableBrandProfile } from "@/lib/server/brandProfiles";
 import Transfer from "@/lib/server/mongoose/models/Transfer";
 import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
@@ -41,8 +41,8 @@ export async function PUT(req, { params }) {
 
   if (brandProfileId) {
     if (brandProfileId !== "none") {
-      const brandProfile = await BrandProfile.findOne({ author: user._id, _id: brandProfileId })
-      transfer.brandProfile = brandProfile._id
+      const brandProfile = await findUsableBrandProfile(user, brandProfileId)
+      if (brandProfile) transfer.brandProfile = brandProfile._id
     }
     else {
       transfer.brandProfile = undefined

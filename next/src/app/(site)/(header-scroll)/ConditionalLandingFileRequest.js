@@ -1,6 +1,6 @@
 import NewTransferFileRequest from "@/components/newtransfer/NewTransferFileRequest"
 import NewTransferFileUploadNew from "@/components/newtransfer/NewTransferFileUploadNew"
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile"
+import { listBrandProfilesForUser } from "@/lib/server/brandProfiles"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 
 export default async function ConditionalLandingFileRequest({ }) {
@@ -12,7 +12,7 @@ export default async function ConditionalLandingFileRequest({ }) {
 
   const [storage, brandProfilesDocs] = await Promise.all([
     auth.user.getStorage(),
-    BrandProfile.find({ author: auth.user._id }).sort({ lastUsed: -1 }),
+    listBrandProfilesForUser(auth.user),
   ])
 
   const brandProfiles = brandProfilesDocs.map(profile => profile.toJsonAsClient())
