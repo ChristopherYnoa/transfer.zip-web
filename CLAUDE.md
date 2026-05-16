@@ -112,7 +112,7 @@ Pino is used everywhere (`next-logger` wraps Next, worker uses pino directly). I
 
 ## Conventions worth knowing
 
-- The codebase is **JavaScript, not TypeScript** — `.js`/`.jsx` only.
+- The codebase is **JavaScript, not TypeScript**. **Use `.js` for everything you create** — including files with JSX. The only existing `.jsx` files are vendored shadcn primitives in `components/ui/` and React Email templates in `lib/server/mail/templates/`; don't add to those exceptions.
 - Path alias `@/` resolves to `next/src/` (set in `jsconfig.json`).
 - Tailwind v4 with shadcn-style `components/ui/*.jsx` primitives. Use these instead of pulling in new UI libs.
 - Validation: `zod` schemas at the top of API route files (see [next/src/app/api/transfer/new/route.js](next/src/app/api/transfer/new/route.js) for the pattern).
@@ -132,6 +132,19 @@ const { id } = await params;
 - Use **template strings** when interpolating or multi-line strings
 - Use **Tailwind CSS** for styling
 - Minimize use of optional chaining (`?.`) — use it only for genuinely optional values, not to hide errors
+
+### Frontend rules
+
+The dashboard UI is the product surface. It needs to feel premium and consistent. Don't ship the kind of LLM-generated tells that scream "AI built this." Read the existing dashboard pages ([settings/SettingsPage.js](next/src/app/(app)/app/(dashboard)/settings/SettingsPage.js), the dashboard `FloatingBar`, etc.) before writing new UI and match what's there.
+
+- **Match the existing color palette.** The codebase uses `gray-*` and `primary-*`. Don't reach for `slate-*`, `zinc-*`, `neutral-*`, or anything else just because a model trained on Tailwind examples wants to.
+- **No opacity-suffix colors** (`bg-foo/60`, `border-foo/40`, `text-foo/80`) in new UI components. The exception is the few existing spots in marketing/header code that already use `/N` patterns — don't pile on. Plain solid colors only.
+- **No `backdrop-blur`.** Same reason.
+- **Use shadcn primitives from [components/ui/](next/src/components/ui/), not native HTML controls.** Specifically: no raw `<select>` — use `Select` from [components/ui/select.jsx](next/src/components/ui/select.jsx). Same for `Dialog`, `Button`, `Input`, etc.
+- **Cards on the dashboard are `bg-white rounded-xl p-5 sm:p-6`** with `text-gray-900` for headings and `text-gray-500/600` for muted text. Pills follow the existing `bg-amber-100 text-amber-700` / `bg-primary-100 text-primary-700` shape.
+- **Wrap pages in `<GenericPage title="...">`** from [components/dashboard/GenericPage.js](next/src/components/dashboard/GenericPage.js) so the white DashH2 title is consistent across sections.
+- **No filler subtitles or "AI-flavored" copy** on stat cards. If the label and value already say everything ("Members: 5/10"), there is no need for a third line saying "All seats accounted for." Cut it.
+- **Stick to lucide icons that are already in use** elsewhere in the codebase, and verify the icon exists before importing it. Don't invent icon names.
 
 ### Do not code defensively
 

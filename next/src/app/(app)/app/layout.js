@@ -13,7 +13,10 @@ import Image from "next/image";
 import logo from "@/img/icon.png"
 
 export const metadata = {
-  title: "Dashboard"
+  title: {
+    template: "%s | Dashboard",
+    default: "Dashboard",
+  },
 };
 
 export default async function DashboardLayout({ children }) {
@@ -29,17 +32,13 @@ export default async function DashboardLayout({ children }) {
   // const storage = await auth.user.getStorage()
 
   return (
-    <div>
-      {/* {!IS_SELFHOST && <DismissibleBanner />} */}
-      <div className="w-full h-screen absolute grain bg-linear-to-b from-primary-600 to-primary-300" />
-      <div className="h-screen flex flex-col overflow-auto relative">
-        <ApplicationProvider>
-          <DashboardProvider>
-            {children}
-            <FloatingBar user={auth.user.toJsonAsClient()} />
-          </DashboardProvider>
-        </ApplicationProvider>
-      </div>
+    <div className="h-screen flex flex-col overflow-auto relative">
+      <ApplicationProvider>
+        <DashboardProvider>
+          {children}
+          <FloatingBar user={auth.user.toJsonAsClient()} />
+        </DashboardProvider>
+      </ApplicationProvider>
     </div>
   );
 }

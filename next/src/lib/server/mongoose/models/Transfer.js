@@ -42,6 +42,10 @@ File.methods.toJsonAsClient = function () {
 const TransferSchema = new mongoose.Schema({
     transferRequest: { type: mongoose.Schema.Types.ObjectId, ref: "TransferRequest" },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
+    // Set once at creation from author.team if the author is on a team.
+    // Never updated — if a user later leaves the team, their existing
+    // transfers stay tagged to the team they were created under.
+    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", index: true },
     name: String,
     description: String,
     expiresAt: { type: Date },
@@ -153,6 +157,38 @@ TransferSchema.methods.toJsonAsOwner = function () {
         nodeUrl: this.nodeUrl,
         brandProfileId: this.brandProfile ? this.brandProfile.toString() : undefined,
         brandProfile: (this.brandProfile && typeof this.brandProfile.toJsonAsClient === 'function') ? this.brandProfile.toJsonAsClient() : undefined
+    }
+}
+
+// Variant for team Owner/Admin viewing transfers across the team.
+// Omits the plaintext password (we don't want a team admin browsing
+// other members' download passwords) but includes author identity so
+// the UI can show "uploaded by X". The author must be populated.
+TransferSchema.methods.toJsonAsTeamAdmin = function () {
+    const { _id, name, description, expiresAt, secretCode, createdAt, downloads, views, files, size } = this
+    return {
+        id: _id.toString(),
+        name: name || "Untitled Transfer",
+        description,
+        expiresAt,
+        secretCode,
+        hasPassword: this.hasPassword(),
+        statistics: {
+            downloads: { length: downloads?.length },
+            views: { length: views?.length },
+        },
+        files: this.files.map(file => file.toJsonAsClient()),
+        size,
+        createdAt,
+        hasName: !!name,
+        hasTransferRequest: !!this.transferRequest,
+        finishedUploading: this.finishedUploading,
+        nodeUrl: this.nodeUrl,
+        author: this.author && typeof this.author === "object" && this.author._id ? {
+            id: this.author._id.toString(),
+            email: this.author.email,
+            fullName: this.author.fullName,
+        } : undefined,
     }
 }
 

@@ -147,6 +147,20 @@ export async function updateUserRole(userId, role) {
     return await put(`/team/users/${userId}`, { role })
 }
 
+// team admin
+
+export async function getTeamTransfers() {
+    return await get("/team/transfers")
+}
+
+export async function deleteTeamTransfer(transferId) {
+    return await post(`/team/transfers/${transferId}/delete`)
+}
+
+export async function getTeamEvents(limit) {
+    return await get(`/team/events${limit ? `?limit=${limit}` : ""}`)
+}
+
 // export async function requestVerification() {
 //     return await post("/auth/verification/request", {})
 // }

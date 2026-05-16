@@ -6,6 +6,7 @@ import Session from "@/lib/server/mongoose/models/Session"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { resp } from "@/lib/server/serverUtils"
 import { ROLES } from "@/lib/roles"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
 
 export async function DELETE(req, { params }) {
   const { userId } = await params
@@ -55,6 +56,16 @@ export async function DELETE(req, { params }) {
 
   await Session.deleteMany({ user: userId })
 
+  logTeamEvent({
+    team,
+    type: TEAM_EVENT.MEMBER_REMOVED,
+    actor: auth.user,
+    data: {
+      userId: userId.toString(),
+      email: user?.email,
+    },
+  })
+
   return NextResponse.json(resp({}))
 }
 
@@ -101,8 +112,23 @@ export async function PUT(req, { params }) {
     return NextResponse.json(resp("Owner role cannot be changed"), { status: 403 })
   }
 
+  const fromRole = user.role
   user.role = role
   await user.save()
+
+  if (fromRole !== role) {
+    logTeamEvent({
+      team,
+      type: TEAM_EVENT.ROLE_CHANGED,
+      actor: auth.user,
+      data: {
+        userId: userId.toString(),
+        email: user.email,
+        from: fromRole,
+        to: role,
+      },
+    })
+  }
 
   return NextResponse.json(resp({}))
 }

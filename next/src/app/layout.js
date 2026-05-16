@@ -15,7 +15,10 @@ const roboto = Bricolage_Grotesque({
 })
 
 export const metadata = {
-  title: "Transfer.zip | Quick & Easy File Transfer - Send Files",
+  title: {
+    template: "%s | Transfer.zip",
+    default: "Transfer.zip | Quick & Easy File Transfer - Send Files",
+  },
   description:
     "Free sharing of photos, videos and documents. Send large files instantly with a link or email. Simple, fast and secure file sharing with Transfer.zip.",
   openGraph: {

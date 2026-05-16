@@ -36,19 +36,25 @@ function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
   return (
     <li className="flex items-center gap-4 p-3 bg-white rounded-lg border hover:bg-gray-50 transition">
       <ProfilePic name={user.fullName || user.email} />
-      <div>
-        <div className="font-semibold text-gray-900">{user.fullName}</div>
-        <div className="text-sm text-gray-500">{user.email}</div>
+      <div className="min-w-0">
+        {user.fullName ? (
+          <>
+            <div className="font-semibold text-gray-900 truncate">{user.fullName}</div>
+            <div className="text-sm text-gray-500 truncate">{user.email}</div>
+          </>
+        ) : (
+          <div className="font-semibold text-gray-900 truncate">{user.email}</div>
+        )}
       </div>
-      <div className="ml-auto flex flex-row gap-1 ">
-        <div className={"text-sm text-slate px-2 rounded-full " + (user.role === ROLES.OWNER ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-tone-800")}>
+      <div className="ml-auto">
+        <div className={"text-xs font-medium px-2 py-0.5 rounded-full " + (user.role === ROLES.OWNER ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-700")}>
           {capitalizeFirstLetter(user.role)}
         </div>
       </div>
-      <div className=" relative">
+      <div className="relative">
         <DropdownMenu>
           {(canManageRoles && !isSelf) && <DropdownMenuTrigger asChild>
-            <Button variant="ghost" ><EllipsisVerticalIcon className="w-8 h-8 text-gray-700 text-xlr" /></Button>
+            <Button variant="ghost" size="icon"><EllipsisVerticalIcon className="w-5 h-5 text-gray-600" /></Button>
           </DropdownMenuTrigger>}
           <DropdownMenuContent>
             {canManageRoles && !isOwner && !isSelf && (
@@ -119,18 +125,18 @@ function InviteEntry({ invite }) {
   }
 
   return (
-    <li className="flex items-center gap-4 p-3  rounded-xl border border-dashed transition">
+    <li className="flex items-center gap-4 p-3 rounded-lg border border-dashed">
       <ProfilePic name={invite.email} />
-      <div>
-        <div className="text-sm text-gray-500">{invite.email}</div>
+      <div className="min-w-0">
+        <div className="text-sm text-gray-600 truncate">{invite.email}</div>
       </div>
-      <div className="flex items-center justify-center text-sm bg-amber-50 text-amber-600 px-2 rounded-full">
-        Invite pending
+      <div className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+        Pending
       </div>
-      <div className="ml-auto relative">
+      <div className="relative">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" ><EllipsisVerticalIcon className="w-8 h-8 text-gray-700 text-xlr" /></Button>
+            <Button variant="ghost" size="icon"><EllipsisVerticalIcon className="w-5 h-5 text-gray-600" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem disabled={resending} onClick={handleResendInvite}>
@@ -194,23 +200,19 @@ export default function UserList({ user, users, invites }) {
   }
 
   return (
-    <div className="space-y-2">
-      <ul className="space-y-2">
-        {users.flat().map(listUser => (
-          <Entry
-            key={listUser.email}
-            user={listUser}
-            currentUser={user}
-            onDeleteUser={handleDeleteUser}
-            onUpdateRole={handleUpdateRole}
-          />
-        ))}
-        {
-          invites.map(invite => (
-            <InviteEntry key={invite.email} invite={invite}></InviteEntry>
-          ))
-        }
-      </ul>
-    </div>
+    <ul className="space-y-2">
+      {users.flat().map(listUser => (
+        <Entry
+          key={listUser.email}
+          user={listUser}
+          currentUser={user}
+          onDeleteUser={handleDeleteUser}
+          onUpdateRole={handleUpdateRole}
+        />
+      ))}
+      {invites.map(invite => (
+        <InviteEntry key={invite.email} invite={invite} />
+      ))}
+    </ul>
   )
 }

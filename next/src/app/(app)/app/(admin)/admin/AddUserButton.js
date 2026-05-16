@@ -52,11 +52,10 @@ export default function AddUserButton() {
   const selectedRoleMeta = roles.find((role) => role.id === selectedRole)
 
   return (
-    <div className="w-full flex justify-end">
-      <Dialog open={showModal} onOpenChange={(open) => {
-        setShowModal(open)
-        if (open) setError("")
-      }}>
+    <Dialog open={showModal} onOpenChange={(open) => {
+      setShowModal(open)
+      if (open) setError("")
+    }}>
         <DialogTrigger asChild>
           <Button><Plus /> Add user</Button>
         </DialogTrigger>
@@ -108,7 +107,6 @@ export default function AddUserButton() {
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog>
-    </div>
+    </Dialog>
   )
 }

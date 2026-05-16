@@ -7,6 +7,7 @@ import User from "@/lib/server/mongoose/models/User"
 import Session from "@/lib/server/mongoose/models/Session"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
 
 export async function GET(req, { params }) {
   const { token } = await params
@@ -110,6 +111,13 @@ export async function POST(req, { params }) {
   await team.save()
 
   await TeamInvite.deleteOne({ _id: invite._id })
+
+  logTeamEvent({
+    team,
+    type: TEAM_EVENT.INVITE_ACCEPTED,
+    actor: user,
+    data: { email: user.email, role: user.role },
+  })
 
   const response = NextResponse.json(resp({}), { status: 200 })
   if (!session) {

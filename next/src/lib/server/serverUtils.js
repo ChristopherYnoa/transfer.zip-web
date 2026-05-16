@@ -47,6 +47,17 @@ export const listTransfersForUser = async (user) => {
   return filteredTransfers
 }
 
+// Team-wide list for the Owner/Admin dashboard.
+// Includes only transfers where author belongs (or belonged) to the team
+// at creation time — i.e. Transfer.team matches. Does NOT include guest
+// uploads to a team member's transfer request (those are surfaced to the
+// requesting member's per-user view via listTransfersForUser).
+export const listTransfersForTeam = async (team) => {
+  return Transfer.find({ team: team._id })
+    .populate("author", "email fullName")
+    .sort({ createdAt: -1 })
+}
+
 export const getTransferRequestUploadLink = (transferRequest) => {
   if (!transferRequest) return null
   return `${process.env.SITE_URL}/upload/${transferRequest.secretCode}`

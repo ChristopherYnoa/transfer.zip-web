@@ -20,6 +20,7 @@ import {
 import { RateLimiterMongo } from 'rate-limiter-flexible'
 import { z } from 'zod'
 import { logError, logWarn } from "@/lib/server/errors"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
 
 const fileSchema = z.object({
   tmpId: z.string(),
@@ -176,6 +177,7 @@ export async function POST(req) {
     const transfer = new Transfer({
       transferRequest: transferRequest ? transferRequest._id : undefined,
       author: auth ? auth.user._id : undefined,
+      team: auth?.user?.team?._id,
       name: transferRequest ? transferRequest.name : name,
       description: transferRequest ? undefined : description,
       expiresAt: new Date(addMilliscondsToCurrentTime(1000 * 60 * 60 * 24 * effectiveExpiresInDays)),
@@ -230,6 +232,19 @@ export async function POST(req) {
     }
 
     await transfer.save()
+
+    if (auth?.user?.team) {
+      logTeamEvent({
+        team: auth.user.team,
+        type: TEAM_EVENT.TRANSFER_CREATED,
+        actor: auth.user,
+        data: {
+          transferId: transfer._id.toString(),
+          transferName: transfer.name || "Untitled Transfer",
+          fileCount: transferFiles.length,
+        },
+      })
+    }
 
     const idMap = transferFiles.map(transferFile => ({
       tmpId: transferFile.tmpId,

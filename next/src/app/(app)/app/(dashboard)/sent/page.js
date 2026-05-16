@@ -2,7 +2,6 @@ import GenericPage from "@/components/dashboard/GenericPage"
 import TransferList from "@/components/dashboard/TransferList"
 import { listTransfersForUser } from "@/lib/server/serverUtils"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
-import DefaultLayout from "../_old_(index)/layout"
 import EmptySpace from "@/components/elements/EmptySpace"
 
 export default async function ({ children }) {

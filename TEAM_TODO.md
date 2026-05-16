@@ -16,7 +16,7 @@ Legend: 🔴 blocks production · 🟠 broken core team value · 🟡 needs to w
 
 - [x] **Sessions not invalidated on member removal.** `api/team/users/[userId]/route.js` `$pull`s the user and unsets `team`, but their session cookie is still valid until expiry — they continue to act as a logged-in user with stale team context cached. Delete the user's sessions on removal.
 
-- [ ] **Pending-owner promotion is race-prone.** `api/stripe/webhook/route.js:84-92` (with its own `TODO`) decides "this is the owner" by checking `users.length === 0`. Two near-simultaneous webhook deliveries, a manually-added user, or a retry can leave the team owner-less or with the wrong owner. Use the `pendingOwner` field as the authoritative source and clear it atomically.
+<!-- - [ ] **Pending-owner promotion is race-prone.** `api/stripe/webhook/route.js:84-92` (with its own `TODO`) decides "this is the owner" by checking `users.length === 0`. Two near-simultaneous webhook deliveries, a manually-added user, or a retry can leave the team owner-less or with the wrong owner. Use the `pendingOwner` field as the authoritative source and clear it atomically. -->
 
 ## 🟠 Core team value is missing
 
@@ -55,8 +55,6 @@ These are the things that make "team plan" actually mean something. Today the fe
 - [ ] **Seat downgrade handling.** If the Owner reduces seats in Stripe from 10→5 but the team has 8 members, today nothing happens — they're over capacity silently. Decide policy: block the downgrade via portal config (preferred), or enter a grace state and notify Owner to remove N members before next renewal.
 
 - [ ] **Subscription cancellation: members keep team link.** `handleSubscriptionDeleted` expires transfers but leaves `User.team` set and `User.role` intact on every member. After cancellation the team is in a zombie state (no plan, but members are still "in a team", `hasTeam` is true, settings UI breaks). Either clear team membership on cancel, or render an explicit "expired team" state and gate functionality.
-
-- [ ] **Plan fields scattered on Team/User.** Both `Team.js:10` and `User.js:51` carry the same `TODO: Fix plan shit into an object`. Plan/status/validUntil/cancelling/interval live as five top-level fields. Roll into a single `subscription: { plan, status, validUntil, cancelling, interval, seats }` subdoc — much easier to reason about and avoids drift between Team and User code paths.
 
 - [ ] **Seat count in checkout vs. real headcount.** When creating a team via checkout the Owner picks `seats`, but there's no UI later to *change* seats from inside the app (they have to go to Stripe portal). Add an inline seat-update button in `/app/team` that calls Stripe to update quantity.
 

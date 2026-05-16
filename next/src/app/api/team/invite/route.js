@@ -8,6 +8,7 @@ import { sendTeamInvite } from "@/lib/server/mail/mail"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
 import { ROLES } from "@/lib/roles"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
 
 export async function POST(req) {
   const auth = await useServerAuth()
@@ -71,6 +72,13 @@ export async function POST(req) {
     link
   })
 
+  logTeamEvent({
+    team,
+    type: TEAM_EVENT.INVITE_SENT,
+    actor: auth.user,
+    data: { email, role, resent: !!existingInvite },
+  })
+
   return NextResponse.json({ success: true })
 }
 
@@ -93,11 +101,19 @@ export async function DELETE(req) {
 
   const { _id } = await req.json()
 
-  const result = await TeamInvite.deleteOne({ _id, team: team._id })
-
-  if (result.deletedCount === 0) {
+  const invite = await TeamInvite.findOne({ _id, team: team._id })
+  if (!invite) {
     return NextResponse.json({ success: false, message: "Invite not found" }, { status: 404 })
   }
+
+  await invite.deleteOne()
+
+  logTeamEvent({
+    team,
+    type: TEAM_EVENT.INVITE_REVOKED,
+    actor: auth.user,
+    data: { email: invite.email },
+  })
 
   return NextResponse.json({ success: true })
 }
