@@ -29,11 +29,7 @@ Email providers impose strict file size limits:
 | **Yahoo Mail** | 25 MB |
 | **Apple Mail (iCloud)** | 20 MB |
 
-Most videos recorded on modern phones far exceed these limits. A minute of 4K video can be **375 MB**, while 1080p video averages **130 MB per minute**. You need significant compression to email videos.
-
-<Info>
-Videos often require compression to fit email limits. A 2-minute 1080p video can be 260 MB, which is 10x over Gmail's 25 MB limit.
-</Info>
+A minute of 4K video is ~375 MB. A minute of 1080p is ~130 MB. To email even a short clip, you need real compression.
 
 ---
 
@@ -68,120 +64,45 @@ Trimming a 5-minute video to 1 minute is far more effective than any compression
 
 ## Method 2: Online Compression Tools (Easiest)
 
-Online compressors are simple and require no software installation.
+- **[Vert.sh](https://vert.sh/)** — Free, no watermark. Use the "Email" preset.
+- **[FreeConvert](https://www.freeconvert.com/video-compressor)** — Upload up to 1 GB, set a target size like "20 MB" exactly.
 
-**Recommended Tools:**
-
-- **[Vert.sh](https://vert.sh/)** — Free, no watermark. Use the "Email" preset or set resolution to 480p/720p manually.
-- **[FreeConvert](https://www.freeconvert.com/video-compressor)** — Upload up to 1 GB, set target size to 15-20 MB.
-
-<GoodFor label="Pros:">
-<Pro>No installation</Pro>
-<Pro>Works on any device</Pro>
-<Pro>Beginner-friendly</Pro>
-</GoodFor>
-<BadFor label="Cons:">
-<Con>Requires internet</Con>
-<Con>Privacy concerns for sensitive videos</Con>
-</BadFor>
+<Warning>
+Don't upload private videos to online tools — they sit on third-party servers.
+</Warning>
 
 ---
 
-## Method 3: Desktop Software (Best Control)
+## Method 3: HandBrake (Best Quality)
 
-For frequent compression or offline work, desktop software gives better results.
-
-### HandBrake (Free, Windows/Mac/Linux)
-
-Download [HandBrake](https://handbrake.fr/), open your video, and use the **Fast 480p30** or **Fast 720p30** preset. For email, aim for RF 24-28 or 1500 kbps bitrate. Target: ~10-15 MB per minute.
-
-### VLC Media Player (Free)
-
-Use [VLC's](https://www.videolan.org/) **Media → Convert/Save**, select the H.264 profile, and set bitrate to 1500 kbps.
+Download [HandBrake](https://handbrake.fr/), open your video, pick the **Fast 480p30** preset. For email, aim for RF 24-28 or 1500 kbps. That's roughly 10-15 MB per minute.
 
 ---
 
-## Method 4: Send a Link Instead (Recommended)
+## Method 4: Send a Link Instead (Recommended for Anything Over 2 Minutes)
 
-If compression isn't getting you below the limit, send a download link to preserve quality.
+If you can't get under 20 MB without trashing the quality, just send a link:
 
-- **[Transfer.zip](https://transfer.zip)** — Unlimited size, end-to-end encrypted. Copy link and paste in email.
-- **[SwissTransfer](https://swisstransfer.com)** — Up to 50 GB, files stored 30 days.
-- **Cloud Storage** — Google Drive (15 GB), Dropbox (2 GB), OneDrive (5 GB). Upload, share, copy link.
+- **[Transfer.zip](https://transfer.zip)** — Unlimited size, end-to-end encrypted, instant link.
+- **[SwissTransfer](https://swisstransfer.com)** — Up to 50 GB, 30-day expiry.
+- **Gmail** — Files over 25 MB auto-upload to Google Drive and insert a link.
 
-**Gmail tip:** Files over 25 MB automatically upload to Google Drive and insert a link.
+![Transfer.zip's Quick Transfer page.](/img/content/services/transfer-zip.png)
 
----
-
-## Quality vs. Size Tradeoffs
-
-| Setting | Impact on File Size | Impact on Quality |
-|---------|---------------------|-------------------|
-| Lower resolution (1080p→480p) | Dramatic (up to 75%) | Noticeable but acceptable on small screens |
-| Lower bitrate (8→1 Mbps) | Proportional reduction | Visible compression artifacts |
-| Trim video length (5 min→2 min) | Proportional reduction | No quality loss |
-
-**Best approach:** Combine techniques: Trim + reduce to 720p + lower bitrate to 2 Mbps.
-
----
-
-## Tips & Best Practices
-
-1. **Always keep the original** - Make a copy before compressing
-2. **Test before sending** - Play compressed video to check quality
-3. **Name files clearly** - "ProjectDemo_Compressed.mp4"
-4. **Mention in email** - "Video attached (compressed for email)"
-5. **Compress for mobile** - Most people view on phones where 480p-720p looks fine
-6. **Use H.264 codec** - Most compatible across devices
-
-<Alert>
-**For sensitive videos:**
-- Never upload to free online tools
-- Use offline software like HandBrake
-- Or use encrypted transfer services like Transfer.zip
-</Alert>
-
----
-
-## Common Issues
-
-**"Email won't send"**
-→ Video still too large. Compress more or send a link instead
-
-**"Quality looks terrible"**
-→ Compressed too much. Increase bitrate or send link to full-quality video
-
-**"Recipient can't play video"**
-→ Use H.264 codec and export as .mp4 (most universal)
-
-**"Compression taking forever"**
-→ Large videos take time. Try trimming first to reduce processing
+<PrimaryLink href="/">Send a Transfer.zip link instead</PrimaryLink>
 
 ---
 
 ## FAQ
 
 **What's the best resolution for email videos?**
-480p is ideal - clear enough for laptops and phones while staying under size limits.
-
-**Can I compress without software?**
-Yes, use online tools like Vert.sh or FreeConvert that work in your browser.
+480p — clear on laptops and phones, small enough to fit. Go 720p only if you have bitrate budget left.
 
 **Why is my video still huge after zipping?**
-Videos are already compressed. Zipping provides minimal compression (5-10%). You need to re-encode the video.
+Zipping doesn't compress videos (they're already compressed). You need to re-encode.
 
-**What codec should I use?**
-H.264 is most compatible. Avoid H.265/HEVC unless recipients have modern devices.
-
----
-
-## Summary
-
-- **Casual sharing:** Trim first, compress to 480p with Vert.sh, attach if under 20 MB.
-- **Best quality:** Use HandBrake at 720p, RF 24, 2 Mbps.
-- **Videos that won't fit:** Upload to [Transfer.zip](https://transfer.zip) and paste the link in your email.
-
-**Bottom line:** Email wasn't designed for large video files. For videos over 2 minutes or high quality, skip compression and use a file transfer service. Your recipients will appreciate better quality.
+**Which codec should I use?**
+H.264 — it plays everywhere. H.265 makes smaller files but older devices may not open them.
 
 **Related guides:**
 - [How to compress a video on iPhone](/how-to/compress-a-video/iphone)

@@ -9,7 +9,7 @@ import pricing, { getPlanById, FREE_PLAN, PLANS } from "@/lib/pricing"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { IS_SELFHOST } from "@/lib/isSelfHosted"
-import { UserIcon } from "lucide-react"
+import { ArrowLeftIcon, UserIcon } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { humanFileSize } from "@/lib/transferUtils"
 import { humanTimeUntil } from "@/lib/utils"
@@ -18,6 +18,8 @@ import { ROLES } from "@/lib/roles"
 import ProfilePic from "@/components/ProfilePic"
 import { useState } from "react"
 import { toast } from "sonner"
+import PrivacyDataSection from "./PrivacyDataSection"
+import TeamSection from "./TeamSection"
 
 function CurrentPlanCard({ plan, isTrial, planCancelling, planValidUntil }) {
   const tier = getPlanById(plan) || FREE_PLAN
@@ -114,6 +116,7 @@ export default function ({ user, storage, team }) {
   const { notificationSettings } = user
 
   return (
+    <div className="space-y-4">
     <div className="p-5 sm:p-6 bg-white rounded-xl">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         <div className="sm:col-span-full flex gap-4">
@@ -164,25 +167,6 @@ export default function ({ user, storage, team }) {
             </div>
           </div>
         </div>
-        {user.hasTeam && user.role !== ROLES.OWNER && (
-          <div className="col-span-full">
-            <div className="inline-flex items-start gap-3 rounded-xl border border-primary-400 bg-primary-50 p-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-gray-900">
-                    Managed by {team?.name || "your team"}
-                  </span>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white text-gray-600 border capitalize">
-                    {user.role}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mt-0.5">
-                  Your plan, storage, and billing are handled by the team owner.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
         <div className="sm:col-span-1">
           <h2 className="text-lg font-semibold text-gray-900 ">Notifications</h2>
           <div className="space-y-4 mt-4">
@@ -228,9 +212,17 @@ export default function ({ user, storage, team }) {
           </div>
         )}
       </div>
-      <div className="mt-4 sm:col-span-full text-red-500 font-bold">
-        <button className="text-sm" onClick={handleLogout}>&larr; Logout</button>
+      <div className="mt-4 sm:col-span-full text-primary font-bold">
+        <button className="text-sm inline-flex items-center gap-1" onClick={handleLogout}>
+          <ArrowLeftIcon className="w-4 h-4" />
+          Log out of my account
+        </button>
       </div>
+    </div>
+    {user.hasTeam && user.role !== ROLES.OWNER && team && (
+      <TeamSection team={team} role={user.role} />
+    )}
+    <PrivacyDataSection user={user} />
     </div>
   )
 }

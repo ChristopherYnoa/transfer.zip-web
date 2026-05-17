@@ -6,6 +6,24 @@ import { compileMDX } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import { mdxComponents } from '@/mdx-components'
 
+const MINOR_WORDS = new Set([
+  'a', 'an', 'the', 'and', 'or', 'but', 'for', 'to', 'of', 'in', 'on', 'at', 'by', 'with',
+])
+
+export function slugToTitle(slug) {
+  const segment = slug.split('/').pop() || ''
+  return segment
+    .replace(/[-_]/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word, i) => {
+      const lower = word.toLowerCase()
+      if (i > 0 && MINOR_WORDS.has(lower)) return lower
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(' ')
+}
+
 function extractHeadings(markdown) {
   const headingRegex = /^(#{1,6})\s+(.+)$/gm
   const headings = []
@@ -31,6 +49,20 @@ function getContentDir() {
 export async function getAllSlugs() {
   const files = await globby(['**/*.mdx'], { cwd: getContentDir() })
   return files.map(f => f.replace(/\.mdx$/, ''))
+}
+
+export async function getAllVirtualSlugs() {
+  const slugs = await getAllSlugs()
+  const existing = new Set(slugs)
+  const virtual = new Set()
+  for (const slug of slugs) {
+    const segments = slug.split('/')
+    for (let i = 1; i < segments.length; i++) {
+      const partial = segments.slice(0, i).join('/')
+      if (!existing.has(partial)) virtual.add(partial)
+    }
+  }
+  return [...virtual]
 }
 
 async function readContentFile(slug) {
@@ -138,7 +170,7 @@ export async function getChildrenBySlug(parentSlug) {
 
     organized.push({
       slug: parentPath,
-      href: null, // No page exists
+      href: `/${parentPath}`,
       title: `${title}`,
       description: null,
       isVirtual: true,

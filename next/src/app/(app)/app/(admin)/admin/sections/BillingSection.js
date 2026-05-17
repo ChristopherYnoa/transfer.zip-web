@@ -3,10 +3,11 @@ import BIcon from "@/components/BIcon";
 import { Button } from "@/components/ui/button";
 import { API_URL } from "@/lib/client/Api";
 import { humanTimeUntil } from "@/lib/utils";
-import pricing from "@/lib/pricing";
+import pricing, { PLANS } from "@/lib/pricing";
 import AdminCard from "../AdminCard";
+import SeatManager from "../SeatManager";
 
-export default function BillingSection({ team, memberCount }) {
+export default function BillingSection({ team, memberCount, pendingInvites }) {
   const tier = pricing.teamTier;
   const { name, displayFeatures } = tier;
   const { seats, planCancelling, planValidUntil } = team;
@@ -26,7 +27,7 @@ export default function BillingSection({ team, memberCount }) {
             {statusLabel}
           </span>
           <span className="ml-auto text-sm text-gray-500">
-            {memberCount} of {seats} seats used
+            {memberCount + pendingInvites} of {seats} seats used
           </span>
         </div>
         <ul className="mt-4 space-y-2 text-sm text-gray-700 sm:grid grid-cols-2">
@@ -43,11 +44,29 @@ export default function BillingSection({ team, memberCount }) {
         <hr className="my-4" />
         <div className="flex flex-wrap gap-4 items-center justify-between">
           <div>
-            <p className="font-medium text-gray-900">Need to change seats?</p>
-            <p className="text-sm text-gray-500">Seat quantity is managed through your Stripe customer portal.</p>
+            <p className="font-medium text-gray-900">Seats</p>
+            <p className="text-sm text-gray-500">
+              {seats} paid {seats === 1 ? "seat" : "seats"} on your subscription.
+              {pendingInvites > 0 && ` ${pendingInvites} pending ${pendingInvites === 1 ? "invite" : "invites"}.`}
+            </p>
           </div>
-          <Button asChild>
-            <Link href="/pricing" className="w-full sm:w-fit">Compare all plans</Link>
+          <SeatManager
+            currentSeats={seats || 0}
+            memberCount={memberCount}
+            pendingInvites={pendingInvites || 0}
+            minSeats={PLANS.teams.minSeats}
+            maxSeats={PLANS.teams.maxSeats}
+          />
+        </div>
+        <hr className="my-4" />
+        <div className="flex flex-wrap gap-4 items-center justify-between">
+          <div>
+            <p className="font-medium text-gray-900">Looking for something else?</p>
+            <p className="text-sm text-gray-500">Need custom seats, volume pricing, or enterprise terms?</p>
+          </div>
+          <Button asChild variant="default">
+            {/* /contact is live on the production branch, it will work once we merge */}
+            <Link href={`/contact`} target="_blank" className="w-full sm:w-fit">Talk to sales</Link>
           </Button>
         </div>
       </div>

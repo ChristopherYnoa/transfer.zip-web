@@ -13,7 +13,7 @@ function Stat({ label, value }) {
   );
 }
 
-export default function OverviewSection({ team, memberCount, stats, recentEvents, role }) {
+export default function OverviewSection({ team, memberCount, stats, recentEvents, role, currentUserId }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -44,7 +44,7 @@ export default function OverviewSection({ team, memberCount, stats, recentEvents
               No team activity yet.
             </div>
           ) : (
-            <ActivityFeed events={recentEvents} />
+            <ActivityFeed events={recentEvents} currentUserId={currentUserId} />
           )}
         </AdminCard>
 

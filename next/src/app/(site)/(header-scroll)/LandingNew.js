@@ -34,7 +34,9 @@ export default async function ({ mode }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center bg-white px-2 py-1 rounded-xl fade-in-up-fast">
               <div className="ms-2 flex items-center text-xl gap-x-2">
-                <Image src={icon} width={40} alt='logo'></Image>
+                <Link href={"/"}>
+                  <Image src={icon} width={40} alt='logo'></Image>
+                </Link>
               </div>
               <div className="ms-2 hidden sm:flex">
                 <Button asChild size={"sm"} variant={"ghost"}>

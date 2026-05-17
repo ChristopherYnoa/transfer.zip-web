@@ -3,6 +3,7 @@ import GlobalProvider from "@/context/GlobalContext";
 import { IS_SELFHOST } from "@/lib/isSelfHosted";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Bricolage_Grotesque, Roboto } from "next/font/google";
+import { headers } from "next/headers";
 import Head from "next/head";
 import Script from "next/script";
 import "./globals.css";
@@ -47,7 +48,11 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const headersList = await headers();
+  const ua = headersList.get("user-agent") || "";
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+
   return (
     <html lang="en">
       {/* <Head> */}
@@ -59,7 +64,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${roboto.className} antialiased`} // ${roboto.className} ${playfairDisplay.className}
       >
-        <GlobalProvider>
+        <GlobalProvider isSafari={isSafari}>
           <FileProvider>
             {children}
           </FileProvider>

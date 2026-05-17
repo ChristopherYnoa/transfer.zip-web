@@ -11,6 +11,7 @@ import { getConf } from '@/lib/server/config'
 import { toLargeRegion } from '@/lib/server/region'
 import { workerGeoSlow } from '@/lib/server/workerApi'
 import { EXPIRATION_TIMES } from '@/lib/constants'
+import { LIMIT } from '@/lib/pricing'
 import dbConnect from '@/lib/server/mongoose/db'
 import * as EmailValidator from 'email-validator';
 import {
@@ -88,15 +89,15 @@ const validateAndAuthorize = async (body, auth) => {
       return { error: "Subscription required", status: 401 }
     }
 
-    // Check expiration time is allowed for user's plan
-    // The user sends it as a string so we need to compare with ints
+    // Check expiration time is allowed for user's plan (delegates to team plan if applicable)
     const expirationTimeEntry = EXPIRATION_TIMES.find(t => parseInt(t.days) === parseInt(data.expiresInDays))
     if (!expirationTimeEntry) {
       return { error: "Invalid expiration time", status: 400 }
     }
 
-    if (!expirationTimeEntry.starter && expirationTimeEntry.pro && plan !== "pro") {
-      return { error: "Pro plan required for this expiration time", status: 401 }
+    const maxExpiryDays = auth.user.getLimit(LIMIT.MAX_EXPIRY_DAYS) ?? 0
+    if (parseInt(expirationTimeEntry.days) > maxExpiryDays) {
+      return { error: "Your plan does not allow this expiration time", status: 401 }
     }
 
     return { data, transferRequest: null }

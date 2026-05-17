@@ -1,19 +1,25 @@
-import AddUserButton from "../AddUserButton";
+import { UserPlusIcon } from "lucide-react";
 import UserList from "../UserList";
 import AdminCard from "../AdminCard";
 
-export default function MembersSection({ currentUser, teamUsers, invites, seats }) {
-  const atCapacity = teamUsers.length + invites.length >= seats
+export default function MembersSection({ currentUser, teamUsers, invites }) {
+  const aloneOnTeam = teamUsers.length === 1 && invites.length === 0;
+
   return (
     <AdminCard>
       <UserList user={currentUser} users={teamUsers} invites={invites} />
-      <div className="mt-4 flex items-center gap-4">
-        <p className="text-gray-600 flex-1 text-sm">
-          {teamUsers.length}/{seats} seats used
-          {invites.length > 0 && ` · ${invites.length} pending`}
-        </p>
-        <AddUserButton atCapacity={atCapacity} />
-      </div>
+
+      {aloneOnTeam && (
+        <div className="mt-4 rounded-lg border border-dashed border-gray-300 p-6 text-center">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 text-primary-700 mb-2">
+            <UserPlusIcon size={18} />
+          </div>
+          <div className="font-medium text-gray-900">You're the only one here</div>
+          <p className="text-sm text-gray-500 mt-1">
+            Invite teammates by email so everyone can share branding and use the team's storage.
+          </p>
+        </div>
+      )}
     </AdminCard>
   );
 }

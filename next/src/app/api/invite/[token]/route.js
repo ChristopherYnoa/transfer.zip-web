@@ -6,12 +6,8 @@ import Team from "@/lib/server/mongoose/models/Team"
 import User from "@/lib/server/mongoose/models/User"
 import Session from "@/lib/server/mongoose/models/Session"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
-import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
-import { purchaseSeats } from "@/lib/server/teamSeats"
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
-import { sendTeamInviteAccepted, sendTeamSeatCapacityReached } from "@/lib/server/mail/mail"
+import { redeemTeamInviteForUser, InviteRedemptionError } from "@/lib/server/teamInvites"
 import { logError } from "@/lib/server/errors"
-import { ROLES } from "@/lib/roles"
 
 export async function GET(req, { params }) {
   const { token } = await params
@@ -38,14 +34,17 @@ export async function GET(req, { params }) {
   }))
 }
 
+// Accepting an invite is a privileged operation, but the invite token itself
+// is the proof: it was delivered to the invite.email inbox, so anyone holding
+// it has demonstrated control over that mailbox. That means we can sign the
+// invitee in here without a separate magic-link round-trip.
 export async function POST(req, { params }) {
   const { token } = await params
   if (!token) {
     return NextResponse.json(resp("Token is required"), { status: 400 })
   }
 
-  const body = await req.json()
-  const password = body.password
+  const body = await req.json().catch(() => ({}))
   const fullName = typeof body.fullName === "string" ? body.fullName.trim() : ""
 
   await dbConnect()
@@ -55,120 +54,46 @@ export async function POST(req, { params }) {
     return NextResponse.json(resp("Invite not found"), { status: 404 })
   }
 
-  const team = await Team.findById(invite.team)
-  if (!team) {
-    return NextResponse.json(resp("Team not found"), { status: 404 })
-  }
-
-  const existingUser = await User.findOne({ email: { $eq: invite.email } })
-
+  const auth = await useServerAuth()
   let user
-  let session
+  let mintNewSession = true
 
-  // Validate the accepting user fully BEFORE attempting any Stripe-side seat
-  // purchase. Otherwise a rejected accept would still have charged the team.
-  if (existingUser) {
-    const auth = await useServerAuth()
-    if (!auth || !auth.user._id.equals(existingUser._id)) {
-      return NextResponse.json(resp(`Please sign in as ${invite.email} to accept this invite`), { status: 401 })
-    }
-
-    if (team.users.some(u => u.equals(existingUser._id))) {
-      return NextResponse.json(resp("You are already in this team"), { status: 409 })
-    }
-    if (existingUser.team) {
-      return NextResponse.json(resp("You are already a member of another team"), { status: 409 })
-    }
-    if (await userHasLiveStripeSubscription(existingUser)) {
-      return NextResponse.json(resp("You have an active subscription. Cancel it before joining a team."), { status: 409 })
-    }
-
-    user = existingUser
-    session = auth
-  }
-
-  // The invite was already accounted for at creation time (seats include
-  // pending invites). If capacity has been eroded since — Stripe downgrade,
-  // a concurrent invite acceptance, etc. — auto-purchase the seat needed to
-  // honor this invite rather than rejecting a user who was legitimately invited.
-  let seatsPurchasedOnAccept = 0
-  if (team.users.length >= (team.seats || 0)) {
-    try {
-      seatsPurchasedOnAccept = (team.users.length + 1) - (team.seats || 0)
-      await purchaseSeats(team, seatsPurchasedOnAccept)
-    } catch (err) {
-      logError(err).forRoute("api/invite/[token]/POST")
-      return NextResponse.json(resp("This team has no available seats. Ask an owner or admin to free up a seat."), { status: 409 })
-    }
-  }
-
-  if (existingUser) {
-    existingUser.team = team._id
-    existingUser.role = invite.role
-    await existingUser.save()
+  if (auth && auth.user.email === invite.email) {
+    // Already signed in as the invitee — keep their existing session.
+    user = auth.user
+    mintNewSession = false
   } else {
-    const newUser = new User({
-      email: invite.email,
-      role: invite.role,
-      team: team._id,
-    })
-
-    if (fullName) {
-      newUser.fullName = fullName
+    // Either signed out, or signed in as someone else. Either way the invite
+    // token settles identity for invite.email.
+    const existingUser = await User.findOne({ email: { $eq: invite.email } })
+    if (existingUser) {
+      user = existingUser
+      if (fullName && !existingUser.fullName) {
+        existingUser.fullName = fullName
+        await existingUser.save()
+      }
+    } else {
+      user = new User({ email: invite.email })
+      if (fullName) user.fullName = fullName
+      await user.save()
     }
-
-    if (password) {
-      newUser.setPassword(password)
-    }
-
-    await newUser.save()
-
-    user = newUser
   }
 
-  team.users.push(user._id)
-  await team.save()
-
-  await TeamInvite.deleteOne({ _id: invite._id })
-
-  logTeamEvent({
-    team,
-    type: TEAM_EVENT.INVITE_ACCEPTED,
-    actor: user,
-    data: { email: user.email, role: user.role },
-  })
-
-  if (seatsPurchasedOnAccept > 0) {
-    logTeamEvent({
-      team,
-      type: TEAM_EVENT.SEAT_PURCHASED,
-      data: { count: seatsPurchasedOnAccept, reason: "accept", email: user.email },
-    })
-  }
-
-  const owner = await User.findOne({ _id: { $in: team.users }, role: ROLES.OWNER })
-  if (owner) {
-    const manageLink = `${process.env.SITE_URL}/app/admin/members`
-    sendTeamInviteAccepted(owner.email, {
-      teamName: team.name,
-      memberEmail: user.email,
-      link: manageLink,
-    }).catch(err => logError(err).forRoute("api/invite/[token]/POST"))
-
-    if (team.users.length >= (team.seats || 0)) {
-      sendTeamSeatCapacityReached(owner.email, {
-        teamName: team.name,
-        seats: team.seats || 0,
-        link: manageLink,
-      }).catch(err => logError(err).forRoute("api/invite/[token]/POST"))
+  try {
+    await redeemTeamInviteForUser(invite, user)
+  } catch (err) {
+    if (err instanceof InviteRedemptionError) {
+      return NextResponse.json(resp(err.message), { status: err.status })
     }
+    logError(err).forRoute("api/invite/[token]/POST")
+    throw err
   }
 
   const response = NextResponse.json(resp({}), { status: 200 })
-  if (!session) {
-    const newSession = new Session({ user: user._id })
-    await newSession.save()
-    response.cookies.set("token", newSession.token, createCookieParams())
+  if (mintNewSession) {
+    const session = new Session({ user: user._id })
+    await session.save()
+    response.cookies.set("token", session.token, createCookieParams())
   }
   return response
 }

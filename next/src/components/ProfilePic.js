@@ -1,3 +1,5 @@
+"use client"
+
 import { Facehash } from "facehash"
 import { UserIcon } from "lucide-react"
 

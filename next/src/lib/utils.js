@@ -9,6 +9,28 @@ export function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
+// Collapse address-only variations of the same mailbox so we can recognize a
+// re-used email after sign-up tricks. Strips `+aliases` for every provider,
+// folds `googlemail.com` to `gmail.com`, and drops dots from gmail local parts.
+export function normalizeEmail(email) {
+    if (typeof email !== "string") return email
+    const trimmed = email.trim().toLowerCase()
+    const atIndex = trimmed.lastIndexOf("@")
+    if (atIndex === -1) return trimmed
+
+    let local = trimmed.slice(0, atIndex)
+    let domain = trimmed.slice(atIndex + 1)
+
+    if (domain === "googlemail.com") domain = "gmail.com"
+
+    const plusIndex = local.indexOf("+")
+    if (plusIndex !== -1) local = local.slice(0, plusIndex)
+
+    if (domain === "gmail.com") local = local.replace(/\./g, "")
+
+    return `${local}@${domain}`
+}
+
 export function capitalizeFirstLetter(string) {
     if (typeof string !== 'string' || string.length === 0) {
         return string;

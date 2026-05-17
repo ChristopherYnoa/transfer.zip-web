@@ -9,6 +9,7 @@ import { IS_SELFHOST } from "@/lib/isSelfHosted";
 import DismissibleBanner from "./DismissibleBanner";
 import Link from "next/link";
 import Image from "next/image";
+import { ROLES } from "@/lib/roles";
 
 import logo from "@/img/icon.png"
 
@@ -27,6 +28,10 @@ export default async function DashboardLayout({ children }) {
 
   if (auth.user.getPlan() == "free") {
     return redirect("/onboarding")
+  }
+
+  if (auth.user.hasTeam && auth.user.role === ROLES.OWNER && !auth.user.team.onboarded) {
+    return redirect("/onboarding-team")
   }
 
   // const storage = await auth.user.getStorage()

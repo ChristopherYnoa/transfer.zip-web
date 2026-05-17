@@ -6,7 +6,7 @@ import BIcon from "../BIcon";
 import { humanFileSize } from "@/lib/transferUtils";
 import { buildNestedStructure } from "@/lib/utils";
 import streamSaver from "@/lib/client/StreamSaver";
-import EmptySpace from "../elements/EmptySpace";
+import ToolEmptySpace from "./ToolEmptySpace";
 import FilePreview from "./FilePreview";
 
 const MAX_PREVIEW_SIZE = 5 * 1024 * 1024; // 5MB max for preview
@@ -239,7 +239,7 @@ export default function UnzipFileBrowser() {
   if (!richFiles) {
     return (
       <div ref={browserRef}>
-        <EmptySpace
+        <ToolEmptySpace
           title="Select a ZIP file to get started"
           subtitle="Browse and preview files from your archive. Click on any file to download it, or use the preview button to view images and text files."
         />

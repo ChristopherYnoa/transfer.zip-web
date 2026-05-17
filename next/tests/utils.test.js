@@ -8,6 +8,7 @@ import {
   buildNestedStructure,
   removeLastEntry,
   getFileNameFromPath,
+  normalizeEmail,
 } from "@/lib/utils";
 import {
   humanFileSize,
@@ -38,6 +39,39 @@ describe("capitalizeAllWords", () => {
   it("returns non-strings unchanged", () => {
     expect(capitalizeAllWords("")).toBe("");
     expect(capitalizeAllWords(null)).toBe(null);
+  });
+});
+
+describe("normalizeEmail", () => {
+  it("lowercases and trims", () => {
+    expect(normalizeEmail("  Foo@Example.COM ")).toBe("foo@example.com");
+  });
+
+  it("strips +aliases for any provider", () => {
+    expect(normalizeEmail("alice+spam@example.com")).toBe("alice@example.com");
+    expect(normalizeEmail("alice+anything+else@proton.me")).toBe("alice@proton.me");
+  });
+
+  it("folds googlemail.com into gmail.com", () => {
+    expect(normalizeEmail("alice@googlemail.com")).toBe("alice@gmail.com");
+  });
+
+  it("strips dots from gmail local parts only", () => {
+    expect(normalizeEmail("a.l.i.c.e@gmail.com")).toBe("alice@gmail.com");
+    expect(normalizeEmail("a.l.i.c.e@example.com")).toBe("a.l.i.c.e@example.com");
+  });
+
+  it("combines all gmail rules", () => {
+    expect(normalizeEmail("A.Lice+promo@googlemail.com")).toBe("alice@gmail.com");
+  });
+
+  it("passes non-strings through", () => {
+    expect(normalizeEmail(null)).toBe(null);
+    expect(normalizeEmail(undefined)).toBe(undefined);
+  });
+
+  it("returns input unchanged when no @ is present", () => {
+    expect(normalizeEmail("not-an-email")).toBe("not-an-email");
   });
 });
 

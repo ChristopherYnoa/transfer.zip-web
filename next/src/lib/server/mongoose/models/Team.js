@@ -31,6 +31,8 @@ const TeamSchema = new mongoose.Schema({
     // Pending owner, so we can add this user to the team when the subscription starts
     pendingOwner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
+    onboarded: { type: Boolean, default: false },
+
 }, { timestamps: true });
 
 TeamSchema.methods.getPlan = function () {
@@ -90,6 +92,7 @@ TeamSchema.methods.toJsonAsClient = function () {
         planStatus: this.planStatus,
         planCancelling: this.planCancelling,
         planInterval: this.planInterval,
+        onboarded: this.onboarded,
     }
 }
 

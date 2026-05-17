@@ -120,7 +120,7 @@ export default function AddUserButton({ atCapacity = false }) {
       resetState()
     }}>
       <DialogTrigger asChild>
-        <Button><Plus /> Add user</Button>
+        <Button variant="white"><Plus /> Add user</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         {showConfirmStep ? (

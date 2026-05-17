@@ -3,6 +3,7 @@ import dbConnect from "@/lib/server/mongoose/db"
 import Team from "@/lib/server/mongoose/models/Team"
 import User from "@/lib/server/mongoose/models/User"
 import Session from "@/lib/server/mongoose/models/Session"
+import Transfer from "@/lib/server/mongoose/models/Transfer"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { resp } from "@/lib/server/serverUtils"
 import { ROLES } from "@/lib/roles"
@@ -46,6 +47,17 @@ export async function DELETE(req, { params }) {
     return NextResponse.json(resp("Owner cannot be deleted"), { status: 403 })
   }
 
+  // Reassign the removed member's team-tagged transfers to the Owner so
+  // (a) the team keeps managing them, (b) the now-solo ex-member can't reach
+  // back in to edit/delete via /api/transfer/:id (which authorizes by author),
+  // and (c) the data doesn't end up siloed on a free-tier personal account.
+  // We only touch transfers tagged with this team — anything the user created
+  // before joining or via their own transfer requests stays theirs.
+  const reassignResult = await Transfer.updateMany(
+    { author: userId, team: team._id },
+    { $set: { author: auth.user._id } }
+  )
+
   await Team.updateOne(
     { _id: team._id },
     { $pull: { users: userId } }
@@ -65,6 +77,7 @@ export async function DELETE(req, { params }) {
     data: {
       userId: userId.toString(),
       email: user?.email,
+      transfersReassigned: reassignResult.modifiedCount || 0,
     },
   })
 

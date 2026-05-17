@@ -20,7 +20,8 @@ import {
 import { deleteTeamInvite, deleteUser, sendTeamInvite, updateUserRole } from "@/lib/client/Api";
 import { ROLES } from "@/lib/roles";
 import { capitalizeFirstLetter } from "@/lib/utils";
-import { EllipsisVerticalIcon } from "lucide-react";
+import { ArrowRightIcon, EllipsisVerticalIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ProfilePic from "@/components/ProfilePic";
@@ -32,24 +33,38 @@ function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
   const canManageRoles = (currentUser.role === ROLES.ADMIN ? (isOwner ? false : true) : false) || currIsOwner
   const canDeleteUsers = currentUser.role === ROLES.OWNER
   const isSelf = currentUser.id === user.id
+  const showTransferCount = currIsOwner && user.activeTransferCount > 0
 
   return (
     <li className="flex items-center gap-4 p-3 bg-white rounded-lg border hover:bg-gray-50 transition">
       <ProfilePic name={user.fullName || user.email} />
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         {user.fullName ? (
           <>
-            <div className="font-semibold text-gray-900 truncate">{user.fullName}</div>
+            <div className="font-semibold text-gray-900 truncate">
+              {user.fullName}
+              {isSelf && <span className="text-gray-400 font-normal ml-2">(you)</span>}
+            </div>
             <div className="text-sm text-gray-500 truncate">{user.email}</div>
           </>
         ) : (
-          <div className="font-semibold text-gray-900 truncate">{user.email}</div>
+          <div className="font-semibold text-gray-900 truncate">
+            {user.email}
+            {isSelf && <span className="text-gray-400 font-normal ml-2">(you)</span>}
+          </div>
         )}
       </div>
-      <div className="ml-auto">
-        <div className={"text-xs font-medium px-2 py-0.5 rounded-full " + (user.role === ROLES.OWNER ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-700")}>
-          {capitalizeFirstLetter(user.role)}
-        </div>
+      {showTransferCount && (
+        <Link
+          href={`/app/admin/transfers?author=${user.id}`}
+          className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1 transition whitespace-nowrap"
+        >
+          {user.activeTransferCount} {user.activeTransferCount === 1 ? "transfer" : "transfers"}
+          <ArrowRightIcon size={12} />
+        </Link>
+      )}
+      <div className={"text-xs font-medium px-2 py-0.5 rounded-full " + (user.role === ROLES.OWNER ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-700")}>
+        {capitalizeFirstLetter(user.role)}
       </div>
       <div className="relative">
         <DropdownMenu>
@@ -77,7 +92,7 @@ function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
                     Are you sure you want to delete this user? This action cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
-                <DialogFooter className="mt-6 space-x-2">
+                <DialogFooter>
                   <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
                     Cancel
                   </Button>
@@ -155,7 +170,7 @@ function InviteEntry({ invite }) {
                     Are you sure you want to delete this invite? This action cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
-                <DialogFooter className="mt-6 space-x-2">
+                <DialogFooter>
                   <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
                     Cancel
                   </Button>

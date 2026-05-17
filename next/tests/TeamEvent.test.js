@@ -8,8 +8,11 @@ describe("TEAM_EVENT constants", () => {
     expect(TEAM_EVENT.INVITE_ACCEPTED).toBe("invite_accepted");
     expect(TEAM_EVENT.MEMBER_REMOVED).toBe("member_removed");
     expect(TEAM_EVENT.ROLE_CHANGED).toBe("role_changed");
+    expect(TEAM_EVENT.SEAT_PURCHASED).toBe("seat_purchased");
+    expect(TEAM_EVENT.SEAT_REDUCED).toBe("seat_reduced");
     expect(TEAM_EVENT.TRANSFER_CREATED).toBe("transfer_created");
     expect(TEAM_EVENT.TRANSFER_DELETED).toBe("transfer_deleted");
+    expect(TEAM_EVENT.TEAM_RENAMED).toBe("team_renamed");
   });
 
   it("the enum values are unique", () => {

@@ -1,32 +1,40 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000"
 
+// Throw an Error matching the server's response body. Carries `code` and
+// `status` so callers can branch on machine-readable values (e.g. SEATS_FULL)
+// while still getting a sensible default message in toast/UI surfaces.
+class ApiError extends Error {
+    constructor(message, { code, status } = {}) {
+        super(message)
+        this.name = "ApiError"
+        this.code = code
+        this.status = status
+    }
+}
+
+const parseResponse = async (res) => {
+    const text = await res.text()
+    let json = null
+    try { json = text ? JSON.parse(text) : null } catch (_) { /* not json */ }
+
+    if (!res.ok) {
+        const message = json?.message || text || res.statusText || `HTTP ${res.status}`
+        throw new ApiError(message, { code: json?.code, status: res.status })
+    }
+
+    if (json && json.success === false) {
+        throw new ApiError(json.message || "Request failed", { code: json.code, status: res.status })
+    }
+
+    return json
+}
+
 const get = async (endpoint, extraHeaders, omitCredentials) => {
     const res = await fetch(API_URL + endpoint, {
         credentials: (omitCredentials ? "omit" : "include"),
         headers: extraHeaders,
-        // signal: AbortSignal.timeout(10000)
     })
-
-    // TODO: fix this shit ugly ass error handling
-    if (!res.ok) {
-        let messageToThrow = "unknown error"
-        const text = await res.text()
-        try {
-            const json = JSON.parse(text)
-            if (json?.message) messageToThrow = json.message
-        } catch (e) {
-            messageToThrow = text
-        }
-        throw new Error(messageToThrow)
-    }
-
-    const json = await res.json()
-    if (!json.success) {
-        throw new Error(json.message || "unknown error")
-    }
-    else {
-        return json
-    }
+    return parseResponse(res)
 }
 
 const withBody = async (verb, endpoint, payload) => {
@@ -38,27 +46,7 @@ const withBody = async (verb, endpoint, payload) => {
             "Content-Type": "application/json"
         }
     })
-
-    // TODO: fix this shit ugly ass error handling
-    if (!res.ok) {
-        let messageToThrow = "unknown error"
-        const text = await res.text()
-        try {
-            const json = JSON.parse(text)
-            if (json?.message) messageToThrow = json.message
-        } catch (e) {
-            messageToThrow = text
-        }
-        throw new Error(messageToThrow)
-    }
-
-    const json = await res.json()
-    if (!json.success) {
-        throw new Error(json.message || "unknown error")
-    }
-    else {
-        return json
-    }
+    return parseResponse(res)
 }
 
 const post = async (endpoint, payload) => {
@@ -86,6 +74,12 @@ export async function getUserStorage() {
 export async function putUserSettings(payload) {
     return await put("/user/settings", payload)
 }
+
+export async function deleteOwnAccount() {
+    return await withBody("delete", "/user")
+}
+
+export const getUserExportUrl = () => `${API_URL}/user/export`
 
 // auth
 
@@ -121,6 +115,24 @@ export async function useMagicLink(token) {
     return await post(`/auth/magic-link/${token}`)
 }
 
+export async function pollMagicLinkStatus(requestId) {
+    return await get(`/auth/magic-link/by-request/${requestId}`)
+}
+
+export async function verifyMagicLinkCode(requestId, code) {
+    return await post(`/auth/magic-link/by-request/${requestId}/verify`, { code })
+}
+
+// team
+
+export async function updateTeam(payload) {
+    return await put("/team", payload)
+}
+
+export async function markTeamOnboarded() {
+    return await post("/team/onboard", {})
+}
+
 // team invite
 
 export async function sendTeamInvite(email, role, autoPurchaseSeat) {
@@ -131,6 +143,10 @@ export async function previewTeamSeatPurchase(count = 1) {
     return await post("/team/seats/preview", { count })
 }
 
+export async function updateTeamSeats(seats) {
+    return await put("/team/seats", { seats })
+}
+
 export async function deleteTeamInvite(_id) {
     return await withBody("delete", "/team/invite", { _id })
 }
@@ -139,8 +155,8 @@ export async function getInvite(token) {
     return await get(`/invite/${token}`)
 }
 
-export async function redeemInvite(token, password, fullName) {
-    return await post(`/invite/${token}`, { password, fullName })
+export async function redeemInvite(token, fullName) {
+    return await post(`/invite/${token}`, { fullName })
 }
 
 export async function deleteUser(userId) {
@@ -161,8 +177,16 @@ export async function deleteTeamTransfer(transferId) {
     return await post(`/team/transfers/${transferId}/delete`)
 }
 
-export async function getTeamEvents(limit) {
-    return await get(`/team/events${limit ? `?limit=${limit}` : ""}`)
+export async function extendTeamTransfer(transferId, expiresAt) {
+    return await put(`/team/transfers/${transferId}`, { expiresAt })
+}
+
+export async function getTeamEvents({ filter = "all", before } = {}) {
+    const params = new URLSearchParams()
+    if (filter && filter !== "all") params.set("filter", filter)
+    if (before) params.set("before", before)
+    const qs = params.toString()
+    return await get(`/team/events${qs ? `?${qs}` : ""}`)
 }
 
 // export async function requestVerification() {

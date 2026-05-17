@@ -1,4 +1,4 @@
-import { EXPIRATION_TIMES } from "@/lib/constants";
+import { LIMIT } from "@/lib/pricing";
 import { findUsableBrandProfile } from "@/lib/server/brandProfiles";
 import Transfer from "@/lib/server/mongoose/models/Transfer";
 import { resp } from "@/lib/server/serverUtils";
@@ -27,9 +27,7 @@ export async function PUT(req, { params }) {
   if (expiresAt) {
     const expiresAtDate = new Date(expiresAt)
 
-    const maxPlanExpirationDays =
-      EXPIRATION_TIMES.filter(t => (user.getPlan() == "pro" ? t.pro : t.starter)).reduce((max, current) =>
-        current.days > max.days ? current : max, { days: -1 }).days
+    const maxPlanExpirationDays = user.getLimit(LIMIT.MAX_EXPIRY_DAYS) ?? 0
 
     const maxExpiryDate = new Date(transfer.createdAt)
     maxExpiryDate.setDate(maxExpiryDate.getDate() + maxPlanExpirationDays);

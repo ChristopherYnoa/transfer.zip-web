@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
-import { Info as InfoIcon, AlertTriangle, AlertCircle, Lightbulb, Sparkles, NewspaperIcon, ArrowRight, ArrowRightIcon, Check, X } from "lucide-react";
+import { Info as InfoIcon, AlertTriangle, AlertCircle, Lightbulb, ArrowRightIcon, Check, X } from "lucide-react";
 
 function HowToCard({ href, title, description, image, imageAlt, children }) {
   return (
@@ -123,21 +123,20 @@ function Con({ children }) {
 
 function TLDR({ children }) {
   return (
-    <div className="rounded-xl bg-primary-50 border border-primary p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-3">
-        <NewspaperIcon className="h-5 w-5 text-primary" />
-        <span className="text-lg font-bold text-primary">TL;DR</span>
-      </div>
-      <div className="text-base leading-relaxed text-black [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 mb-4">
+    <aside className="my-8 lg:-mx-8 rounded-2xl bg-primary-50 px-6 lg:px-8 py-6">
+      <p className="text-sm font-bold uppercase text-primary mb-4 mt-0">
+        If you're in a hurry:
+      </p>
+      <div className="text-[15px] leading-[1.65] text-gray-700 [&>p]:mt-2.5 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0 [&>ul]:mt-2.5 [&>ol]:mt-2.5 [&_strong]:text-gray-900 [&_strong]:font-semibold mb-5">
         {children}
       </div>
       <Link
         href="/"
-        className="inline-flex items-center gap-2 text-sm font-medium bg-primary p-2 rounded-lg text-white px-4 hover:bg-primary-light transition-colors"
+        className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-light transition-colors no-underline"
       >
         Try Transfer.zip →
       </Link>
-    </div>
+    </aside>
   );
 }
 
@@ -159,7 +158,7 @@ export function mdxComponents(basePath) {
       <h1
         id={generateId(children)}
         className={cn(
-          "text-3xl font-semibold tracking-tight",
+          "text-3xl font-semibold tracking-tight text-gray-900",
           className
         )}
         {...props}
@@ -171,7 +170,7 @@ export function mdxComponents(basePath) {
       <h2
         id={generateId(children)}
         className={cn(
-          "mt-12 text-2xl font-semibold tracking-tight",
+          "mt-12 text-2xl font-semibold tracking-tight text-gray-900",
           className
         )}
         {...props}
@@ -182,7 +181,7 @@ export function mdxComponents(basePath) {
     h3: ({ className, children, ...props }) => (
       <h3
         id={generateId(children)}
-        className={cn("mt-8 text-xl font-semibold", className)}
+        className={cn("mt-8 text-xl font-semibold text-gray-900", className)}
         {...props}
       >
         {children}
@@ -190,20 +189,20 @@ export function mdxComponents(basePath) {
     ),
     p: ({ className, ...props }) => (
       <p
-        className={cn("mt-6 leading-7 text-lg", className)}
+        className={cn("mt-6 leading-7 text-[17px] text-gray-600", className)}
         {...props}
       />
     ),
     ul: ({ className, ...props }) => (
       <ul
-        className={cn("mt-6 list-disc space-y-2 pl-6 text-lg", className)}
+        className={cn("mt-6 list-disc space-y-2 pl-6 text-[17px] text-gray-600 marker:text-gray-400", className)}
         {...props}
       />
     ),
     ol: ({ className, ...props }) => (
       <ol
         className={cn(
-          "mt-6 list-decimal space-y-2 pl-6 text-lg",
+          "mt-6 list-decimal space-y-2 pl-6 text-[17px] text-gray-600 marker:text-gray-400",
           className
         )}
         {...props}
@@ -217,14 +216,14 @@ export function mdxComponents(basePath) {
     ),
     hr: ({ className, ...props }) => (
       <hr
-        className={cn("my-8 border-gray-200", className)}
+        className={cn("my-10 border-gray-200", className)}
         {...props}
       />
     ),
     blockquote: ({ className, ...props }) => (
       <blockquote
         className={cn(
-          "mt-6 border-l-4 border-primary-400 pl-4 text-base",
+          "mt-6 border-l-4 border-primary-400 pl-4 text-base text-gray-600",
           className
         )}
         {...props}
@@ -233,17 +232,17 @@ export function mdxComponents(basePath) {
     pre: ({ className, ...props }) => (
       <pre
         className={cn(
-          "mt-4 overflow-x-auto p-4 text-sm border text-black border-gray-400 bg-gray-50 rounded-lg",
+          "mt-4 overflow-x-auto p-4 text-sm border text-black border-gray-200 bg-gray-50 rounded-lg lg:-mx-6",
           className
         )}
         {...props}
       />
     ),
     table: ({ className, ...props }) => (
-      <div className="mt-8 overflow-x-auto">
+      <div className="mt-8 overflow-x-auto lg:-mx-8">
         <table
           className={cn(
-            "min-w-full border-collapse text-left",
+            "min-w-full border-collapse text-left text-[15px] text-gray-700",
             className
           )}
           {...props}
@@ -282,15 +281,15 @@ export function mdxComponents(basePath) {
       />
     ),
     img: ({ src, alt, title, ...props }) => (
-      <>
+      <span className="block my-8 lg:-mx-8">
         <img
-          className="rounded-xl mb-2"
+          className="rounded-xl mb-2 w-full"
           src={basePath ? `${basePath}/${src}` : src}
           alt={alt}
           {...props}
         />
-        {title || alt && <span className="text-sm text-gray-400">{title || alt}</span>}
-      </>
+        {(title || alt) && <span className="block text-sm text-gray-400">{title || alt}</span>}
+      </span>
     ),
     "Link": ({ className, ...props }) => (
       <Link

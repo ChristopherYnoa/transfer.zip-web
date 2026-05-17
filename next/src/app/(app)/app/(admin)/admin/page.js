@@ -2,7 +2,9 @@ import GenericPage from "@/components/dashboard/GenericPage";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import TeamEvent from "@/lib/server/mongoose/models/TeamEvent";
 import { listTransfersForTeam } from "@/lib/server/serverUtils";
+import { ROLES } from "@/lib/roles";
 import OverviewSection from "./sections/OverviewSection";
+import TeamNameEditor from "./TeamNameEditor";
 
 export const metadata = { title: "Overview" };
 
@@ -26,8 +28,12 @@ export default async function TeamOverviewPage() {
   const totalDownloads = transfers.reduce((sum, t) => sum + (t.downloads?.length || 0), 0);
   const totalStorageBytes = transfers.reduce((sum, t) => sum + (t.size || 0), 0);
 
+  const canEditName = user.role === ROLES.OWNER || user.role === ROLES.ADMIN;
+
   return (
-    <GenericPage title="Admin">
+    <GenericPage
+      titleComponent={<TeamNameEditor teamName={team.name} canEdit={canEditName} />}
+    >
       <OverviewSection
         team={team.toJsonAsClient()}
         memberCount={team.users.length}
@@ -39,6 +45,7 @@ export default async function TeamOverviewPage() {
         }}
         recentEvents={recentEvents.map(e => e.toJsonAsClient())}
         role={user.role}
+        currentUserId={user._id.toString()}
       />
     </GenericPage>
   );

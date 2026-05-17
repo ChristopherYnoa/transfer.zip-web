@@ -28,12 +28,99 @@ Modern cameras and smartphones record videos in stunning quality—4K, 60fps, HD
 
 ---
 
-## Quick Compression Settings Reference
+## Method 1: Online Video Compressors (Easiest)
 
-Use these settings based on your goal:
+Browser tools — nothing to install. Best for one-off jobs.
 
-| Purpose | Resolution | Bitrate | Frame Rate | Expected Size per Minute |
-|---------|------------|---------|------------|--------------------------|
+- **[Vert.sh](https://vert.sh/)** — Open source, no watermark, free. Has Email / Web / Social Media presets.
+- **[Clideo](https://clideo.com/compress-video)** — Low/Medium/High presets. Free version adds a small watermark.
+- **[FreeConvert](https://www.freeconvert.com/video-compressor)** — Upload up to 1 GB; set a target file size like "20 MB" exactly.
+
+<Warning>
+Don't upload private or sensitive videos to online compressors — they sit on third-party servers.
+</Warning>
+
+---
+
+## Method 2: Desktop Software (Best Control & Quality)
+
+Desktop applications give you precise control over compression settings and work offline. Recommended for frequent video compression.
+
+### HandBrake (Free, Open Source — Recommended)
+
+Download from [handbrake.fr](https://handbrake.fr/), open your video, pick a preset:
+
+- **Fast 480p30** — for email attachments
+- **Fast 720p30** — for web/messaging
+- **Fast 1080p30** — for YouTube/social
+
+For more control, the **Video tab** lets you set RF quality (23-28 — lower means higher quality) or a specific bitrate. That's all most people ever need.
+
+---
+
+### FFmpeg (Command Line)
+
+If you live in the terminal:
+
+```bash
+ffmpeg -i input.mp4 -vcodec libx264 -crf 23 -vf scale=1280:720 -acodec aac -b:a 128k output.mp4
+```
+
+CRF 18-28 is the useful range (lower = better quality). Drop `-vf scale=1280:720` to keep original resolution.
+
+---
+
+## Method 3: Compress Videos on Mobile
+
+- **iPhone:** Use the built-in **Shortcuts** app — search "Reduce Video Size" in the Gallery, add it, and run on any video. Full guide: [How to compress a video on iPhone](/how-to/compress-a-video/iphone).
+- **Android:** **Video Compressor - Fast Compress** or **VidCompact** from the Play Store. Pick a quality preset, save back to your gallery.
+
+---
+
+## Method 4: Trim First (Most Effective)
+
+A 5-minute video trimmed to 1 minute is 80% smaller — no codec can match that. Always trim before reaching for compression.
+
+- **Windows:** Photos app → Edit video → Trim
+- **Mac:** QuickTime → Edit → Trim (Cmd+T)
+- **iPhone:** Photos → Edit → drag the timeline ends
+- **Android:** Google Photos → Edit → Crop
+
+---
+
+## Alternative: Send the Original Instead
+
+If you're only compressing because the file is too big to share, skip it and send the original via [Transfer.zip](https://transfer.zip) — Quick Transfer streams files of any size peer-to-peer, no compression needed, no upload wait. Recipients get the full-quality video.
+
+![Transfer.zip homepage with the Quick Transfer file picker.](/img/content/services/transfer-zip.png)
+
+<PrimaryLink href="/">Send your video at full quality</PrimaryLink>
+
+---
+
+## FAQ
+
+**Will zipping a video reduce its size?**
+No. Videos are already compressed; zipping saves 0-5% at most. You need to re-encode.
+
+**Which codec — H.264 or H.265?**
+H.264 plays everywhere. H.265 (HEVC) makes files 30-50% smaller but older devices may not play it. Pick H.264 unless you know the recipient supports HEVC.
+
+**Lower resolution or lower bitrate?**
+Lower resolution looks better than starved bitrate. 720p at 3 Mbps beats 1080p at 1.5 Mbps.
+
+**How much can I compress without losing quality?**
+You always lose some — the goal is making the loss invisible. 720p at 3-5 Mbps hits the sweet spot for most viewers.
+
+**My compressed video is larger than the original. Why?**
+You raised the bitrate or quality setting above the source's. Compression only shrinks files when you reduce something.
+
+---
+
+## Compression Settings Cheat Sheet
+
+| Purpose | Resolution | Bitrate | Frame Rate | Size per Minute |
+|---------|------------|---------|------------|-----------------|
 | **Email attachment** | 480p | 1.5-2 Mbps | 30 fps | ~15 MB |
 | **Messaging apps** | 720p | 2-3 Mbps | 30 fps | ~20 MB |
 | **Social media** | 1080p | 5-8 Mbps | 30 fps | ~50 MB |
@@ -42,379 +129,6 @@ Use these settings based on your goal:
 | **Archive/storage** | 1080p | 10-15 Mbps | Original | ~90 MB |
 
 ---
-
-## Method 1: Online Video Compressors (Easiest)
-
-<GoodFor label="Best for:">
-<Pro>Quick one-time compression</Pro>
-<Pro>No software installation</Pro>
-<Pro>Beginners</Pro>
-</GoodFor>
-
-Online tools work directly in your browser and require no downloads. Perfect for occasional use.
-
-### Vert.sh (Free, No Watermark)
-
-Open source browser tool with presets for Email (480p), Web (720p), and Social Media (1080p). Upload your video, pick a preset or customize settings, and download the compressed result.
-
-<GoodFor label="Pros:">
-<Pro>No watermark</Pro>
-<Pro>Simple presets</Pro>
-<Pro>Free</Pro>
-<Pro>Privacy-focused</Pro>
-</GoodFor>
-<BadFor label="Cons:">
-<Con>Slower for very large files</Con>
-<Con>Requires internet</Con>
-</BadFor>
-
-<ExternalLink href="https://vert.sh/">Try Vert.sh</ExternalLink>
-
----
-
-### Clideo (Free with Watermark)
-
-Simple browser tool with Low/Medium/High compression presets. Upload, choose compression level, and download. Free version adds a small watermark.
-
-<GoodFor label="Pros:">
-<Pro>Very user-friendly</Pro>
-<Pro>Supports many formats</Pro>
-</GoodFor>
-<BadFor label="Cons:">
-<Con>Free version has watermark</Con>
-<Con>File size limits</Con>
-</BadFor>
-
-<ExternalLink href="https://clideo.com/compress-video">Try Clideo</ExternalLink>
-
----
-
-### VEED.IO (Free Trial)
-
-Drag-and-drop interface with a quality slider to target specific file sizes. Preview the result before downloading.
-
-<GoodFor label="Pros:">
-<Pro>Real-time preview</Pro>
-<Pro>Quality slider</Pro>
-</GoodFor>
-<BadFor label="Cons:">
-<Con>Limited free uses</Con>
-<Con>Requires account for larger files</Con>
-</BadFor>
-
-<ExternalLink href="https://www.veed.io/tools/compress-video">Try VEED.IO</ExternalLink>
-
----
-
-### FreeConvert Video Compressor
-
-Upload videos up to 1 GB and either set a target file size (e.g., "20 MB") or choose a compression level. Useful when you need a specific output size.
-
-<GoodFor label="Pros:">
-<Pro>Target specific file size</Pro>
-<Pro>Generous free limits</Pro>
-</GoodFor>
-<BadFor label="Cons:">
-<Con>Processing can be slow during peak hours</Con>
-</BadFor>
-
-<ExternalLink href="https://www.freeconvert.com/video-compressor">Try FreeConvert</ExternalLink>
-
-**Important:** Never upload sensitive or private videos to online tools. They may be stored temporarily on third-party servers.
-
----
-
-## Method 2: Desktop Software (Best Control & Quality)
-
-Desktop applications give you precise control over compression settings and work offline. Recommended for frequent video compression.
-
-### HandBrake (Free, Open Source)
-
-**Platform:** Windows, Mac, Linux
-
-The gold standard for video compression. Download from [handbrake.fr](https://handbrake.fr/), open your video, and select a preset like **Fast 480p30** (email), **Fast 720p30** (web), or **Fast 1080p30** (YouTube).
-
-For more control, adjust the **Video tab**: use H.264/H.265 codec, set quality RF 23-28 (lower = better quality), or specify a target bitrate. Audio should stay at AAC 128-192 kbps.
-
-**Tips:**
-- Use the **Queue** to batch process multiple videos
-- Save custom presets for recurring settings
-- Check **Web Optimized** for faster online streaming
-- Use **Preview** to test settings before full encode
-
----
-
-### VLC Media Player (Free, Quick & Simple)
-
-**Platform:** Windows, Mac, Linux
-
-Most people have [VLC](https://www.videolan.org/) for playing videos, but it can also compress. Use **Media → Convert/Save**, select the H.264 profile, and adjust bitrate (1500-5000 kbps) or scale (0.5 halves resolution) as needed.
-
-<GoodFor label="Pros:">
-<Pro>Already installed on most computers</Pro>
-<Pro>Simple</Pro>
-</GoodFor>
-<BadFor label="Cons:">
-<Con>Less control than HandBrake</Con>
-<Con>Slower encoding</Con>
-</BadFor>
-
----
-
-### FFmpeg (Command Line, Advanced Users)
-
-**Platform:** Windows, Mac, Linux
-
-FFmpeg is the underlying engine most video tools use. Direct CLI access for maximum power.
-
-**Basic compression command:**
-```bash
-ffmpeg -i input.mp4 -vcodec libx264 -crf 23 -preset medium -vf scale=1280:720 -acodec aac -b:a 128k output.mp4
-```
-
-**What it does:**
-- `-vcodec libx264`: Use H.264 codec
-- `-crf 23`: Quality (lower = better, 18-28 recommended)
-- `-preset medium`: Encoding speed (slower = better compression)
-- `-vf scale=1280:720`: Resize to 720p
-- `-acodec aac -b:a 128k`: Audio at 128 kbps
-
-**Target specific file size:**
-```bash
-ffmpeg -i input.mp4 -b:v 2M -maxrate 2M -bufsize 1M output.mp4
-```
-
-<GoodFor label="Pros:">
-<Pro>Most powerful</Pro>
-<Pro>Scriptable</Pro>
-<Pro>Batch processing</Pro>
-</GoodFor>
-<BadFor label="Cons:">
-<Con>Steep learning curve</Con>
-<Con>Terminal-only</Con>
-</BadFor>
-
----
-
-### Windows Built-in Tools
-
-**Clipchamp (Windows 11):** Pre-installed editor. Import video, export at 480p/720p/1080p with your choice of quality level.
-
-**Photos App (Windows 10/11):** Open video in Photos, use **Edit & Create → Trim** to cut unnecessary parts, then save a copy.
-
----
-
-## Method 3: Compress Videos on Mobile
-
-### iPhone & iPad
-
-See our comprehensive guide: [How to compress a video on iPhone](/how-to/compress-a-video/iphone)
-
-**Quick options:**
-1. **Shortcuts app (built-in, free):**
-   - Gallery → "Reduce Video Size" → Add
-   - Run on any video from Photos
-2. **Compress Videos & Resize Video app:**
-   - Install from App Store (free)
-   - Choose video, set resolution/bitrate, compress
-
----
-
-### Android
-
-**Video Compressor - Fast Compress** and **VidCompact** are popular free apps from the Play Store. Both let you select a video, choose a quality preset (Low/Normal/High or custom resolution), and save the compressed result to your gallery.
-
----
-
-## Method 4: Trim & Cut Videos (Often Most Effective)
-
-Sometimes the best compression is simply making the video shorter by removing unnecessary parts. A 5-minute video trimmed to 1 minute is 80% smaller—better than any codec can achieve.
-
-- **Windows:** Photos app → Edit video → Trim
-- **Mac:** QuickTime → Edit → Trim (Cmd+T)
-- **iPhone:** Photos → Edit → drag timeline edges
-- **Android:** Google Photos → Edit → Crop
-
----
-
-## Advanced Compression Techniques
-
-### Two-Pass Encoding
-For best quality at a target bitrate:
-```bash
-ffmpeg -i input.mp4 -c:v libx264 -b:v 3M -pass 1 -f mp4 /dev/null
-ffmpeg -i input.mp4 -c:v libx264 -b:v 3M -pass 2 output.mp4
-```
-
-### Change Codec to H.265
-H.265 (HEVC) provides 30-50% better compression:
-- **HandBrake:** Video tab → Encoder: H.265
-- **FFmpeg:** `-vcodec libx265`
-
-**Warning:** Older devices may not play H.265 videos.
-
-### Remove Audio
-If audio isn't needed (e.g., screencasts with voiceover added later):
-- **HandBrake:** Audio tab → Remove all tracks
-- **FFmpeg:** `-an` flag
-
-### Reduce Frame Rate
-If smoothness isn't critical:
-- Reduce 60fps → 30fps saves 40-50%
-- **HandBrake:** Video tab → Framerate: 30
-
----
-
-## Comparison: Which Method to Use?
-
-| Situation | Best Method | Why |
-|-----------|-------------|-----|
-| **One-time quick compression** | Online tools (Vert.sh, Clideo) | No installation, simple presets |
-| **Frequent compression** | HandBrake | Best quality control, free, offline |
-| **Batch compress many videos** | HandBrake queue or FFmpeg | Efficient bulk processing |
-| **Mobile device** | Shortcuts (iPhone) or VidCompact (Android) | Built-in or simple apps |
-| **Professional work** | HandBrake or FFmpeg | Maximum control over settings |
-| **Quick size reduction** | Trim/cut video first | Most effective method |
-| **Super small files needed** | HandBrake with H.265, low bitrate | Best compression available |
-
----
-
-## Quality vs. File Size Tradeoffs
-
-Understanding what you sacrifice for smaller files:
-
-| Change | Quality Impact | File Size Reduction |
-|--------|----------------|---------------------|
-| 4K → 1080p | Noticeable on large screens, fine on laptops/phones | 60-70% |
-| 1080p → 720p | Slight quality loss, acceptable for most uses | 50-60% |
-| 720p → 480p | Visible quality loss, OK for small screens | 40-50% |
-| 60fps → 30fps | Slight smoothness loss, barely noticeable | 40-50% |
-| Bitrate cut in half | Compression artifacts, blockiness | 50% |
-| H.264 → H.265 | No visible loss | 30-50% (but less compatible) |
-| Trim 50% of video | No quality loss | 50% |
-
-**Best strategy:** Combine multiple small changes rather than one drastic change.
-Example: 1080p 60fps 10Mbps → 720p 30fps 3Mbps = 75% smaller with acceptable quality.
-
----
-
-## Troubleshooting Common Issues
-
-**"Video quality is too poor after compression"**
-- You compressed too aggressively. Increase bitrate or resolution
-- Use a better encoder (HandBrake vs. online tools)
-- Try H.265 codec for better quality at same file size
-
-**"File size didn't reduce much"**
-- Video was already heavily compressed
-- Try reducing resolution, not just bitrate
-- Trim video length instead
-- Use H.265 codec
-
-**"Compressed video won't play on some devices"**
-- You used H.265 (HEVC) which isn't universally supported
-- Re-encode with H.264 for maximum compatibility
-- Or export as .mp4 with H.264
-
-**"Compression is taking forever"**
-- Large files and slow presets take time
-- Use "Fast" or "Very Fast" preset in HandBrake
-- Close other applications
-- For urgent needs, use online tools with faster servers
-
-**"Video looks pixelated/blocky"**
-- Bitrate is too low for the amount of motion/detail
-- Increase bitrate
-- Use 2-pass encoding for better quality
-- Reduce resolution instead of lowering bitrate further
-
-**"Colors look washed out after compression"**
-- Color space mismatch
-- In HandBrake: Video tab → set Color space to match source
-- Usually bt709 for HD content
-
----
-
-## Best Practices
-
-1. **Always keep the original:** Compress a copy, never the original file
-2. **Test before bulk processing:** Compress one video first, check quality, adjust settings if needed
-3. **Name files clearly:** `Video_Original.mp4` and `Video_Compressed_720p.mp4`
-4. **Match resolution to use case:** Don't compress to 480p if recipient will watch on a TV
-5. **Audio matters:** Don't over-compress audio; 128-192 kbps AAC is good balance
-6. **Check file size limits:** Discord: 25 MB, WhatsApp: 16 MB, Email: 20-25 MB
-7. **Preview before sharing:** Watch the compressed video to ensure acceptable quality
-
----
-
-## When NOT to Compress
-
-Don't compress videos for:
-- **Professional video editing:** Keep maximum quality until final export
-- **Archival purposes:** Store originals in full quality
-- **Future use:** You can always compress later; can't restore lost quality
-- **When sharing via unlimited services:** Use Transfer.zip to send full-quality files
-
----
-
-## Alternative: Send Full-Quality Videos
-
-Instead of compressing, consider sending the original via:
-
-**[Transfer.zip](https://transfer.zip)** (Unlimited size, P2P)
-- No file size limits with Quick Transfer
-- No upload wait time (streams directly)
-- End-to-end encrypted
-- Free forever
-
-**Cloud Storage** (Google Drive, Dropbox, OneDrive)
-- Store once, share link
-- Recipients can stream without downloading
-- Good for recurring access
-
-See: [How to send large files for free](/how-to/send-large-files/for-free)
-
----
-
-## Frequently Asked Questions
-
-**What's the best codec for video compression?**
-H.264 for compatibility, H.265 (HEVC) for better compression if devices support it.
-
-**How much can I compress a video without losing quality?**
-You always lose some quality. Aim for 720p at 3-5 Mbps for good balance—most viewers won't notice the difference from 1080p.
-
-**Can I compress videos without software?**
-Yes, use online tools like Vert.sh or Clideo. They work in your browser with no installation.
-
-**Why is my compressed video file larger than the original?**
-You likely increased quality settings or used an inefficient codec. Make sure you're reducing resolution/bitrate.
-
-**What's better: lower resolution or lower bitrate?**
-Lower resolution usually looks better than very low bitrate. 720p at 3 Mbps beats 1080p at 1.5 Mbps.
-
-**How long does video compression take?**
-Depends on video length, quality, and your computer. A 10-minute 1080p video might take 5-20 minutes on an average computer.
-
-**Will zipping a video compress it?**
-No. Videos are already compressed. Zipping saves 0-5% at most. You need to re-encode the video.
-
-**Can I compress 4K video to 1080p?**
-Yes, this is one of the most effective compression techniques, reducing file size by 60-70%.
-
----
-
-## Summary: Quick Action Plan
-
-- **Beginners / one-time use:** [Vert.sh](https://vert.sh/) with "Email" or "Web" preset
-- **Frequent use / best quality:** [HandBrake](https://handbrake.fr/) with "Fast 720p30" preset (RF 23-28)
-- **iPhone:** Shortcuts app "Reduce Video Size"
-- **Android:** "Video Compressor" from Play Store
-- **Maximum reduction:** Trim first, then 480p/720p at 1.5-3 Mbps, 30fps
-
----
-
-**Bottom line:** Compression always involves quality tradeoffs. For sharing without compromise, use [Transfer.zip](https://transfer.zip) to send full-quality videos of any size—no compression needed.
 
 **Related guides:**
 - [How to compress a video on iPhone](/how-to/compress-a-video/iphone)

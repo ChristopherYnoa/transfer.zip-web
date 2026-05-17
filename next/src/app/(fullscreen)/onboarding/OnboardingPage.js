@@ -7,9 +7,21 @@ import pricing from "@/lib/pricing"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { API_URL, createCheckoutSession, logout } from "@/lib/client/Api"
+import { toast } from "sonner"
+import { API_URL, createCheckoutSession, deleteOwnAccount, logout } from "@/lib/client/Api"
 import PricingToggle from "@/components/PricingToggle"
 import IndieStatement from "@/components/IndieStatement"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
 
 const testimonials = [
   {
@@ -36,11 +48,33 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
 
   const [frequency, setFrequency] = useState("monthly")
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [emailConfirm, setEmailConfirm] = useState("")
+  const [deleting, setDeleting] = useState(false)
+
   if (!user) return <></>
 
   const handleLogout = async () => {
     await logout()
     window.location.href = "/"
+  }
+
+  const canConfirmDelete = emailConfirm.trim().toLowerCase() === user.email.toLowerCase() && !deleting
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await deleteOwnAccount()
+      window.location.href = "/"
+    } catch (err) {
+      toast.error(err.message)
+      setDeleting(false)
+    }
+  }
+
+  const openDeleteModal = () => {
+    setEmailConfirm("")
+    setShowDeleteModal(true)
   }
 
   const { tiers, teamTier } = pricing
@@ -146,6 +180,10 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
                 {/* <BIcon name={"box-arrow-left"} className={"me-1"} /> */}
                 Log out
               </button>
+              {" · "}
+              <button onClick={openDeleteModal} className="font-semibold text-red-600 text-nowrap hover:underline">
+                Delete my account
+              </button>
             </p>
           </div>
         </div>
@@ -153,6 +191,38 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
           Secure payments via Stripe. <Link className="text-primary-dark" target="_blank" href={"/legal/terms-and-conditions"}>Terms</Link> and <Link className="text-primary-dark" target="_blank" href={"/legal/privacy-policy"}>Privacy</Link> apply.
         </p>
       </div>
+      <Dialog open={showDeleteModal} onOpenChange={open => { if (!deleting) setShowDeleteModal(open) }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete your account?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete your account and all associated transfers, transfer requests, and brand profiles. Any active subscription will be cancelled immediately, with no refund for unused time. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2">
+            <Label htmlFor="email-confirm" className="text-sm text-gray-700">
+              Type <span className="font-mono text-gray-900">{user.email}</span> to confirm
+            </Label>
+            <Input
+              id="email-confirm"
+              autoFocus
+              autoComplete="off"
+              value={emailConfirm}
+              onChange={e => setEmailConfirm(e.target.value)}
+              className="mt-2"
+              disabled={deleting}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={!canConfirmDelete} onClick={handleDelete}>
+              {deleting ? "Deleting…" : "Delete account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

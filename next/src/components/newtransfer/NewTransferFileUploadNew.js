@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { newTransfer } from "@/lib/client/Api";
 import { prepareTransferFiles, uploadFiles } from "@/lib/client/uploader";
 import { EXPIRATION_TIMES } from "@/lib/constants";
+import { getLimit, LIMIT } from "@/lib/pricing";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import Progress from "../elements/Progress";
@@ -47,6 +48,7 @@ export default function ({ isDashboard, loaded, user, storage, brandProfiles, in
   const { openSignupDialog } = useContext(GlobalContext)
 
   const payingUser = user && user.plan != "free"
+  const maxExpiryDays = getLimit(user?.plan, LIMIT.MAX_EXPIRY_DAYS) ?? 0
 
   const [files, setFiles] = useState([
     // { name: "test.zip", size: 123152134523, type: "application/zip" },
@@ -137,7 +139,7 @@ export default function ({ isDashboard, loaded, user, storage, brandProfiles, in
       const formData = new FormData(form)
       const name = formData.get("name")
       const description = formData.get("description")
-      const expiresInDays = parseInt(formData.get("expiresInDays"))
+      const expiresInDays = parseInt(selectedExpiryTime)
 
       const transferFiles = prepareTransferFiles(files)
       // response: { idMap: [{ tmpId, id }, ...] } - what your API returned
@@ -513,7 +515,7 @@ export default function ({ isDashboard, loaded, user, storage, brandProfiles, in
               <SelectItem
                 key={item.days}
                 value={item.days}
-                disabled={payingUser ? !item[user?.plan || "free"] : false}
+                disabled={payingUser ? parseInt(item.days) > maxExpiryDays : false}
               >
                 {/* remove the badge when its selected */}
                 {item.period}{!payingUser && (item.free ? <span className="font-bold px-1 text-xs bg-primary-100 text-primary-500 rounded">FREE</span> : <ZapIcon className="text-purple-500" size={8} />)}

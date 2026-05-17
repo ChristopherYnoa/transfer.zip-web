@@ -29,8 +29,8 @@ export default function PricingCards({ frequency, tiers, compact, onTierSelected
           {tier.name}
         </p>
         {tier.featured && (
-          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary-lighter ring-1 ring-inset ring-primary/20">
-            Popular
+          <span className="inline-flex items-center rounded-full bg-primary/20 px-2.5 py-1 text-xs font-medium text-primary-lighter ring-1 ring-inset ring-primary/40">
+            Best Value
           </span>
         )}
       </div>

@@ -5,7 +5,7 @@ import { createContext, useState } from "react"
 
 export const GlobalContext = createContext({})
 
-export default function GlobalProvider({ children }) {
+export default function GlobalProvider({ children, isSafari = false }) {
 
     const [_showSignupDialog, setShowSignupDialog] = useState(false)
     const [files, setFiles] = useState(null)
@@ -16,7 +16,8 @@ export default function GlobalProvider({ children }) {
 
     return (
         <GlobalContext.Provider value={{
-            openSignupDialog
+            openSignupDialog,
+            isSafari
         }}>
             <NewSignUpDialog open={_showSignupDialog} setOpen={setShowSignupDialog} files={files}/>
             {children}

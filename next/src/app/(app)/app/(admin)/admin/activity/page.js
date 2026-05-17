@@ -1,32 +1,39 @@
 import GenericPage from "@/components/dashboard/GenericPage";
+import EmptySpace from "@/components/elements/EmptySpace";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import TeamEvent from "@/lib/server/mongoose/models/TeamEvent";
-import AdminCard from "../AdminCard";
-import ActivityFeed from "../sections/ActivityFeed";
+import { ACTIVITY_PAGE_SIZE } from "@/lib/activityFilters";
+import ActivityClient from "./ActivityClient";
 
 export const metadata = { title: "Activity" };
 
 export default async function TeamActivityPage() {
-  const { team } = await useServerAuth();
+  const { user, team } = await useServerAuth();
 
-  const events = await TeamEvent.find({ team: team._id })
+  const rows = await TeamEvent.find({ team: team._id })
     .populate("actor", "email fullName")
     .sort({ createdAt: -1 })
-    .limit(200);
+    .limit(ACTIVITY_PAGE_SIZE + 1);
 
-  const jsonEvents = events.map(e => e.toJsonAsClient());
+  const hasMore = rows.length > ACTIVITY_PAGE_SIZE;
+  const events = (hasMore ? rows.slice(0, ACTIVITY_PAGE_SIZE) : rows).map(e => e.toJsonAsClient());
+
+  if (events.length === 0) {
+    return (
+      <GenericPage title="Activity">
+        <EmptySpace
+          title="Keep Track of Every Team Action"
+          subtitle="Invites, role changes, member removals, and billing updates will show up here so you always know what's happening across your team."
+        />
+      </GenericPage>
+    );
+  }
 
   return (
-    <GenericPage title="Activity">
-      <AdminCard>
-        {jsonEvents.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-500">
-            No team activity yet.
-          </div>
-        ) : (
-          <ActivityFeed events={jsonEvents} />
-        )}
-      </AdminCard>
-    </GenericPage>
+    <ActivityClient
+      initialEvents={events}
+      initialHasMore={hasMore}
+      currentUserId={user._id.toString()}
+    />
   );
 }

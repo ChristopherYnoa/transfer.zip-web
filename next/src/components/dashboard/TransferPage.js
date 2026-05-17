@@ -2,7 +2,7 @@
 
 import { toast } from "sonner"
 import { deleteTransfer, getTransferDownloadLink, putTransfer, sendTransferByEmail } from "@/lib/client/Api"
-import { EXPIRATION_TIMES } from "@/lib/constants"
+import { getLimit, LIMIT } from "@/lib/pricing"
 import { humanFileSize } from "@/lib/transferUtils"
 import { parseTransferExpiryDate, tryCopyToClipboard } from "@/lib/utils"
 import { DotIcon, LinkIcon, PencilIcon } from "lucide-react"
@@ -51,8 +51,7 @@ export default function ({ user, transfer }) {
   const formattedExpiryDate = expiryDate ? expiryDate.toISOString().split('T')[0] : ''
 
   const maxPlanExpirationDays = useMemo(() =>
-    EXPIRATION_TIMES.filter(t => (user.plan == "pro" ? t.pro : t.starter)).reduce((max, current) =>
-      current.days > max.days ? current : max, { days: -1 }).days, [EXPIRATION_TIMES])
+    getLimit(user?.plan, LIMIT.MAX_EXPIRY_DAYS) ?? 0, [user?.plan])
 
   const maxExpiryDate = new Date(transfer?.createdAt || 0);
   maxExpiryDate.setDate(maxExpiryDate.getDate() + maxPlanExpirationDays);

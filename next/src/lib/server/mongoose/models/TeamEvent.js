@@ -7,8 +7,10 @@ export const TEAM_EVENT = {
     MEMBER_REMOVED: "member_removed",
     ROLE_CHANGED: "role_changed",
     SEAT_PURCHASED: "seat_purchased",
+    SEAT_REDUCED: "seat_reduced",
     TRANSFER_CREATED: "transfer_created",
     TRANSFER_DELETED: "transfer_deleted",
+    TEAM_RENAMED: "team_renamed",
 }
 
 const TeamEventSchema = new mongoose.Schema({

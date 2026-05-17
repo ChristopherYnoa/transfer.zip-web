@@ -1,6 +1,7 @@
 import "server-only"
 import Transfer from "./mongoose/models/Transfer"
 import TransferRequest from "./mongoose/models/TransferRequest"
+import DeletedAccount from "./mongoose/models/DeletedAccount"
 import { getStripe } from "./stripe"
 import { getLimit, LIMIT } from "@/lib/pricing"
 
@@ -79,6 +80,13 @@ async function customerHasPaid(customerId) {
 export async function doesUserHaveFreeTrial(user, cookies) {
   // const abTestFreeTrialAvailable = await getAbTestServer(AB_TEST_IS_FREE_TRIAL_AVAILABLE, cookies)
   // if (abTestFreeTrialAvailable == "false") return false
+
+  // Block the delete-and-re-sign-up loop. The tombstone hash is over the
+  // normalized email, so +aliases and gmail dot tricks all collapse to the
+  // same key.
+  if (user?.email && await DeletedAccount.existsForEmail(user.email)) {
+    return false
+  }
 
   if (user && !!user.stripe_customer_id) {
     try {

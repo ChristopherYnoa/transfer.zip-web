@@ -1,99 +1,114 @@
 import Link from "next/link"
 
-function ChildCard({ href, title, description, imgSrc }) {
+const MINOR_WORDS = new Set([
+  "a", "an", "the", "and", "or", "but", "for", "to", "of", "in", "on", "at", "by", "with",
+])
+
+function toSectionTitle(slug) {
+  const segment = slug.split("/").pop()
+  return segment
+    .replace(/[-_]/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((word, i) => {
+      const lower = word.toLowerCase()
+      if (i > 0 && MINOR_WORDS.has(lower)) return lower
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(" ")
+}
+
+function GuideCard({ href, title, description, imgSrc }) {
   return (
     <Link
       href={href}
-      className="group relative flex items-center gap-4 p-6 rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/80 shadow-sm hover:shadow-md hover:border-primary/30 hover:from-primary/5 hover:to-white transition-all duration-200 min-h-[100px] overflow-hidden"
+      className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs hover:border-gray-300 hover:shadow-sm transition-all no-underline"
     >
-      {imgSrc && (
-        <img
-          src={imgSrc}
-          alt=""
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-24 h-24 object-contain opacity-10 group-hover:opacity-20 group-hover:scale-110 pointer-events-none select-none transition-all duration-300"
-          aria-hidden="true"
-        />
-      )}
-      <div className="relative flex-1 z-10">
-        <span className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors">
-          {title}
-        </span>
-        {description && (
-          <p className="text-sm text-gray-600 mt-1.5 leading-relaxed line-clamp-2">{description}</p>
+      <div className="aspect-[16/9] bg-gray-50 overflow-hidden">
+        {imgSrc && (
+          <img
+            src={imgSrc}
+            alt=""
+            aria-hidden
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
         )}
       </div>
-      <svg
-        className="w-5 h-5 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all duration-200 flex-shrink-0"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
+      <div className="flex-1 flex flex-col p-5">
+        <p className="text-base font-semibold text-gray-900 group-hover:text-primary transition-colors">{title}</p>
+        {description && (
+          <p className="text-sm text-gray-500 mt-2 line-clamp-3 leading-relaxed">{description}</p>
+        )}
+      </div>
     </Link>
   )
 }
 
-function SubChildCard({ href, title, description }) {
+function CategorySection({ item }) {
+  const sectionTitle = toSectionTitle(item.slug)
+  const cards = []
+  if (!item.isVirtual && item.href && item.title) {
+    cards.push({
+      slug: item.slug,
+      href: item.href,
+      title: item.title,
+      description: item.description,
+      imgSrc: item.imgSrc,
+    })
+  }
+  if (item.children) {
+    cards.push(...item.children)
+  }
+  if (cards.length === 0) return null
+
   return (
-    <Link
-      href={href}
-      className="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
-    >
-      <div className="flex-1">
-        <span className="text-base font-medium text-gray-800 group-hover:text-primary transition-colors">
-          {title}
-        </span>
-        {description && (
-          <p className="text-sm text-gray-500 mt-1 line-clamp-1">{description}</p>
-        )}
+    <section>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">{sectionTitle}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cards.map((card) => (
+          <GuideCard
+            key={card.slug}
+            href={card.href}
+            title={card.title}
+            description={card.description}
+            imgSrc={card.imgSrc}
+          />
+        ))}
       </div>
-      <svg
-        className="w-4 h-4 text-gray-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
-    </Link>
+    </section>
   )
 }
 
 export default function ContentChildren({ children: items, title = "Related Guides" }) {
   if (!items || items.length === 0) return null
 
+  const hasGrouped = items.some((item) => item.children && item.children.length > 0)
+
+  if (!hasGrouped) {
+    return (
+      <div className="not-prose mt-12 pt-8 border-t border-gray-200">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">{title}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.map((item) => (
+            <GuideCard
+              key={item.slug}
+              href={item.href}
+              title={item.title}
+              description={item.description}
+              imgSrc={item.imgSrc}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="not-prose mt-12 pt-8 border-t border-gray-200">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">{title}</h2>
-      <div className="space-y-6">
+      <div className="space-y-10">
         {items.map((item) => (
-          <div key={item.slug}>
-            {item.href ? (
-              <ChildCard
-                href={item.href}
-                title={item.title}
-                description={item.description}
-                imgSrc={item.imgSrc}
-              />
-            ) : (
-              <div className="mb-3">
-                <h3 className="text-lg font-medium text-gray-700">{item.title}</h3>
-              </div>
-            )}
-            {item.children && item.children.length > 0 && (
-              <div className="mt-3 ml-4 pl-4 border-l-2 border-gray-100 space-y-2">
-                {item.children.map((child) => (
-                  <SubChildCard
-                    key={child.slug}
-                    href={child.href}
-                    title={child.title}
-                    description={child.description}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <CategorySection key={item.slug} item={item} />
         ))}
       </div>
     </div>
