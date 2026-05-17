@@ -8,7 +8,7 @@ import { parseTransferExpiryDate, tryCopyToClipboard } from "@/lib/utils"
 import { DotIcon, LinkIcon, PencilIcon } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useContext, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import QRCode from "react-qr-code"
 import Modal from "../elements/Modal"
 import { Button } from "../ui/button"
@@ -28,8 +28,6 @@ import logo from "@/img/icon.png"
 import BIcon from "../BIcon"
 
 export default function ({ user, transfer }) {
-
-  
   const router = useRouter()
 
   const transferLink = getTransferDownloadLink(transfer)
@@ -105,11 +103,11 @@ export default function ({ user, transfer }) {
     e.preventDefault()
 
     if (user.plan == "starter" && transfer.emailsSharedWith.length >= 25) {
-      displayErrorModal("With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer.")
+      toast.error("Limit reached", { description: "With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer." })
       return
     }
     if (user.plan == "pro" && transfer.emailsSharedWith.length >= 200) {
-      displayErrorModal("With the Pro plan, you can only send a file transfer to up to 200 email recipients at once.")
+      toast.error("Limit reached", { description: "With the Pro plan, you can only send a file transfer to up to 200 email recipients at once." })
       return
     }
 

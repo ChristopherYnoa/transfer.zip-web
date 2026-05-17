@@ -18,7 +18,7 @@ export default function ({ user, selectedTransfer }) {
 
   const router = useRouter()
 
-    const { refreshTransfer } = useContext(SelectedTransferContext)
+  const { refreshTransfer } = useContext(SelectedTransferContext)
 
   const [showEmailList, setShowEmailList] = useState(false)
   const [showForwardTransfer, setShowForwardTransfer] = useState(false)
@@ -150,11 +150,11 @@ export default function ({ user, selectedTransfer }) {
     e.preventDefault()
 
     if (user.plan == "starter" && selectedTransfer.emailsSharedWith.length >= 25) {
-      displayErrorModal("With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer.")
+      toast.error("Limit reached", { description: "With the Starter plan, you can only send a file transfer to up to 25 email recipients at once. Upgrade to Pro to send up to 200 emails per transfer." })
       return
     }
     if (user.plan == "pro" && selectedTransfer.emailsSharedWith.length >= 200) {
-      displayErrorModal("With the Pro plan, you can only send a file transfer to up to 200 email recipients at once.")
+      toast.error("Limit reached", { description: "With the Pro plan, you can only send a file transfer to up to 200 email recipients at once." })
       return
     }
 

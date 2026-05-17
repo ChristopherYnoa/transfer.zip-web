@@ -18,7 +18,6 @@ const Entry = ({ transfer }) => {
 
   const { selectedTransferId } = useContext(SelectedTransferContext)
 
-  
   const transferLink = useMemo(() => getTransferDownloadLink(transfer), [transfer])
 
   const { id, name, files, expiresAt, createdAt, hasTransferRequest, finishedUploading, secretCode } = transfer

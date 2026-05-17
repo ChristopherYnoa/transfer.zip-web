@@ -32,7 +32,7 @@ const products = [
 ]
 const callsToAction = [
   { name: 'FAQ', href: "/#faq", icon: "question-lg" },
-  { name: 'Contact', href: `mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`, icon: "envelope-fill" },
+  { name: 'Contact', href: `/contact`, icon: "envelope-fill" },
 ]
 
 export default function Header({ scrollAware }) {

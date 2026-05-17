@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState, useMemo } from "react"
 import EmptySpace from "../elements/EmptySpace"
 import { toast } from "sonner"
 import { cn, tryCopyToClipboard } from "@/lib/utils"
