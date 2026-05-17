@@ -1,0 +1,119 @@
+---
+title: "Transfer.zip vs WeTransfer: A Head-to-Head Comparison (2026)"
+description: Comparing Transfer.zip and WeTransfer side-by-side - file size limits, end-to-end encryption, AI training policy, retention, and pricing. See which file transfer service actually fits your workflow.
+imgSrc: /img/content/folder.png
+imgAlt: A folder with a lock representing secure file transfers
+linkText: Send your first file with Transfer.zip
+---
+
+<TLDR>
+**WeTransfer** is the household name, but its free tier caps you at **3 GB** per transfer and **10 transfers per month**. In 2025 it quietly tried to grant itself rights to train AI on user uploads. Its homepage also loads **six third-party trackers** before you click anything.
+
+**Transfer.zip** has unlimited free transfers, no third-party trackers, and is fully open source. Paid plans start at **$6/mo**.
+</TLDR>
+
+## Why people switch from WeTransfer
+
+WeTransfer popularised "just send a link" file sharing — for years, "WeTransfer it to me" was the default request. But the product has changed underneath the brand.
+
+In July 2025, WeTransfer updated its terms of service to grant itself rights to use uploaded files for training machine learning models, including the right to reproduce, modify, and create derivative works. After significant backlash from photographers, designers, and creative professionals, the company walked the language back. The terms were fixed; the trust wasn't.
+
+Underneath the privacy story, the free tier has also tightened:
+
+- **3 GB** per transfer
+- **10 transfers per month** maximum (introduced December 2024)
+- **3-day** link expiry
+
+If you send raw photos, 4K footage, design files, or full project folders, those ceilings hit fast.
+
+---
+
+## The first-screen comparison
+
+Open Transfer.zip and the upload form is the only thing on screen. Open WeTransfer and it's competing with six other things.
+
+![Transfer.zip homepage — a single card, a single job.](/img/content/services/transfer-zip.png "Transfer.zip homepage — a single card, a single job")
+
+A headline, a card to drop files into, and a button. That's the page. No upsell inside the upload form, no notification bell trying to pull you sideways, no "Sign up" wall before the file moves.
+
+![WeTransfer's upload screen — the form sits next to a notification bell, a paid-plan upsell, four dropdown menus, and a promo for a separate product.](/img/content/wetransfer.png "WeTransfer's upload screen — upload form next to a notification bell, a paid-plan upsell, four dropdown menus, and a promo for a separate product")
+
+WeTransfer puts an "Increase limit" upsell inside the upload form, a notification bell with a "5" badge, a "WeTransfer Sign" promo for a different product, four dropdown menus, and two account CTAs — before you've added a single file.
+
+Every extra element on a send screen is one more thing your recipient has to ignore when you forward them the link. We left them out on purpose.
+
+---
+
+## Side-by-side
+
+| Feature | Transfer.zip | WeTransfer |
+| --- | --- | --- |
+| **Free file size** | Unlimited (peer-to-peer) | 3 GB |
+| **Free transfers per month** | Unlimited | 10 |
+| **Starting paid price** | $6/mo (Starter, yearly) | ~$12/mo (Pro, yearly) |
+| **End-to-end encryption** | Yes (Quick Transfers) | No |
+| **No AI training on uploads** | Yes, never in terms | Walked back 2025 attempt |
+| **Third-party trackers on landing page** | None | 6 (Bing, DoubleClick, Google, Googlesyndication, plus 2 more) |
+| **Open source** | Yes | No |
+| **Max file size (paid)** | 1 TB | 1 TB |
+| **Retention (paid)** | Up to 365 days | Up to 365 days |
+| **Custom branding** | Pro plan | Pro plan |
+| **Custom domain** | Pro plan | Not available |
+| **Self-hosting** | Yes | No |
+
+---
+
+## Where Transfer.zip wins
+
+### Truly unlimited free transfers
+
+Transfer.zip's **Quick Transfer** sends files straight from your browser to the recipient's, locked with a key only the two of you have. The file never touches our servers, so there's nothing to cap — send a 50 GB folder if you want, as often as you want, without paying anything.
+
+WeTransfer's free tier caps you at 3 GB per transfer and 10 transfers per month. A single 4K project folder usually breaks both ceilings.
+
+### Open source
+
+Every line of Transfer.zip is on GitHub — the website, the server code, the encryption, everything. You can read it, audit it, or run it on your own domain. WeTransfer is closed: you have to take their word for what happens to your files.
+
+### Privacy posture
+
+Transfer.zip's terms have never claimed any AI training rights on your files. And with Quick Transfers, we couldn't read your files even if we wanted to — the encryption key only exists in your browser and the recipient's. After WeTransfer's 2025 misstep, that isn't a checkbox feature. It's a structural difference.
+
+### No third-party trackers
+
+Open WeTransfer's homepage with a tracker blocker on and you'll see six third-party trackers fire before you click anything. The domains we counted:
+
+- `googletagmanager.com` — Google's tracking manager
+- `doubleclick.net` — Google's ad network
+- `googlesyndication.com` — Google Ads serving
+- `google.com` — Google tracking pixel
+- `bat.bing.com` — Microsoft's ad network
+- `browser-intake-datadoghq(.eu/.com)` - Tracking every interaction
+
+Each of them gets told you visited, what you looked at, and which plan you considered. All before WeTransfer's own product has finished loading.
+
+Transfer.zip loads zero third-party trackers on its homepage. The only analytics we use is a self-hosted Umami instance running on our own server. Your data goes to us and nobody else — not Google, not Microsoft, not an ad network.
+
+### Pricing
+
+Transfer.zip Starter is **$6/mo** billed yearly. WeTransfer Pro is roughly **$12/mo**. Both give you 1 TB transfers and a year of retention. The math is straightforward.
+
+---
+
+## Where WeTransfer is still ahead
+
+- **Brand recognition.** "WeTransfer it" is in the vocabulary; "Transfer.zip it" isn't yet.
+- **A 15+ year track record** vs. Transfer.zip being a newer service.
+
+That's the honest list. On features and price for current paying users, the comparison heavily favours Transfer.zip.
+
+---
+
+## Who should pick what
+
+- **You send big project files for a living and are tired of monthly caps** → Transfer.zip.
+- **You work on sensitive material (photos, client work, legal, medical)** → Transfer.zip's encrypted handoff and open code mean you can verify what happens to your files. WeTransfer asks for trust.
+- **You want to run it on your own domain** → Transfer.zip is the only option here.
+- **You're sending one 100 MB file to a non-technical recipient who has only ever heard of WeTransfer** → WeTransfer's brand familiarity might shave five seconds off the conversation.
+
+Ready to switch? [Send your first file with Transfer.zip](/) — no signup required.

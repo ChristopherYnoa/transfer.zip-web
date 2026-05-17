@@ -96,7 +96,7 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
 
   return (
     <>
-      <div className="w-full h-screen overflow-hidden absolute grain bg-linear-to-b from-primary-700 to-primary-300 -z-10" />
+      <div className="w-full h-screen overflow-hidden absolute grain bg-linear-to-b from-primary-700 to-primary-300 -z-10 rounded-b-4xl" />
       <div className="flex min-h-[100vh] flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <Link href={"/"} className="absolute top-8 text-xl me-1 text-white hover:underline fade-in-up-1000">&larr; Back</Link>
         <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">

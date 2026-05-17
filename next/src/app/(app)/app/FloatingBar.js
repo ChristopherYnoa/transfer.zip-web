@@ -79,7 +79,7 @@ export default function FloatingBar({ user }) {
             className="flex items-center gap-2 rounded-full px-3 sm:px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors ml-2"
           >
             <ArrowLeftIcon size={16} />
-            <span className="hidden sm:inline">Exit</span>
+            <span className="hidden sm:inline">Back</span>
           </Link>
 
           {adminNav.map((item) => {

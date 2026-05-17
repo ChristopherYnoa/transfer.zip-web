@@ -115,7 +115,7 @@ export default function ({ isDashboard, loaded, user, storage, brandProfiles, in
       if (emailRecipients.length >= 2) {
         displayErrorMessage({
           title: "Oops.",
-          body: <><Link className="text-primary underline hover:text-primary-light" target="_blank" href="/#pricing">Upgrade your plan</Link> to send a file to up to 30 people at once.</>
+          body: <><Link className="text-primary underline hover:text-primary-light" target="_blank" href="/pricing">Upgrade your plan</Link> to send a file to up to 30 people at once.</>
         })
         return
       }

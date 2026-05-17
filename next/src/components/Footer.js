@@ -13,7 +13,7 @@ export default function Footer({ }) {
       <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
         <div className="md:flex md:justify-between">
           <div className="mb-6 md:mb-0">
-            <a href="#" className="flex items-center">
+            <a href="/#" className="flex items-center">
               <Image src={logo} className="w-8 h-8 me-1" alt="Company Logo" />
               <span className="self-center text-2xl font-semibold whitespace-nowrap --dark:text-white">{process.env.NEXT_PUBLIC_SITE_NAME}</span>
             </a>
@@ -39,6 +39,15 @@ export default function Footer({ }) {
                 </li>
                 <li>
                   <h3><Link href="/alternative/smash" className="hover:underline ">Smash Alternative</Link></h3>
+                </li>
+              </ul>
+              <p className="mt-6 mb-6 text-sm font-semibold text-gray-900 uppercase --dark:text-white"><a className="hover:underline" href="/comparison">Comparisons</a></p>
+              <ul className="text-gray-500 --dark:text-gray-400 font-medium">
+                <li className="mb-4">
+                  <h3><Link href="/comparison/wetransfer" className="hover:underline ">Transfer.zip vs WeTransfer</Link></h3>
+                </li>
+                <li>
+                  <h3><Link href="/comparison/smash" className="hover:underline ">Transfer.zip vs Smash</Link></h3>
                 </li>
               </ul>
             </div>

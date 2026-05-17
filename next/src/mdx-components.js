@@ -189,7 +189,7 @@ export function mdxComponents(basePath) {
     ),
     p: ({ className, ...props }) => (
       <p
-        className={cn("mt-6 leading-7 text-[17px] text-gray-600", className)}
+        className={cn("mt-6 leading-7 text-[17px] text-gray-600 text-justify", className)}
         {...props}
       />
     ),

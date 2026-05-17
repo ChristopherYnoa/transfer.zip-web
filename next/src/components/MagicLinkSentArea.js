@@ -91,10 +91,8 @@ export default function MagicLinkSentArea({ requestId, email, redirectTo = "/app
   const domain = email && email.split("@")[1]
   const mailInfo = domain ? emailDomains[domain] : null
   const mailLink = mailInfo
-    ? <a className="text-primary hover:underline" href={mailInfo.url} target="_blank" rel="noopener noreferrer">{mailInfo.prettyName}</a>
-    : domain
-      ? <a className="text-primary hover:underline" href={`https://${domain}`} target="_blank" rel="noopener noreferrer">{domain}</a>
-      : null
+    ? <a className="text-primary hover:underline" href={mailInfo.url} target="_blank" rel="noopener noreferrer">Open {mailInfo.prettyName} &rarr;</a>
+    : null
 
   if (stage === "codeNeeded" || stage === "verifying") {
     return (
@@ -127,19 +125,25 @@ export default function MagicLinkSentArea({ requestId, email, redirectTo = "/app
   }
 
   return (
-    <div className="space-y-2 text-center text-sm">
-      <p className="text-gray-800">
-        <BIcon name="envelope-fill" className="me-1" /> Check your inbox{mailLink && <> at {mailLink}</>}!
+    <div className="space-y-4 text-center text-sm">
+      <p className="text-gray-800 text-base font-semibold">
+        An email has been sent to your inbox!
       </p>
-      <div className="text-gray-500 text-xs flex items-center justify-center gap-2">
-        <Spinner sizeClassName="h-3 w-3" /> Waiting for you to open the link...
+      <div className="text-gray-600 text-sm flex items-center justify-center gap-2">
+        <Spinner sizeClassName="h-4 w-4" /> Waiting for you to open the link...
       </div>
       {error && <p className="text-red-600">{error}</p>}
-      {onReset && (
-        <button type="button" onClick={onReset} className="text-xs text-gray-500 hover:text-gray-700">
-          Use a different email
-        </button>
+      {mailLink && (
+        <p className="mt-6">
+          {mailLink}
+        </p>
       )}
+
+      {/* {onReset && (
+        <button type="button" onClick={onReset} className="mt-4 text-xs text-gray-500 hover:text-gray-700">
+          or use a different email
+        </button>
+      )} */}
     </div>
   )
 }

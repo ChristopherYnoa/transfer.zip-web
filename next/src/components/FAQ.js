@@ -28,6 +28,27 @@ const faqs = [
     answer: "Yes. Transfers on our servers are encrypted, and your privacy is a priority."
   },
   {
+    question: "What happens to my files when they expire?",
+    answer: "Expired transfers are permanently deleted by an automated cleanup job — we don't keep backups or soft-deleted copies. Quick Transfers are never stored on our servers to begin with."
+  },
+  {
+    question: "Do recipients need an account to download?",
+    answer: "No. Anyone with the link can download — no signup, no email gate. The same goes for file request links: anyone can upload to you without an account."
+  },
+  {
+    question: "Can I use my own domain?",
+    answer: "Yes, on Pro and Teams. Point a subdomain like files.yourcompany.com at us with a single DNS record and your transfer links will use it instead of transfer.zip."
+  },
+  {
+    question: "How does the Teams plan work?",
+    answer: "One subscription, multiple users. The team owner is billed per seat ($15/user/month, or $10/user/month billed yearly), invites members, and each user gets their own 1TB of storage. Member management and brand profiles are centralized. Minimum 2 seats, maximum 25."
+  },
+  {
+    question: "Can I self-host Transfer.zip?",
+    answer:
+      <>Yes — the entire codebase is open source. See the <a className="text-primary underline" target="_blank" href="https://github.com/robinkarlberg/transfer.zip-web?tab=readme-ov-file#self-hosting">self-hosting instructions on GitHub</a>.</>
+  },
+  {
     question: "What payment methods are accepted?",
     answer: "All major credit cards via Stripe."
   },
@@ -36,12 +57,16 @@ const faqs = [
     answer: "Yes, a 7-day free trial is available for most users."
   },
   {
-    question: "How do I contact support if I encounter an issue?",
-    answer: "Click the 'Support' button on the site."
+    question: "Do you offer refunds?",
+    answer: "Contact support and we'll sort it out. You can also cancel anytime — your plan stays active until the end of the current billing period."
   },
   {
-    question: "Can I cancel my account?",
-    answer: "Yes, contact support to cancel your account."
+    question: "How do I cancel my subscription or delete my account?",
+    answer: "Both are self-service from the dashboard. Cancelling stops auto-renewal but you can keep using your plan until the end of the current billing period. Deleting permanently removes your account, transfers, and any active subscription."
+  },
+  {
+    question: "Are you GDPR compliant?",
+    answer: "Yes. We're based in Sweden and fully GDPR compliant — you can delete your account and all associated data at any time from the dashboard, no email required."
   },
 ]
 

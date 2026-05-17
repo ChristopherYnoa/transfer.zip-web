@@ -54,7 +54,7 @@ export default async function RootLayout({ children }) {
   const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
 
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       {/* <Head> */}
       <Script src="/lib/ponyfill.min.js"></Script>
       {/* </Head> */}

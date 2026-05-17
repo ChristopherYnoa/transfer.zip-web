@@ -1,6 +1,5 @@
 import BIcon from "@/components/BIcon"
-import icon from "@/img/icon.png"
-import Image from 'next/image'
+import LandingNav from "@/components/LandingNav"
 import Link from "next/link"
 import { Suspense } from 'react'
 import AuthConditional from "./AuthConditional"
@@ -13,7 +12,6 @@ import FreeConditional from "./FreeConditional"
 import { GithubIcon, StarIcon, ZapIcon } from "lucide-react"
 import NewTransferFileRequest from "@/components/newtransfer/NewTransferFileRequest"
 import ConditionalLandingFileRequest from "./ConditionalLandingFileRequest"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export default async function ({ mode }) {
@@ -30,43 +28,18 @@ export default async function ({ mode }) {
     <div>
       <div className="w-full h-screen overflow-hidden absolute grain bg-linear-to-b from-primary-600 to-primary-300" />
       <div className="relative isolate flex min-h-screen flex-col">
-        <div className="mx-auto max-w-7xl w-full px-6 lg:px-8 mt-6 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center bg-white px-2 py-1 rounded-xl fade-in-up-fast">
-              <div className="ms-2 flex items-center text-xl gap-x-2">
-                <Link href={"/"}>
-                  <Image src={icon} width={40} alt='logo'></Image>
-                </Link>
-              </div>
-              <div className="ms-2 hidden sm:flex">
-                <Button asChild size={"sm"} variant={"ghost"}>
-                  <Link href={"/#why-choose-us"}>Features</Link>
-                </Button>
-                <Button asChild size={"sm"} variant={"ghost"}>
-                  <Link href={"/#message-from-founder"}>About</Link>
-                </Button>
-                <Button asChild size={"sm"} variant={"ghost"}>
-                  <Link href={"/#pricing"}>Pricing</Link>
-                </Button>
-                <Button asChild size={"sm"} variant={"ghost"}>
-                  <Link href={"/legal/privacy-policy"}>Privacy</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-          <div className="fade-in-up-fast">
+        <LandingNav
+          rightSlot={
             <AuthConditional
-              noauth={(
-                <NoauthLandingHeaderCTAButton />
-              )}
-              auth={(
+              noauth={<NoauthLandingHeaderCTAButton />}
+              auth={
                 <Link data-umami-event="landing_header_cta_click" data-umami-event-is_logged_in="true" href={"/app/sent"} className="flex items-center text-sm font-semibold text-gray-800 rounded-xl bg-white px-5 h-12 hover:bg-primary-50">
                   My Transfers <span aria-hidden="true">&rarr;</span>
                 </Link>
-              )}
+              }
             />
-          </div>
-        </div>
+          }
+        />
         <div className="grow mx-auto w-full max-w-7xl px-6 flex flex-col items-center justify-center mt-8 sm:mt-0">
           <h1 className="mx-auto text-center max-w-2xl text-4xl font-bold tracking-tight text-white fade-in-up">
             Try the{" "}
