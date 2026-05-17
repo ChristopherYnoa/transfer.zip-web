@@ -14,7 +14,7 @@ A LOT of work has gone into making this tool, we are so grateful for all the sup
 
 ## Features
 A quick overview of the main features, more info further down.
-- **Reliable uploads** - File uploads use the reliable [tus](https://tus.io/) protocol.
+- **Reliable uploads** - File uploads use S3 multipart with presigned URLs, so parts go straight from the browser to storage and resume cleanly on network blips.
 - **Transfer requests** - Ability to request others to upload files to you for download later.
 - **Custom branding** - Upload your own icon and background for the transfer pages (requires an S3 bucket atm)
 - **Email support** - Send emails to recipients, also updates to fit with the branding.
@@ -35,7 +35,7 @@ Because of how peer-to-peer works, some network firewalls may not allow direct c
 Quick Transfers only work while both users are online at the same time, due to the peer-to-peer nature of the system. 
 
 ### Stored Transfers - File uploads with resumable, scalable storage
-Instead of real-time peer-to-peer transfer like with Quick Transfers, Stored Transfers store the file temporarily on the server (or S3-compatible backend) using the [tus](https://tus.io/) protocol, which supports resumable, chunked uploads. This means interrupted uploads or downloads can retry on network interruptions. Files are permanently deleted after the transfers expiry date.
+Instead of real-time peer-to-peer transfer like with Quick Transfers, Stored Transfers store the file in an S3-compatible backend. Uploads use S3 multipart with presigned URLs (powered by [Uppy](https://uppy.io/)), so parts go directly from the browser to storage and can resume cleanly on network interruptions. Files are permanently deleted after the transfer's expiry date.
 
 Stored Transfers are just what normal file transfer services like WeTransfer do, but you can host it yourself if you want. 
 

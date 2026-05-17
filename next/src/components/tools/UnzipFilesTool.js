@@ -3,7 +3,7 @@
 import { useState } from "react";
 import FileUpload from "../elements/FileUpload";
 import FileBrowser from "../elements/FileBrowser";
-import EmptySpace from "../elements/EmptySpace";
+import ToolEmptySpace from "./ToolEmptySpace";
 import streamSaver from "@/lib/client/StreamSaver";
 import * as zip from "@zip.js/zip.js";
 
@@ -52,7 +52,7 @@ export default function UnzipFilesTool() {
             <FileBrowser richFiles={richFiles} onAction={handleAction} />
           </div>
         ) : (
-          <EmptySpace title={`Select a ZIP file to get started`} subtitle={`Your files will be displayed here, allowing you to browse the archive.`} />
+          <ToolEmptySpace title={`Select a ZIP file to get started`} subtitle={`Your files will be displayed here, allowing you to browse the archive.`} />
         )}
       </div>
     </div>

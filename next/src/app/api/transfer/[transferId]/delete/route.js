@@ -2,13 +2,18 @@ import Transfer from "@/lib/server/mongoose/models/Transfer";
 import { resp } from "@/lib/server/serverUtils";
 import { workerTransferDelete } from "@/lib/server/workerApi";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export async function POST(req, { params }) {
   const { transferId } = await params
 
-  const { user } = await useServerAuth()
+  const auth = await useServerAuth()
+  if (!auth) {
+    return NextResponse.json(resp("Unauthorized"), { status: 401 })
+  }
+  const { user } = auth
 
   // Pull the document first
   const transfer = await Transfer.findById(transferId)
@@ -34,7 +39,20 @@ export async function POST(req, { params }) {
 
   // Do not await this, it will just lag too much. We assume the deletion succeeds.
   // We can always delete left over files with a tidy script later.
-  workerTransferDelete(transfer.nodeUrl, transfer._id.toString()).catch(console.error)
+  workerTransferDelete(transfer.nodeUrl, transfer._id.toString(), transfer.backendVersion).catch(console.error)
+
+  if (transfer.team) {
+    logTeamEvent({
+      team: transfer.team,
+      type: TEAM_EVENT.TRANSFER_DELETED,
+      actor: user,
+      data: {
+        transferId: transfer._id.toString(),
+        transferName: transfer.name || "Untitled Transfer",
+        byAdmin: false,
+      },
+    })
+  }
 
   return NextResponse.json(resp({}))
 }

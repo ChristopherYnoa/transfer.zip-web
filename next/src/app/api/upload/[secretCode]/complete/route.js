@@ -8,13 +8,14 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/server/mongoose/db";
 import SentEmail from "@/lib/server/mongoose/models/SentEmail";
 import { EMAILS_PER_DAY_LIMIT } from "@/lib/getMaxRecipientsForPlan";
+import { useServerAuth } from "@/lib/server/wrappers/auth";
 
 export async function POST(req, { params }) {
   const { secretCode } = await params
 
   await dbConnect()
 
-  const transfer = await Transfer.findOne({ secretCode: { $eq: secretCode } }).populate('brandProfile')
+  const transfer = await Transfer.findOne({ secretCode: { $eq: secretCode } }).populate("author").populate('brandProfile')
   if (!transfer) {
     return NextResponse.json(resp("transfer not found"), { status: 404 })
   }
@@ -28,20 +29,20 @@ export async function POST(req, { params }) {
   transfer.finishedUploading = true
 
 
-  const filesList = transfer.files.map(file => file.friendlyObj())
+  const filesList = transfer.files.map(file => file.toJsonAsClient())
 
   await workerUploadComplete(transfer.nodeUrl, transfer._id.toString(), filesList)
 
   if (!transfer.transferRequest && transfer.emailsSharedWith?.length) {
     const unique = [...new Set(transfer.emailsSharedWith.map(e => e.email))];
-    const brand = transfer.brandProfile ? transfer.brandProfile.friendlyObj() : undefined;
+    const brand = transfer.brandProfile ? transfer.brandProfile.toJsonAsClient() : undefined;
     for (const email of unique) {
-      const sentEmailsLastDay = await SentEmail.countDocuments({ user: transfer.author._id })
+      const sentEmailsLastDay = await SentEmail.countDocuments({ userEmail: transfer.authorEmail })
       if (sentEmailsLastDay >= EMAILS_PER_DAY_LIMIT) {
         return NextResponse.json(resp("You have sent too many emails today, please contact support."));
       }
       const sentEmail = new SentEmail({
-        user: transfer.author._id,
+        userEmail: transfer.authorEmail,
         to: [email]
       })
       await sentEmail.save()
@@ -59,8 +60,8 @@ export async function POST(req, { params }) {
     if (request && request.author && request.author.notificationSettings?.transferReceived !== false) {
       await sendTransferRequestReceived(request.author.email, {
         name: request.name || 'Untitled Request',
-        link: `${process.env.SITE_URL}/app?tab=received`,
-        brand: request.brandProfile ? request.brandProfile.friendlyObj() : undefined,
+        link: `${process.env.SITE_URL}/app/received`,
+        brand: request.brandProfile ? request.brandProfile.toJsonAsClient() : undefined,
       });
     }
   }

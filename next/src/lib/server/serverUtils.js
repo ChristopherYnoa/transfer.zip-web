@@ -1,6 +1,9 @@
 import "server-only"
 import Transfer from "./mongoose/models/Transfer"
+import TransferRequest from "./mongoose/models/TransferRequest"
+import DeletedAccount from "./mongoose/models/DeletedAccount"
 import { getStripe } from "./stripe"
+import { getLimit, LIMIT } from "@/lib/pricing"
 
 export const IS_DEV = process.env.NODE_ENV == "development"
 
@@ -28,22 +31,29 @@ export const createCookieParams = () => {
 }
 
 export const listTransfersForUser = async (user) => {
-  const transfers = await Transfer.find({
+  // Two sources: transfers the user authored, plus transfers uploaded into
+  // any TransferRequest the user owns. Resolving the request IDs up front
+  // keeps the candidate set tight and means an orphan transfer (whose request
+  // was deleted) can never match — important because populate maps deleted
+  // refs to null, which would otherwise sneak past a post-query filter.
+  const myRequestIds = await TransferRequest.find({ author: user._id }).distinct("_id")
+  return Transfer.find({
     $or: [
       { author: user._id },
-      { transferRequest: { $exists: true } } // Only consider transfers with a transferRequest
+      { transferRequest: { $in: myRequestIds } }
     ]
-  })
-    .populate({
-      path: 'transferRequest', // Populate the transferRequest field
-      populate: {
-        path: 'author', // Populate the author within transferRequest
-      },
-    })
-    .sort({ createdAt: -1 })
+  }).sort({ createdAt: -1 })
+}
 
-  const filteredTransfers = transfers.filter(transfer => !transfer.transferRequest || (transfer.transferRequest && transfer.transferRequest.author._id.toString() === user._id.toString()))
-  return filteredTransfers
+// Team-wide list for the Owner/Admin dashboard.
+// Includes only transfers where author belongs (or belonged) to the team
+// at creation time — i.e. Transfer.team matches. Does NOT include guest
+// uploads to a team member's transfer request (those are surfaced to the
+// requesting member's per-user view via listTransfersForUser).
+export const listTransfersForTeam = async (team) => {
+  return Transfer.find({ team: team._id })
+    .populate("author", "email fullName")
+    .sort({ createdAt: -1 })
 }
 
 export const getTransferRequestUploadLink = (transferRequest) => {
@@ -51,14 +61,8 @@ export const getTransferRequestUploadLink = (transferRequest) => {
   return `${process.env.SITE_URL}/upload/${transferRequest.secretCode}`
 }
 export const getMaxStorageForPlan = (plan) => {
-  if (plan === "starter") {
-    return 200e9;
-  }
-  else if (plan === "pro") {
-    return 1e12;
-  }
-  else return 0;
-};
+  return getLimit(plan, LIMIT.STORAGE) ?? 0
+}
 
 async function customerHasPaid(customerId) {
   const { data: [sub] } = await getStripe().subscriptions.list({
@@ -76,6 +80,13 @@ async function customerHasPaid(customerId) {
 export async function doesUserHaveFreeTrial(user, cookies) {
   // const abTestFreeTrialAvailable = await getAbTestServer(AB_TEST_IS_FREE_TRIAL_AVAILABLE, cookies)
   // if (abTestFreeTrialAvailable == "false") return false
+
+  // Block the delete-and-re-sign-up loop. The tombstone hash is over the
+  // normalized email, so +aliases and gmail dot tricks all collapse to the
+  // same key.
+  if (user?.email && await DeletedAccount.existsForEmail(user.email)) {
+    return false
+  }
 
   if (user && !!user.stripe_customer_id) {
     try {

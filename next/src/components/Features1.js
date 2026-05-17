@@ -1,6 +1,7 @@
 import BIcon from "./BIcon"
 // import ProductDemoScreenshot from "@/img/ProductDemoScreenshot.png"
 import logo from "@/img/icon.png"
+import { ChartBarIcon, LockIcon, RotateCcw, RotateCwIcon, UserIcon } from "lucide-react";
 import Image from "next/image"
 import Link from "next/link";
 
@@ -23,12 +24,12 @@ const features = [
   {
     name: 'Custom Branding',
     description: 'Make every transfer your own. Add your logo and background for a more professional look.',
-    icon: 'person',
+    icon: UserIcon,
   },
   {
     name: 'Reliable Uploads',
     description: "Connection dropped? No problem. Uploads retry in the background until they're done.",
-    icon: 'arrow-clockwise',
+    icon: RotateCwIcon,
   },
   // {
   //   name: 'Resumable Uploads',
@@ -38,12 +39,12 @@ const features = [
   {
     name: 'Statistics',
     description: 'See when your files are downloaded and when your links are clicked, with simple stats.',
-    icon: 'bar-chart',
+    icon: ChartBarIcon,
   },
   {
-    name: 'Fully Open Source',
-    description: <>All source code is open source on GitHub. <Link className="text-primary hover:underline whitespace-nowrap" href="https://github.com/robinkarlberg/transfer.zip-web">Check it Out &rarr;</Link></>,
-    icon: 'github',
+    name: 'Ultimate Trust & Security',
+    description: <>All file data is stored encrypted, and the source code is fully open. <Link target="_blank" className="text-primary hover:underline whitespace-nowrap" href="https://github.com/robinkarlberg/transfer.zip-web">See the code on GitHub &rarr;</Link></>,
+    icon: LockIcon,
   },
 ];
 
@@ -57,7 +58,7 @@ export default function Features1() {
           <h2 className="text-base/7 font-semibold text-primary">Why Choose Us?</h2>
           {/* <div className="text-blue-500 mb-4">{[1, 2, 3, 4, 5].map(i => <BIcon key={i} name={"star-fill"} />)}</div> */}
           <p className="mt-2 text-pretty text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-balance">
-            Blazingly Fast. No Nonsense.
+            File Sharing Like it Should Be
           </p>
           <p className="mt-6 text-lg/8 text-gray-600">
             Say goodbye to <Link className="text-primary hover:underline" target="_blank" href={"https://www.reddit.com/r/editors/comments/1gk7yh8/is_swisstransfercom_slow_or_is_it_just_me/"}>slow uploads</Link>, size limits, and <Link className="text-primary hover:underline" target="_blank" href={"https://www.reddit.com/r/editors/comments/1htld1d/wetransfer_casually_doubling_my_subscription/"}>expensive pricing</Link>. Transfer.zip makes file sharing seamless without breaking the bank.
@@ -68,8 +69,8 @@ export default function Features1() {
             {features.map((feature) => (
               <div key={feature.name} className="relative pl-16">
                 <dt className="text-lg font-bold text-gray-900">
-                  <div className="absolute left-0 top-0 flex size-10 items-center justify-center rounded-lg bg-primary">
-                    <BIcon center name={feature.icon} aria-hidden="true" className="size-6 text-white" />
+                  <div className="absolute left-0 top-0 flex size-10 items-center justify-center rounded-lg bg-primary text-white">
+                    <feature.icon size={16}/>
                   </div>
                   {feature.name}
                 </dt>

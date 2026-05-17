@@ -22,16 +22,17 @@ import { IS_SELFHOST } from '@/lib/isSelfHosted'
 import { getUser } from '@/lib/client/Api'
 import { GlobalContext } from '@/context/GlobalContext'
 import { sendEvent } from '@/lib/client/umami'
+import { ZapIcon } from 'lucide-react'
 
 const products = [
-  { name: 'Why Choose Us?', description: 'Blazingly Fast. No Bull***t', href: '/#why-choose-us', icon: "lightbulb" },
+  { name: 'Why Choose Us?', description: 'File Sharing Like it Should Be', href: '/#why-choose-us', icon: "lightbulb" },
   { name: 'Receive Files with a Link', description: 'Receive Files from Anyone, Anywhere', href: '/#receive-files', icon: "arrow-down" },
   { name: 'Send Files By Email', description: 'Share Files with Your Whole Organisation.', href: '/#send-files-by-email', icon: "clock" },
   { name: 'Quick Transfer', description: 'Keep Your Tab Open - Send Without Limits', href: '/quick', icon: "lightning-fill" },
 ]
 const callsToAction = [
   { name: 'FAQ', href: "/#faq", icon: "question-lg" },
-  { name: 'Contact', href: `mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`, icon: "envelope-fill" },
+  { name: 'Contact', href: `/contact`, icon: "envelope-fill" },
 ]
 
 export default function Header({ scrollAware }) {
@@ -41,15 +42,18 @@ export default function Header({ scrollAware }) {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  const ctaText = isLoggedIn ? "My Transfers" : (IS_SELFHOST ? "Sign in" : "Create Account")
-  const ctaLink = isLoggedIn ? "/app" : "/signin"
+  const handleSignInClick = e => {
+    sendEvent("header_cta_click", { is_logged_in: false, action: "sign_in" })
+  }
 
-  const handleCtaLinkClicked = e => {
-    sendEvent("header_cta_click", { is_logged_in: isLoggedIn })
-    if (!IS_SELFHOST && !isLoggedIn) {
-      e.preventDefault()
-      openSignupDialog()
-    }
+  const handleCreateAccountClick = e => {
+    sendEvent("header_cta_click", { is_logged_in: false, action: "create_account" })
+    e.preventDefault()
+    openSignupDialog()
+  }
+
+  const handleMyTransfersClick = e => {
+    sendEvent("header_cta_click", { is_logged_in: true })
   }
 
   useEffect(() => {
@@ -98,7 +102,7 @@ export default function Header({ scrollAware }) {
 
   return (
     <Transition unmount={false} show={showHeader || mobileMenuOpen}>
-      <header className="backdrop-blur bg-gray-50/70 fixed top-0 left-0 w-full z-10 border-b data-[closed]:opacity-0 opacity-100 transition-all">
+      <header className="backdrop-blur bg-gray-50/70 fixed top-0 left-0 w-full z-30 border-b data-[closed]:opacity-0 opacity-100 transition-all">
         <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
           <div className="flex lg:flex-1">
             <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-x-1">
@@ -172,7 +176,10 @@ export default function Header({ scrollAware }) {
                 </PopoverPanel>
               </Popover>
 
-              <Link href="/#pricing" className="text-sm/6 font-semibold text-gray-900">
+              <Link href="/#message-from-founder" className="text-sm/6 font-semibold text-gray-900">
+                About
+              </Link>
+              <Link href="/pricing" className="text-sm/6 font-semibold text-gray-900">
                 Pricing
               </Link>
               <Link href="/legal/privacy-policy" className="text-sm/6 font-semibold text-gray-900">
@@ -181,9 +188,24 @@ export default function Header({ scrollAware }) {
             </PopoverGroup>
           )}
           <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-            <Link onNavigate={handleCtaLinkClicked} href={ctaLink} className="text-sm/6 font-semibold text-white rounded-full bg-primary px-3 py-0.5 hover:bg-primary-light">
-              {ctaText} <span aria-hidden="true">&rarr;</span>
-            </Link>
+            {isLoggedIn ? (
+              <Link onNavigate={handleMyTransfersClick} href="/app/sent" className="text-sm/6 font-semibold text-white rounded-full bg-primary px-3 py-0.5 hover:bg-primary-light">
+                My Transfers <span aria-hidden="true">&rarr;</span>
+              </Link>
+            ) : IS_SELFHOST ? (
+              <Link onNavigate={handleSignInClick} href="/signin" className="text-sm/6 font-semibold text-white rounded-full bg-primary px-3 py-0.5 hover:bg-primary-light">
+                Sign in <span aria-hidden="true">&rarr;</span>
+              </Link>
+            ) : (
+              <div className="flex gap-3 items-center">
+                <Link onNavigate={handleSignInClick} className="text-sm/6 font-semibold text-gray-900 hover:underline" href="/signin">
+                  Sign in
+                </Link>
+                <Link onNavigate={handleCreateAccountClick} href="/signin" className="text-sm/6 font-semibold text-white rounded-full bg-primary px-3 py-1 hover:bg-primary-light flex items-center gap-1">
+                  <ZapIcon className="h-4 w-4" /> Create Account
+                </Link>
+              </div>
+            )}
           </div>
         </nav>
         <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
@@ -231,7 +253,14 @@ export default function Header({ scrollAware }) {
                   </Disclosure>
                   <Link
                     onClick={handleLinkClicked}
-                    href="/#pricing"
+                    href="/#message-from-founder"
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  >
+                    About
+                  </Link>
+                  <Link
+                    onClick={handleLinkClicked}
+                    href="/pricing"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                   >
                     Pricing
@@ -251,13 +280,40 @@ export default function Header({ scrollAware }) {
                   </Link>
                 </div>
                 <div className="py-6">
-                  <Link
-                    onNavigate={handleCtaLinkClicked}
-                    href={ctaLink}
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                  >
-                    {ctaText}
-                  </Link>
+                  {isLoggedIn ? (
+                    <Link
+                      onNavigate={handleMyTransfersClick}
+                      href="/app"
+                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                    >
+                      My Transfers
+                    </Link>
+                  ) : IS_SELFHOST ? (
+                    <Link
+                      onNavigate={handleSignInClick}
+                      href="/signin"
+                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                    >
+                      Sign in
+                    </Link>
+                  ) : (
+                    <div className="space-y-2">
+                      <Link
+                        onNavigate={handleSignInClick}
+                        href="/signin"
+                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                      >
+                        Sign in
+                      </Link>
+                      <Link
+                        onNavigate={handleCreateAccountClick}
+                        href="/signin"
+                        className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white bg-primary hover:bg-primary-light"
+                      >
+                        <ZapIcon className="h-4 w-4" /> Create Account
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -2,14 +2,26 @@ import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
 import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";
+import { processAndUploadBrandProfileImages } from "@/app/api/brandprofile/brandProfileUtils";
 import {
-  processAndUploadBrandProfileImages
-} from "@/app/api/brandprofile/brandProfileUtils";
+  brandProfileOwnershipFor,
+  canManageBrandProfiles,
+} from "@/lib/server/brandProfiles";
+import { FEATURE } from "@/lib/pricing";
 
 export async function POST(req) {
-  const { user } = await useServerAuth();
+  const auth = await useServerAuth();
+  if (!auth) {
+    return NextResponse.json(resp("Unauthorized"), { status: 401 });
+  }
+  const { user } = auth;
 
-  if(user.getPlan() != "pro") return NextResponse.json(resp("User needs to upgrade."), { status: 409 });
+  if (!user.hasFeature(FEATURE.CUSTOM_BRANDING)) {
+    return NextResponse.json(resp("User needs to upgrade."), { status: 409 });
+  }
+  if (!canManageBrandProfiles(user)) {
+    return NextResponse.json(resp("Only the team Owner or Admin can manage branding."), { status: 403 });
+  }
 
   const { name, iconUrl, backgroundUrl } = await req.json();
 
@@ -18,7 +30,7 @@ export async function POST(req) {
   }
 
   const profile = new BrandProfile({
-    author: user._id,
+    ...brandProfileOwnershipFor(user),
     name,
     iconUrl: null,
     backgroundUrl: null,
@@ -41,5 +53,5 @@ export async function POST(req) {
     return NextResponse.json(resp(e.message), { status: 400 });
   }
 
-  return NextResponse.json(resp({ brandProfile: profile.friendlyObj() }));
+  return NextResponse.json(resp({ brandProfile: profile.toJsonAsClient() }));
 }

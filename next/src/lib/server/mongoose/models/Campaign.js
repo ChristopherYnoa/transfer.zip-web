@@ -7,7 +7,7 @@ const CampaignSchema = new mongoose.Schema({
     validFrom: { type: Date }
 }, { })
 
-CampaignSchema.methods.friendlyObj = function () {
+CampaignSchema.methods.toJsonAsClient = function () {
     const { lightUrl, darkUrl, campaignHTML } = this
     return {
         lightUrl,

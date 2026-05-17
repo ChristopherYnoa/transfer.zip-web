@@ -1,36 +1,52 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000"
 
-const get = async (endpoint, extraHeaders, omitCredentials) => {
-    const res = await (await fetch(API_URL + endpoint, {
-        credentials: (omitCredentials ? "omit" : "include"),
-        headers: extraHeaders,
-        signal: AbortSignal.timeout(6000)
-    })).json()
-
-    if (!res.success) {
-        throw new Error(res.message || "uknown error")
-    }
-    else {
-        return res
+// Throw an Error matching the server's response body. Carries `code` and
+// `status` so callers can branch on machine-readable values (e.g. SEATS_FULL)
+// while still getting a sensible default message in toast/UI surfaces.
+class ApiError extends Error {
+    constructor(message, { code, status } = {}) {
+        super(message)
+        this.name = "ApiError"
+        this.code = code
+        this.status = status
     }
 }
 
+const parseResponse = async (res) => {
+    const text = await res.text()
+    let json = null
+    try { json = text ? JSON.parse(text) : null } catch (_) { /* not json */ }
+
+    if (!res.ok) {
+        const message = json?.message || text || res.statusText || `HTTP ${res.status}`
+        throw new ApiError(message, { code: json?.code, status: res.status })
+    }
+
+    if (json && json.success === false) {
+        throw new ApiError(json.message || "Request failed", { code: json.code, status: res.status })
+    }
+
+    return json
+}
+
+const get = async (endpoint, extraHeaders, omitCredentials) => {
+    const res = await fetch(API_URL + endpoint, {
+        credentials: (omitCredentials ? "omit" : "include"),
+        headers: extraHeaders,
+    })
+    return parseResponse(res)
+}
+
 const withBody = async (verb, endpoint, payload) => {
-    const res = await (await fetch(API_URL + endpoint, {
+    const res = await fetch(API_URL + endpoint, {
         credentials: "include",
         method: verb,
         body: JSON.stringify(payload),
         headers: {
             "Content-Type": "application/json"
         }
-    })).json()
-
-    if (!res.success) {
-        throw new Error(res.message || "uknown error")
-    }
-    else {
-        return res
-    }
+    })
+    return parseResponse(res)
 }
 
 const post = async (endpoint, payload) => {
@@ -58,6 +74,12 @@ export async function getUserStorage() {
 export async function putUserSettings(payload) {
     return await put("/user/settings", payload)
 }
+
+export async function deleteOwnAccount() {
+    return await withBody("delete", "/user")
+}
+
+export const getUserExportUrl = () => `${API_URL}/user/export`
 
 // auth
 
@@ -93,6 +115,80 @@ export async function useMagicLink(token) {
     return await post(`/auth/magic-link/${token}`)
 }
 
+export async function pollMagicLinkStatus(requestId) {
+    return await get(`/auth/magic-link/by-request/${requestId}`)
+}
+
+export async function verifyMagicLinkCode(requestId, code) {
+    return await post(`/auth/magic-link/by-request/${requestId}/verify`, { code })
+}
+
+// team
+
+export async function updateTeam(payload) {
+    return await put("/team", payload)
+}
+
+export async function markTeamOnboarded() {
+    return await post("/team/onboard", {})
+}
+
+// team invite
+
+export async function sendTeamInvite(email, role, autoPurchaseSeat) {
+    return await post("/team/invite", { email, role, autoPurchaseSeat: !!autoPurchaseSeat })
+}
+
+export async function previewTeamSeatPurchase(count = 1) {
+    return await post("/team/seats/preview", { count })
+}
+
+export async function updateTeamSeats(seats) {
+    return await put("/team/seats", { seats })
+}
+
+export async function deleteTeamInvite(_id) {
+    return await withBody("delete", "/team/invite", { _id })
+}
+
+export async function getInvite(token) {
+    return await get(`/invite/${token}`)
+}
+
+export async function redeemInvite(token, fullName) {
+    return await post(`/invite/${token}`, { fullName })
+}
+
+export async function deleteUser(userId) {
+    return await withBody("delete", `/team/users/${userId}`)
+}
+
+export async function updateUserRole(userId, role) {
+    return await put(`/team/users/${userId}`, { role })
+}
+
+// team admin
+
+export async function getTeamTransfers() {
+    return await get("/team/transfers")
+}
+
+export async function deleteTeamTransfer(transferId) {
+    return await post(`/team/transfers/${transferId}/delete`)
+}
+
+export async function extendTeamTransfer(transferId, expiresAt) {
+    return await put(`/team/transfers/${transferId}`, { expiresAt })
+}
+
+export async function getTeamEvents({ filter = "all", before } = {}) {
+    const params = new URLSearchParams()
+    if (filter && filter !== "all") params.set("filter", filter)
+    if (before) params.set("before", before)
+    const qs = params.toString()
+    return await get(`/team/events${qs ? `?${qs}` : ""}`)
+}
+
 // export async function requestVerification() {
 //     return await post("/auth/verification/request", {})
 // }
@@ -103,8 +199,8 @@ export async function doVerification(email, token) {
 
 // stripe
 
-export async function createCheckoutSession(tier, frequency) {
-    return await post(`/stripe/create-checkout-session`, { tier, frequency })
+export async function createCheckoutSession(tier, frequency, teamInfo) {
+    return await post(`/stripe/create-checkout-session`, { tier, frequency, teamInfo })
 }
 
 export async function changeSubscription(tier) {
@@ -149,12 +245,10 @@ export async function deleteTransfer(transferId) {
 }
 
 export const getTransferDownloadLink = (transfer) => {
-    if (!transfer) return null
-    if (typeof window === "undefined") return null
     if (process.env.NEXT_PUBLIC_DL_DOMAIN) {
         return `https://${process.env.NEXT_PUBLIC_DL_DOMAIN}/${transfer.secretCode}`
     }
-    return `${window.location.protocol}//${window.location.host}/transfer/${transfer.secretCode}`
+    return typeof window === "undefined" ? `${process.env.SITE_URL}/transfer/${transfer.secretCode}` : `${window.location.origin}/transfer/${transfer.secretCode}`
 }
 
 export const getTransferAttachmentLink = (transfer) => {
@@ -164,8 +258,13 @@ export const getTransferAttachmentLink = (transfer) => {
 
 // transferrequest
 
-export async function getTransferRequestList() {
-    return await get(`/transferrequest/list`)
+export async function getTransferRequestList({ active, skip = 0, limit = 20 } = {}) {
+    const params = new URLSearchParams({
+        active: String(active),
+        skip: String(skip),
+        limit: String(limit),
+    })
+    return await get(`/transferrequest/list?${params.toString()}`)
 }
 
 export async function newTransferRequest(data) {
@@ -188,6 +287,10 @@ export async function activateTransferRequest(transferRequestId) {
 
 export async function deactivateTransferRequest(transferRequestId) {
     return await post(`/transferrequest/${transferRequestId}/deactivate`)
+}
+
+export async function deleteTransferRequest(transferRequestId) {
+    return await post(`/transferrequest/${transferRequestId}/delete`)
 }
 
 // brand profile

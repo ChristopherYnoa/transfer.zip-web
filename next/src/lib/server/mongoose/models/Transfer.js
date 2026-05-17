@@ -29,7 +29,7 @@ const File = new mongoose.Schema({
     type: String
 }, { _id: true })
 
-File.methods.friendlyObj = function () {
+File.methods.toJsonAsClient = function () {
     return {
         id: this._id?.toString(),
         relativePath: this.relativePath,
@@ -42,6 +42,10 @@ File.methods.friendlyObj = function () {
 const TransferSchema = new mongoose.Schema({
     transferRequest: { type: mongoose.Schema.Types.ObjectId, ref: "TransferRequest" },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
+    // Set once at creation from author.team if the author is on a team.
+    // Never updated — if a user later leaves the team, their existing
+    // transfers stay tagged to the team they were created under.
+    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", index: true },
     name: String,
     description: String,
     expiresAt: { type: Date },
@@ -64,7 +68,9 @@ const TransferSchema = new mongoose.Schema({
     nodeUrl: String,
 
     finishedUploading: { type: Boolean, default: false },
-    lastDownloadEmailSentAt: Date
+    lastDownloadEmailSentAt: Date,
+
+    backendVersion: { type: Number, required: true, default: 1 }
 }, { timestamps: true })
 
 function encPassword(pass) {
@@ -126,7 +132,8 @@ TransferSchema.methods.registerFile = function (fileInfo) {
     })
 }
 
-TransferSchema.methods.friendlyObj = function () {
+// TODO: Fix this mess
+TransferSchema.methods.toJsonAsOwner = function () {
     const { _id, name, description, expiresAt, secretCode, emailsSharedWith, createdAt, downloads, views, files, size } = this
     return {
         id: _id.toString(),
@@ -141,7 +148,7 @@ TransferSchema.methods.friendlyObj = function () {
             downloads: { length: downloads?.length },
             views: { length: views?.length },
         },
-        files: this.files.map(file => file.friendlyObj()),
+        files: this.files.map(file => file.toJsonAsClient()),
         size,
         createdAt,
         hasName: !!name,
@@ -149,12 +156,16 @@ TransferSchema.methods.friendlyObj = function () {
         finishedUploading: this.finishedUploading,
         nodeUrl: this.nodeUrl,
         brandProfileId: this.brandProfile ? this.brandProfile.toString() : undefined,
-        brandProfile: (this.brandProfile && typeof this.brandProfile.friendlyObj === 'function') ? this.brandProfile.friendlyObj() : undefined
+        brandProfile: (this.brandProfile && typeof this.brandProfile.toJsonAsClient === 'function') ? this.brandProfile.toJsonAsClient() : undefined
     }
 }
 
-TransferSchema.methods.downloadObj = function () {
-    const { _id, name, description, expiresAt, secretCode, files, size } = this
+// Variant for team Owner/Admin viewing transfers across the team.
+// Omits the plaintext password (we don't want a team admin browsing
+// other members' download passwords) but includes author identity so
+// the UI can show "uploaded by X". The author must be populated.
+TransferSchema.methods.toJsonAsTeamAdmin = function () {
+    const { _id, name, description, expiresAt, secretCode, createdAt, downloads, views, files, size } = this
     return {
         id: _id.toString(),
         name: name || "Untitled Transfer",
@@ -162,14 +173,42 @@ TransferSchema.methods.downloadObj = function () {
         expiresAt,
         secretCode,
         hasPassword: this.hasPassword(),
-        files: this.files.map(file => file.friendlyObj()),
+        statistics: {
+            downloads: { length: downloads?.length },
+            views: { length: views?.length },
+        },
+        files: this.files.map(file => file.toJsonAsClient()),
         size,
+        createdAt,
         hasName: !!name,
+        hasTransferRequest: !!this.transferRequest,
         finishedUploading: this.finishedUploading,
         nodeUrl: this.nodeUrl,
-        brandProfileId: this.brandProfile ? this.brandProfile.toString() : undefined
+        author: this.author && typeof this.author === "object" && this.author._id ? {
+            id: this.author._id.toString(),
+            email: this.author.email,
+            fullName: this.author.fullName,
+        } : undefined,
     }
 }
+
+// TransferSchema.methods.toJsonAsDownloader = function () {
+//     const { _id, name, description, expiresAt, secretCode, files, size } = this
+//     return {
+//         id: _id.toString(),
+//         name: name || "Untitled Transfer",
+//         description,
+//         expiresAt,
+//         secretCode,
+//         hasPassword: this.hasPassword(),
+//         files: this.files.map(file => file.toJsonAsClient()),
+//         size,
+//         hasName: !!name,
+//         finishedUploading: this.finishedUploading,
+//         nodeUrl: this.nodeUrl,
+//         brandProfileId: this.brandProfile ? this.brandProfile.toString() : undefined
+//     }
+// }
 
 TransferSchema.methods.getDownloadLink = function () {
     if (process.env.NEXT_PUBLIC_DL_DOMAIN) {
@@ -181,6 +220,10 @@ TransferSchema.methods.getDownloadLink = function () {
 // Add a virtual field for transfer.size
 TransferSchema.virtual('size').get(function () {
     return this.files.reduce((total, file) => total + (file.size || 0), 0)
+})
+
+TransferSchema.virtual('authorEmail').get(function () {
+    return this.author?.email
 })
 
 // Make sure the virtuals are included in JSON outputs

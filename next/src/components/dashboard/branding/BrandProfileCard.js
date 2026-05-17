@@ -1,0 +1,40 @@
+import BIcon from "@/components/BIcon";
+import { capitalizeFirstLetter } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
+
+import transfer_zip_grid from "@/img/transfer-zip-grid.png"
+import { BuildingIcon, HexagonIcon } from "lucide-react";
+
+export default function ({ id, name, iconUrl, backgroundUrl, editHref }) {
+  return (
+    <Link href={editHref} className="border shadow-xs rounded-xl bg-white border-gray-200 p-5 sm:p-6 hover:bg-gray-50 group">
+      <div className="flex items-center gap-2">
+        <div className="">
+          {iconUrl ?
+            <Image alt="Company Logo" width={32} height={32} src={iconUrl} />
+            :
+            <HexagonIcon className="w-[32px] h-[32px] p-1.5 rounded-lg border-2 border-dashed border-gray-400"/>
+          }
+        </div>
+        <p className="text-gray-800 text-lg font-bold whitespace-nowrap text-ellipsis overflow-x-hidden">{capitalizeFirstLetter(name)}</p>
+      </div>
+      <div className="rounded-lg border border-gray-100 mt-4">
+        <div className="relative aspect-video rounded-md overflow-clip flex justify-center items-center">
+          <Image
+            fill
+            className="object-center object-cover pointer-events-none group-hover:scale-105 transition-transform duration-300"
+            src={backgroundUrl || transfer_zip_grid}
+            alt={"Brand Profile Background Image"}
+          />
+          {!backgroundUrl && <p className="relative text-gray-300">
+            No background
+          </p>}
+        </div>
+      </div>
+      {/* <div className="flex flex-row justify-between gap-2">
+        <Button asChild className={"grow"} variant="outline"><Link href={`branding/${id}`}>Customize</Link></Button>
+      </div> */}
+    </Link>
+  )
+}

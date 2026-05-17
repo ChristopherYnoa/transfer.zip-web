@@ -1,20 +1,30 @@
 import User from "@/lib/server/mongoose/models/User";
+import Team from "@/lib/server/mongoose/models/Team";
+import TeamInvite from "@/lib/server/mongoose/models/TeamInvite";
+import TeamEvent from "@/lib/server/mongoose/models/TeamEvent";
+import Session from "@/lib/server/mongoose/models/Session";
+import Transfer from "@/lib/server/mongoose/models/Transfer";
+import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
 import { listTransfersForUser, resp } from "@/lib/server/serverUtils";
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/server/mongoose/db";
 import { getStripe } from "@/lib/server/stripe";
 import { headers } from "next/headers";
+import { getPlanByStripeProductId } from "@/lib/pricing";
+import { ROLES } from "@/lib/roles";
+import { sendTeamOverCapacity } from "@/lib/server/mail/mail";
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents";
+import { logError } from "@/lib/server/errors";
 
-// export const config = {
-//   api: {
-//     bodyParser: false
-//   }
-// }
+// Find subscriber (User or Team) by Stripe customer ID
+const findSubscriber = async (customerId) => {
+  const user = await User.findOne({ stripe_customer_id: customerId })
+  if (user) return { type: 'user', subscriber: user }
 
-const getPlanNameByProductId = (id) => {
-  if (id === process.env.STRIPE_SUB_STARTER_ID) return "starter"
-  else if (id === process.env.STRIPE_SUB_PRO_ID) return "pro"
-  else return null
+  const team = await Team.findOne({ stripe_customer_id: customerId }).populate("pendingOwner")
+  if (team) return { type: 'team', subscriber: team }
+
+  return null
 }
 
 export async function POST(req) {
@@ -61,26 +71,74 @@ export async function POST(req) {
 }
 
 const handleSubscription = async object => {
-  const user = await User.findOne({ stripe_customer_id: object.customer })
+  const result = await findSubscriber(object.customer)
 
-  if (user) {
+  if (result) {
+    const { type, subscriber } = result
     const { plan } = object
 
     const item = object.items?.data?.[0];
     const price = item?.price || item?.plan;
 
-    user.updateSubscription({
-      plan: getPlanNameByProductId(plan.product),
+    const seats = item.quantity
+
+    subscriber.updateSubscription({
+      plan: getPlanByStripeProductId(plan.product)?.id,
       status: object.status,
-      validUntil: new Date(object.current_period_end + 3600),
+      validUntil: object.current_period_end,
       cancelling: !!object.cancel_at,
       interval: price?.recurring?.interval || item?.plan?.interval
     });
 
-    await user.save()
+    let seatDownChange = null
+    if(type == "team") {
+      const previousSeats = subscriber.seats || 0
+      if (Number.isInteger(seats) && seats < previousSeats) {
+        seatDownChange = { from: previousSeats, to: seats }
+      }
+      subscriber.seats = seats
+
+      // TODO: come up with better and more reliable solution than this
+      // maybe to check if there is an owner in users already
+      if(subscriber.users.length == 0) {
+        subscriber.users.push(subscriber.pendingOwner._id)
+        subscriber.pendingOwner.team = subscriber._id
+        await subscriber.pendingOwner.save()
+        subscriber.pendingOwner = undefined
+      }
+    }
+
+    await subscriber.save()
+    console.log(`[handleSubscription] Updated ${type} subscription for customer: ${object.customer}`)
+
+    if (seatDownChange) {
+      const memberCount = subscriber.users.length
+      const overCapacity = memberCount > seatDownChange.to
+
+      logTeamEvent({
+        team: subscriber,
+        type: TEAM_EVENT.SEAT_REDUCED,
+        data: { from: seatDownChange.from, to: seatDownChange.to, memberCount, overCapacity },
+      })
+
+      if (overCapacity) {
+        // Notify the team owner so they can either add seats back or remove
+        // members. We don't auto-remove anyone — that's a destructive action
+        // the human needs to choose.
+        const owner = await User.findOne({ team: subscriber._id, role: ROLES.OWNER })
+        if (owner?.email) {
+          sendTeamOverCapacity(owner.email, {
+            teamName: subscriber.name,
+            memberCount,
+            seats: seatDownChange.to,
+            link: `${process.env.SITE_URL}/app/admin/members`,
+          }).catch(err => logError(err).forRoute("api/stripe/webhook/handleSubscription"))
+        }
+      }
+    }
   }
   else {
-    console.error(`[handleSubscription] User does not exist for customer: ${object.customer}`);
+    console.error(`[handleSubscription] No user or team found for customer: ${object.customer}`);
   }
 }
 
@@ -93,7 +151,7 @@ const handleSubscriptionCreated = async object => {
   if (paymentMethodId) {
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId)
 
-    console.log(paymentMethod)
+    // console.log(paymentMethod)
     // Check if issuer is SUTTON BANK
     if (paymentMethod?.card?.issuer?.toUpperCase().includes('SUTTON BANK')) {
       console.log(`Blocking SUTTON BANK payment for trial subscription: ${object.id}`)
@@ -112,45 +170,92 @@ const handleSubscriptionUpdated = async object => {
 }
 
 const handleSubscriptionDeleted = async object => {
-  const user = await User.findOne({ stripe_customer_id: object.customer });
+  const result = await findSubscriber(object.customer)
 
-  if (user) {
-    user.updateSubscription({
+  if (!result) {
+    console.error(`[handleSubscriptionDeleted] No user or team found for customer: ${object.customer}`);
+    return
+  }
+
+  const { type, subscriber } = result
+
+  if (type === 'user') {
+    subscriber.updateSubscription({
       plan: "free",
       status: "inactive",
       validUntil: 0,
       cancelling: false
     });
+    await subscriber.save();
 
-    await user.save();
+    // Expire transfers so storage doesn't stay paid-tier-large indefinitely.
+    // listTransfersForUser covers both authored transfers and guest uploads
+    // into the user's transfer requests.
+    const transfers = await listTransfersForUser(subscriber)
+    await Promise.all(transfers.map(t => t.updateOne({ expiresAt: new Date() })))
+  } else {
+    // Disband the team. We could keep it around in a "zombie" state, but
+    // every consumer (`User.hasTeam`, settings UI, admin layout) assumes
+    // hasTeam implies a working subscription. Cleaner to dissolve the team
+    // and convert everyone back to solo free accounts — the Stripe customer
+    // stays so the previous owner can re-subscribe later.
+    const teamId = subscriber._id
+    const teamUserIds = await User.find({ team: teamId }).distinct("_id")
 
-    const transfers = await listTransfersForUser(user)
-
-    // Delete the user's transfers. Worker will take care of it.
-    await Promise.all(
-      transfers.map(async transfer => {
-        await transfer.updateOne({
-          expiresAt: new Date(Date.now())
-        })
-      })
+    await Transfer.updateMany(
+      { team: teamId, expiresAt: { $gt: new Date() } },
+      { $set: { expiresAt: new Date() } }
     )
+
+    // Transfer team-owned brand profiles to the (former) Owner as personal
+    // profiles. Without this, the team-scoped query in brandProfileScopeQuery
+    // would orphan them (they still carry `team: <dead-id>` so a solo-account
+    // query for `team: { $exists: false }` would never match).
+    const ownerUserId = await User.findOne({ team: teamId, role: ROLES.OWNER }).distinct("_id")
+    if (ownerUserId.length) {
+      await BrandProfile.updateMany(
+        { team: teamId },
+        { $unset: { team: 1 }, $set: { author: ownerUserId[0] } }
+      )
+    } else {
+      // Edge case: somehow no Owner exists on the team. Drop the profiles
+      // rather than leave them orphaned.
+      await BrandProfile.deleteMany({ team: teamId })
+    }
+
+    await User.updateMany(
+      { team: teamId },
+      { $unset: { team: 1 }, $set: { role: ROLES.OWNER } }
+    )
+
+    // Drop active sessions so any open tab reloads as a solo account next
+    // request — no stale `hasTeam: true` in the populated session.
+    if (teamUserIds.length) {
+      await Session.deleteMany({ user: { $in: teamUserIds } })
+    }
+
+    await TeamInvite.deleteMany({ team: teamId })
+    await TeamEvent.deleteMany({ team: teamId })
+    await Team.deleteOne({ _id: teamId })
+
+    console.log(`[handleSubscriptionDeleted] Disbanded team ${teamId} (${teamUserIds.length} users)`)
   }
-  else {
-    console.error(`[handleSubscriptionDeleted] User does not exist for customer: ${object.customer}`);
-  }
+
+  console.log(`[handleSubscriptionDeleted] Deleted ${type} subscription for customer: ${object.customer}`)
 }
 
 const handleCheckoutSessionExpired = async object => {
-  const user = await User.findOne({ stripe_customer_id: object.customer });
+  const result = await findSubscriber(object.customer)
 
-  if (user) {
-    if (user.getPlan() != "free") {
-      console.log(`[handleCheckoutSessionExpired] User already has plan, not sending abandonment email ${user}`);
+  if (result) {
+    const { type, subscriber } = result
+    if (subscriber.getPlan() != "free") {
+      console.log(`[handleCheckoutSessionExpired] ${type} already has plan, not sending abandonment email`);
       return
     }
     // Handle promo emails
   }
   else {
-    console.error(`[handleCheckoutSessionExpired] User does not exist for customer: ${object.customer}`);
+    console.error(`[handleCheckoutSessionExpired] No user or team found for customer: ${object.customer}`);
   }
 }

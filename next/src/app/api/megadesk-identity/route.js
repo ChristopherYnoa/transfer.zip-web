@@ -4,14 +4,13 @@ import * as jose from "jose"
 
 export async function GET() {
   const auth = await useServerAuth()
+  if (!auth) {
+    return NextResponse.json({ error: "Not logged in." }, { status: 401 })
+  }
 
   const payload = {
     userDetail: {
       email: auth.user.email,
-
-      plan: auth.user.getPlan(),
-      planValidUntil: auth.user.planValidUntil,
-      planCancelling: auth.user.planCancelling,
     },
     integrations: {
       stripe: {

@@ -1,5 +1,5 @@
-import { EXPIRATION_TIMES } from "@/lib/constants";
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
+import { LIMIT } from "@/lib/pricing";
+import { findUsableBrandProfile } from "@/lib/server/brandProfiles";
 import Transfer from "@/lib/server/mongoose/models/Transfer";
 import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
@@ -7,6 +7,9 @@ import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
   const auth = await useServerAuth()
+  if (!auth) {
+    return NextResponse.json(resp("Unauthorized"), { status: 401 })
+  }
   const { transferId } = await params
   const { name, description, expiresAt, brandProfileId } = await req.json()
 
@@ -24,9 +27,7 @@ export async function PUT(req, { params }) {
   if (expiresAt) {
     const expiresAtDate = new Date(expiresAt)
 
-    const maxPlanExpirationDays =
-      EXPIRATION_TIMES.filter(t => (user.getPlan() == "pro" ? t.pro : t.starter)).reduce((max, current) =>
-        current.days > max.days ? current : max, { days: -1 }).days
+    const maxPlanExpirationDays = user.getLimit(LIMIT.MAX_EXPIRY_DAYS) ?? 0
 
     const maxExpiryDate = new Date(transfer.createdAt)
     maxExpiryDate.setDate(maxExpiryDate.getDate() + maxPlanExpirationDays);
@@ -38,8 +39,8 @@ export async function PUT(req, { params }) {
 
   if (brandProfileId) {
     if (brandProfileId !== "none") {
-      const brandProfile = await BrandProfile.findOne({ author: user._id, _id: brandProfileId })
-      transfer.brandProfile = brandProfile._id
+      const brandProfile = await findUsableBrandProfile(user, brandProfileId)
+      if (brandProfile) transfer.brandProfile = brandProfile._id
     }
     else {
       transfer.brandProfile = undefined
@@ -48,11 +49,14 @@ export async function PUT(req, { params }) {
 
   await transfer.save()
 
-  return NextResponse.json(resp({ transfer: transfer.friendlyObj() }))
+  return NextResponse.json(resp({ transfer: transfer.toJsonAsOwner() }))
 }
 
 export async function GET(req, { params }) {
   const auth = await useServerAuth()
+  if (!auth) {
+    return NextResponse.json(resp("Unauthorized"), { status: 401 })
+  }
   const { transferId } = await params
   const { user } = auth
 
@@ -62,5 +66,5 @@ export async function GET(req, { params }) {
     return NextResponse.json(resp("transfer not found"), { status: 404 })
   }
 
-  return NextResponse.json(resp({ transfer: transfer.friendlyObj() }))
+  return NextResponse.json(resp({ transfer: transfer.toJsonAsOwner() }))
 }

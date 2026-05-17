@@ -1,25 +1,27 @@
+import NewTransferFileUploadNew from "@/components/newtransfer/NewTransferFileUploadNew"
+import { listBrandProfilesForUser } from "@/lib/server/brandProfiles"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
-import LandingQuickShare from "./LandingQuickShare"
-import LandingTransferCarousel from "./LandingTransferCarousel"
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile"
 
-export default async function () {
+export default async function ConditionalLandingFileUpload({  }) {
+  const auth = await useServerAuth()
 
-  let auth
-  try {
-    auth = await useServerAuth()
-  }
-  catch (err) {
-    // cookie is removed or token not present
+  if (!auth || auth.user.getPlan() === "free") {
+    return <NewTransferFileUploadNew loaded={true} />
   }
 
-  let brandProfiles = auth
-    ? await BrandProfile.find({ author: auth.user._id }).sort({ lastUsed: -1 })
-    : undefined
+  const [storage, brandProfilesDocs] = await Promise.all([
+    auth.user.getStorage(),
+    listBrandProfilesForUser(auth.user),
+  ])
+
+  const brandProfiles = brandProfilesDocs.map(profile => profile.toJsonAsClient())
 
   return (
-    auth && auth.user.getPlan() != "free" ?
-      <LandingTransferCarousel user={auth.user.friendlyObj()} storage={await auth.user.getStorage()} brandProfiles={brandProfiles.map(profile => profile.friendlyObj())} />
-      : <LandingQuickShare />
+    <NewTransferFileUploadNew
+      loaded={true}
+      user={auth.user.toJsonAsClient()}
+      storage={storage}
+      brandProfiles={brandProfiles}
+    />
   )
 }

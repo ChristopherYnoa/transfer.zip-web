@@ -1,6 +1,7 @@
 import colors from 'tailwindcss/colors'
 
 const primaryColor = colors.blue
+const compColor = colors.amber
 
 /** @type {import('tailwindcss').Config} */
 export const content = ["./src/**/*.{html,js}"]
@@ -25,7 +26,29 @@ export const theme = {
         "700": primaryColor[700],
         "800": primaryColor[800],
         "900": primaryColor[900],
+      },
+      comp: {
+        DEFAULT: compColor[500],
+        "50": compColor[50],
+        "100": compColor[100],
+        "200": compColor[200],
+        "300": compColor[300],
+        "400": compColor[400],
+        "500": compColor[500],
+        "600": compColor[600],
+        "700": compColor[700],
+        "800": compColor[800],
+        "900": compColor[900],
       }
+    },
+    animation: {
+      "fade-in": "fade-in 300ms ease-out forwards",
+    },
+    keyframes: {
+      "fade-in": {
+        "0%": { opacity: "0" },
+        "100%": { opacity: "1" },
+      },
     },
     // fontFamily: {
     //   'sans': ['Montserrat', 'sans-serif'],
@@ -33,7 +56,7 @@ export const theme = {
     // },
   },
 }
+
 export const plugins = [
   require('@tailwindcss/forms'),
 ]
-

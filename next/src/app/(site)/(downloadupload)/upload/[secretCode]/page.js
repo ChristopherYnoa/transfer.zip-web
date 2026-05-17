@@ -1,14 +1,42 @@
-import TransferRequest from "@/lib/server/mongoose/models/TransferRequest";
-import UploadArea from "./UploadArea";
-import { notFound } from "next/navigation";
-import dbConnect from "@/lib/server/mongoose/db";
-import BrandHeader from "../../BrandHeader";
-import Header from "@/components/Header";
-import { IS_SELFHOST } from "@/lib/isSelfHosted";
-import Features1 from "@/components/Features1";
-import TestimonialCloud from "@/components/TestimonialCloud";
 import FAQ from "@/components/FAQ";
+import Features1 from "@/components/Features1";
+import Header from "@/components/Header";
+import IndieStatement from "@/components/IndieStatement";
+import NewTransferFileUploadForRequest from "@/components/newtransfer/NewTransferFileUploadForRequest";
+import TestimonialCloud from "@/components/TestimonialCloud";
+import { IS_SELFHOST } from "@/lib/isSelfHosted";
+import dbConnect from "@/lib/server/mongoose/db";
+import TransferRequest from "@/lib/server/mongoose/models/TransferRequest";
 import Image from "next/image";
+import { notFound } from "next/navigation";
+import BrandHeader from "../../BrandHeader";
+
+export async function generateMetadata({ params }) {
+  const { secretCode } = await params
+
+  await dbConnect()
+
+  const transferRequest = await TransferRequest.findOne({ secretCode: { $eq: secretCode } }).populate("brandProfile")
+  if (!transferRequest) {
+    return undefined
+  }
+
+  const { brandProfile } = transferRequest
+  const brandName = brandProfile?.name || "Transfer.zip"
+  const title = "Upload files | " + brandName
+  const description = "You have a file request waiting."
+  const ogImage = brandProfile?.backgroundUrl || "https://cdn.transfer.zip/og.png"
+
+  return {
+    title: title,
+    description,
+    openGraph: {
+      title: title,
+      description,
+      images: [ogImage],
+    },
+  };
+}
 
 export default async function ({ params }) {
   const { secretCode } = await params
@@ -35,20 +63,21 @@ export default async function ({ params }) {
             src={brandProfile.backgroundUrl}
           />
         )}
-        <div className={`bg-white backdrop-blur-sm rounded-2xl border shadow-xl w-full flex flex-col max-w-80`}>
-          <div className="p-6">
-            {/* <h1 className="text-3xl font-semibold tracking-tight text-gray-900 text-start mb-4">You got files!</h1> */}
-            <h2 className="font-bold text-xl/8 text-gray-800">{transferRequest.name}</h2>
-            <p className="text-gray-600">{transferRequest.description || "No description"}</p>
-          </div>
-          <hr className="my-2 mx-6" />
-          <UploadArea />
-        </div>
+        <NewTransferFileUploadForRequest brandProfile={brandProfile?.toJsonAsClient()} transferRequest={transferRequest.toJsonAsUploader()} />
       </div>
       {(!IS_SELFHOST && !brandProfile) && (
         <>
           <Features1 />
           <TestimonialCloud />
+          {/* <div className="relative">
+            <div className="w-full h-screen overflow-hidden absolute grain bg-linear-to-b from-primary-600 to-primary-300" />
+            <div className="py-24 px-2 sm:px-8 relative">
+              <p className="text-center mt-2 text-pretty text-3xl font-bold tracking-tight text-white sm:text-3xl lg:text-balance text-shadow-md">
+                A quick message from the founder.
+              </p>
+              <IndieStatement compact />
+            </div>
+          </div> */}
           <FAQ />
         </>
       )}

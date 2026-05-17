@@ -1,9 +1,10 @@
-import Main from "@/components/dashboard/Main";
 
-export default function ({ children }) {
+export default function ({ title, children }) {
   return (
-    <Main>
-      {children}
-    </Main>
+    <div className="px-4 sm:px-6 lg:px-10">
+      <div className="mb-24 sm:mb-26 mt-8 sm:mt-16 w-full mx-auto max-w-3xl">
+        {children}
+      </div>
+    </div>
   )
 }

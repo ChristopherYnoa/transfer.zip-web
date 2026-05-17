@@ -1,24 +1,25 @@
-import { Playfair_Display, Roboto } from "next/font/google";
-import "./globals.css";
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import { FileProvider } from "@/context/FileProvider";
-import Script from "next/script";
-import Head from "next/head";
-import { IS_SELFHOST } from "@/lib/isSelfHosted";
 import GlobalProvider from "@/context/GlobalContext";
+import { IS_SELFHOST } from "@/lib/isSelfHosted";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import { Bricolage_Grotesque, Roboto } from "next/font/google";
+import { headers } from "next/headers";
+import Head from "next/head";
+import Script from "next/script";
+import "./globals.css";
+import { IS_DEV } from "@/lib/server/serverUtils";
+import { Toaster } from "sonner";
 
-// const playfairDisplay = Playfair_Display({
-//   weight: ['400', '500', '600', '700', '800', '900'],
-//   subsets: ["latin"]
-// })
-
-const roboto = Roboto({
-  weight: ['400', '500', '600', '700', '800', '900'],
+const roboto = Bricolage_Grotesque({
+  weight: ['400', '500', '600', '700', '800'],
   subsets: ["latin"]
 })
 
 export const metadata = {
-  title: "Transfer.zip | Quick & Easy File Transfer - Send Files",
+  title: {
+    template: "%s | Transfer.zip",
+    default: "Transfer.zip | Quick & Easy File Transfer - Send Files",
+  },
   description:
     "Free sharing of photos, videos and documents. Send large files instantly with a link or email. Simple, fast and secure file sharing with Transfer.zip.",
   openGraph: {
@@ -47,23 +48,28 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const headersList = await headers();
+  const ua = headersList.get("user-agent") || "";
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+
   return (
-    <html lang="en">
-      <Head>
-        <script src="/lib/ponyfill.min.js"></script>
-      </Head>
-      {!IS_SELFHOST && process.env.MEGADESK_PUB && <Script src="https://getmegadesk.com/embed.js" data-pub={process.env.MEGADESK_PUB}></Script>}
-      {!IS_SELFHOST && process.env.UMAMI_ANALYTICS_WEBSITE_ID && process.env.UMAMI_ANALYTICS_WEBSITE_ID.length == "36" ? <Script defer src="https://umami.w0bb.com/script.js" data-website-id={process.env.UMAMI_ANALYTICS_WEBSITE_ID}></Script> : <></>}
-      {!IS_SELFHOST && process.env.SIGMA_SEO_SITE_ID && <Script defer src="https://sigma-seo.rkt.dev/seo.js" data-website-id={process.env.SIGMA_SEO_SITE_ID}></Script>}
+    <html lang="en" data-scroll-behavior="smooth">
+      {/* <Head> */}
+      <Script src="/lib/ponyfill.min.js"></Script>
+      {/* </Head> */}
+      {/* {!IS_SELFHOST && !IS_DEV && process.env.MEGADESK_PUB && <Script defer src="https://getmegadesk.com/embed.js" data-pub={process.env.MEGADESK_PUB}></Script>} */}
+      {!IS_SELFHOST && process.env.UMAMI_ANALYTICS_WEBSITE_ID && process.env.UMAMI_ANALYTICS_WEBSITE_ID.length == "36" ? <Script defer src="https://umami.rkt.dev/script.js" data-website-id={process.env.UMAMI_ANALYTICS_WEBSITE_ID} data-exclude-hash="true"></Script> : <></>}
+      {!IS_SELFHOST && !IS_DEV && process.env.SIGMA_SEO_SITE_ID && <Script defer src="https://sigma-seo.rkt.dev/seo.js" data-website-id={process.env.SIGMA_SEO_SITE_ID}></Script>}
       <body
-        className={`${roboto.className} antialiased`} // ${roboto.className} ${playfairDisplay.className} 
+        className={`${roboto.className} antialiased`} // ${roboto.className} ${playfairDisplay.className}
       >
-        <GlobalProvider>
+        <GlobalProvider isSafari={isSafari}>
           <FileProvider>
             {children}
           </FileProvider>
         </GlobalProvider>
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   );

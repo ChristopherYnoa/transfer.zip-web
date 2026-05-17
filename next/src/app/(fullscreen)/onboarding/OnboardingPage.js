@@ -2,16 +2,26 @@
 
 import BIcon from "@/components/BIcon"
 import PricingCards from "@/components/PricingCards"
+import TeamPricingCard from "@/components/TeamPricingCard"
 import pricing from "@/lib/pricing"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useMemo, useState } from "react"
-import logo from "@/img/icon.png"
-import Image from "next/image"
-import { API_URL, createCheckoutSession, logout } from "@/lib/client/Api"
-import { ExternalLink, ExternalLinkIcon } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { API_URL, createCheckoutSession, deleteOwnAccount, logout } from "@/lib/client/Api"
 import PricingToggle from "@/components/PricingToggle"
 import IndieStatement from "@/components/IndieStatement"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
 
 const testimonials = [
   {
@@ -38,6 +48,10 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
 
   const [frequency, setFrequency] = useState("monthly")
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [emailConfirm, setEmailConfirm] = useState("")
+  const [deleting, setDeleting] = useState(false)
+
   if (!user) return <></>
 
   const handleLogout = async () => {
@@ -45,15 +59,33 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
     window.location.href = "/"
   }
 
-  const { tiers } = pricing
+  const canConfirmDelete = emailConfirm.trim().toLowerCase() === user.email.toLowerCase() && !deleting
 
-  const handleTierSelected = async (tier) => {
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await deleteOwnAccount()
+      window.location.href = "/"
+    } catch (err) {
+      toast.error(err.message)
+      setDeleting(false)
+    }
+  }
+
+  const openDeleteModal = () => {
+    setEmailConfirm("")
+    setShowDeleteModal(true)
+  }
+
+  const { tiers, teamTier } = pricing
+
+  const handleTierSelected = async (tier, seats = null) => {
     if (isRequesting) return; // If a request is already in progress, exit the function.
 
     setIsRequesting(true); // Set the state to indicate a request is in progress.
 
     try {
-      const res = await createCheckoutSession(tier, frequency);
+      const res = await createCheckoutSession(tier, frequency, { seats });
       window.location.href = res.url;
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -64,22 +96,23 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
 
   return (
     <>
+      <div className="w-full h-screen overflow-hidden absolute grain bg-linear-to-b from-primary-700 to-primary-300 -z-10 rounded-b-4xl" />
       <div className="flex min-h-[100vh] flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <Link href={"/"} className="absolute top-8 text-xl me-1 text-primary hover:text-primary-light">&larr; Back</Link>
+        <Link href={"/"} className="absolute top-8 text-xl me-1 text-white hover:underline fade-in-up-1000">&larr; Back</Link>
         <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">
           {/* <Image
             alt="Transfer.zip logo"
             src={logo}
             className="mx-auto h-10 w-auto"
           /> */}
-          <h1 className={`text-4xl ${hasStripeAccount ? "sm:text-6xl" : "sm:text-7xl"} font-bold mt-8 sm:mt-12 tracking-tight text-gray-900`}>
-            {hasStripeAccount ? "Welcome back 👋" : "Welcome 👋"}
+          <h1 className={`text-4xl ${hasStripeAccount ? "sm:text-6xl" : "sm:text-7xl"} font-bold mt-8 sm:mt-12 tracking-tight text-white fade-in-up-600`}>
+            {hasStripeAccount ? "Welcome back :)" : "Welcome :)"}
           </h1>
-          <p className="text-gray-700 mt-4 text-base sm:text-xl">
+          <p className="text-white mt-4 text-base sm:text-xl animate-delay-100 fade-in-up-600">
             {
               hasFreeTrial ?
                 <>
-                  We offer a <b>7-day free trial</b> on any plan. You can cancel anytime during your trial, and you won't be charged a penny.
+                  We offer a <b>7-day free trial</b> on the Pro and Starter plans. You can cancel anytime during your trial, and you won't be charged a penny.
                 </>
                 :
                 <>
@@ -88,13 +121,16 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
             }
           </p>
         </div>
-        <div className="mt-8">
-          <PricingToggle frequency={frequency} setFrequency={setFrequency}/>
+        <div className="mt-8 animate-delay-200 fade-in-up-600">
+          <PricingToggle frequency={frequency} setFrequency={setFrequency} />
         </div>
-        <div className="mx-auto mt-4 grid max-w-lg grid-cols-1 items-center gap-y-6 sm:mt-8 sm:gap-y-0 lg:max-w-4xl lg:grid-cols-2">
+        <div className="mx-auto mt-4 grid max-w-sm grid-cols-1 gap-6 sm:mt-8 lg:max-w-5xl lg:grid-cols-3 animate-delay-200 fade-in-up-1000">
           <PricingCards frequency={frequency} tiers={tiers} compact={false} onTierSelected={handleTierSelected} hasFreeTrial={hasFreeTrial} eventName={"pricing_card_onboarding_click"} />
+          <TeamPricingCard frequency={frequency} tier={teamTier} onTierSelected={handleTierSelected} hasFreeTrial={hasFreeTrial} eventName={"pricing_card_teams_onboarding_click"} />
         </div>
-        <IndieStatement compact/>
+        <div className="mt-8">
+          <IndieStatement compact />
+        </div>
         <div className={``}>
           <div className="mx-auto max-w-4xl px-6 mt-4 lg:px-8">
             {/* <div className="mb-8 text-center">
@@ -144,6 +180,10 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
                 {/* <BIcon name={"box-arrow-left"} className={"me-1"} /> */}
                 Log out
               </button>
+              {" · "}
+              <button onClick={openDeleteModal} className="font-semibold text-red-600 text-nowrap hover:underline">
+                Delete my account
+              </button>
             </p>
           </div>
         </div>
@@ -151,6 +191,38 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
           Secure payments via Stripe. <Link className="text-primary-dark" target="_blank" href={"/legal/terms-and-conditions"}>Terms</Link> and <Link className="text-primary-dark" target="_blank" href={"/legal/privacy-policy"}>Privacy</Link> apply.
         </p>
       </div>
+      <Dialog open={showDeleteModal} onOpenChange={open => { if (!deleting) setShowDeleteModal(open) }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete your account?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete your account and all associated transfers, transfer requests, and brand profiles. Any active subscription will be cancelled immediately, with no refund for unused time. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2">
+            <Label htmlFor="email-confirm" className="text-sm text-gray-700">
+              Type <span className="font-mono text-gray-900">{user.email}</span> to confirm
+            </Label>
+            <Input
+              id="email-confirm"
+              autoFocus
+              autoComplete="off"
+              value={emailConfirm}
+              onChange={e => setEmailConfirm(e.target.value)}
+              className="mt-2"
+              disabled={deleting}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={!canConfirmDelete} onClick={handleDelete}>
+              {deleting ? "Deleting…" : "Delete account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

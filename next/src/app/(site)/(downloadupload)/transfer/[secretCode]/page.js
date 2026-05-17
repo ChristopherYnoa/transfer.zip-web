@@ -11,19 +11,25 @@ import Features1 from "@/components/Features1";
 import TestimonialCloud from "@/components/TestimonialCloud";
 import FAQ from "@/components/FAQ";
 import Image from "next/image";
+import { headers } from "next/headers";
+import { isBot } from "@/lib/isBot";
+import { useServerAuth } from "@/lib/server/wrappers/auth";
 
 export async function generateMetadata({ params }) {
   const { secretCode } = await params
 
   await dbConnect()
 
-  const transfer = await Transfer.findOne({ secretCode: { $eq: secretCode } })
+  const transfer = await Transfer.findOne({ secretCode: { $eq: secretCode } }).populate("brandProfile")
   if (!transfer) {
     return undefined
   }
 
-  const title = "Download " + transfer.files.length + " files" + " | Transfer.zip"
-  const description = "Someone sent you files."
+  const { brandProfile } = transfer
+  const brandName = brandProfile?.name || "Transfer.zip"
+  const title = "Download " + transfer.files.length + " files" + " | " + brandName
+  const description = "You've got files waiting for you."
+  const ogImage = brandProfile?.backgroundUrl || "https://cdn.transfer.zip/og.png"
 
   return {
     title: title,
@@ -31,7 +37,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: title,
       description,
-      images: ["https://cdn.transfer.zip/og.png"],
+      images: [ogImage],
     },
     // twitter: {
     //   title: post.title,
@@ -47,10 +53,21 @@ export default async function ({ params }) {
 
   await dbConnect()
 
-  const transfer = await Transfer.findOne({ secretCode: { $eq: secretCode } }).populate("brandProfile")
+  const transfer = await Transfer.findOne({ secretCode: { $eq: secretCode } }).populate("author").populate("brandProfile")
 
   if (!transfer) {
     notFound()
+  }
+
+  const auth = await useServerAuth()
+
+  if (!transfer?.author || !auth || auth.user._id.toString() !== transfer.author._id.toString()) {
+    const headersList = await headers()
+    const userAgent = headersList.get("user-agent") || ""
+    if (!isBot(userAgent)) {
+      transfer.logView()
+      await transfer.save()
+    }
   }
 
   const expiryDate = parseTransferExpiryDate(transfer.expiresAt)

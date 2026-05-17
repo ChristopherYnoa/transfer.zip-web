@@ -2,6 +2,7 @@
 
 import { GlobalContext } from "@/context/GlobalContext"
 import { sendEvent } from "@/lib/client/umami"
+import { ZapIcon } from "lucide-react"
 import Link from "next/link"
 import { useContext } from "react"
 
@@ -15,8 +16,14 @@ export default function () {
   }
 
   return (
-    <Link onNavigate={handleCtaLinkNavigate} href={"/signin"} className="text-sm/6 font-semibold text-white rounded-full bg-primary px-4 py-2 hover:bg-primary-light">
-      Create Account <span aria-hidden="true">&rarr;</span>
-    </Link>
+    <div className="flex gap-3 items-center">
+      <Link className="text-sm/6 font-semibold rounded-full text-white hover:underline" href={"/signin"} >
+        Sign in
+      </Link>
+      <Link onNavigate={handleCtaLinkNavigate} href={"/signin"} className="text-sm/6 font-semibold text-white rounded-full bg-linear-to-b from-primary-600 to-primary-700 hover:bg-linear-to-t ring-1 ring-primary-400 shadow ps-2 pe-5 py-1.5 hover:bg-primary-light flex items-center">
+        <ZapIcon className="h-4 me-0.5" /> Create Account
+      </Link>
+    </div>
+
   )
 }

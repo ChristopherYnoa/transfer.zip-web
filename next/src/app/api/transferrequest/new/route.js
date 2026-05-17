@@ -1,6 +1,6 @@
 import { sendTransferRequestReceived, sendTransferRequestShare, sendTransferShare } from "@/lib/server/mail/mail";
 import TransferRequest from "@/lib/server/mongoose/models/TransferRequest";
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
+import { findUsableBrandProfile } from "@/lib/server/brandProfiles";
 import { getTransferRequestUploadLink, resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";
@@ -9,7 +9,11 @@ import SentEmail from "@/lib/server/mongoose/models/SentEmail";
 import { EMAILS_PER_DAY_LIMIT, getMaxRecipientsForPlan } from "@/lib/getMaxRecipientsForPlan";
 
 export async function POST(req) {
-  const { user } = await useServerAuth()
+  const auth = await useServerAuth()
+  if (!auth) {
+    return NextResponse.json(resp("Unauthorized"), { status: 401 })
+  }
+  const { user } = auth
 
   const { name, description, emails, brandProfileId } = await req.json()
 
@@ -22,7 +26,7 @@ export async function POST(req) {
     if (!mongoose.Types.ObjectId.isValid(brandProfileId)) {
       return NextResponse.json(resp("invalid brandProfileId"), { status: 400 })
     }
-    brandProfile = await BrandProfile.findOne({ _id: brandProfileId, author: user._id })
+    brandProfile = await findUsableBrandProfile(user, brandProfileId)
     if (!brandProfile) {
       return NextResponse.json(resp("brand profile not found"), { status: 404 })
     }
@@ -43,12 +47,12 @@ export async function POST(req) {
 
   if (emails?.length) {
     for (const email of emails) {
-      const sentEmailsLastDay = await SentEmail.countDocuments({ user: user._id })
+      const sentEmailsLastDay = await SentEmail.countDocuments({ userEmail: user.email })
       if (sentEmailsLastDay >= EMAILS_PER_DAY_LIMIT) {
         return NextResponse.json(resp("You have sent too many emails today, please contact support."));
       }
       const sentEmail = new SentEmail({
-        user: user._id,
+        userEmail: user.email,
         to: [email]
       })
       await sentEmail.save()
@@ -56,7 +60,7 @@ export async function POST(req) {
         name: name || "Untitled Transfer Request",
         description: description,
         link: getTransferRequestUploadLink(transferRequest),
-        brand: brandProfile ? brandProfile.friendlyObj() : undefined
+        brand: brandProfile ? brandProfile.toJsonAsClient() : undefined
       })
       await transferRequest.addSharedEmail(email)
     }
@@ -69,5 +73,5 @@ export async function POST(req) {
     await brandProfile.save()
   }
 
-  return NextResponse.json(resp({ transferRequest: transferRequest.friendlyObj() }))
+  return NextResponse.json(resp({ transferRequest: transferRequest.toJsonAsOwner() }))
 }
