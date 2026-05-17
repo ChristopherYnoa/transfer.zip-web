@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getStripePriceId, getPlanById } from "@/lib/pricing";
 import Team from "@/lib/server/mongoose/models/Team";
+import { ROLES } from "@/lib/roles";
 
 export async function POST(req) {
   const { tier, frequency, teamInfo } = await req.json()
@@ -56,7 +57,7 @@ export async function POST(req) {
   if (plan.isTeamPlan) {
     if (!user.hasTeam) {
       // Create new team if user doesn't have a team
-      // but don't add this to the user yet, 
+      // but don't add this to the user yet,
       // so users can test the team checkout flow without getting locked into a team
       const team = new Team({
         users: [],
@@ -66,6 +67,13 @@ export async function POST(req) {
       subscriber = team
     }
     else {
+      // Only the Owner can create new subscriptions on the team's
+      // Stripe customer. Without this check a Member could open a
+      // checkout session against the team's saved card and the webhook
+      // would overwrite team.seats with the new sub's quantity.
+      if (user.role !== ROLES.OWNER) {
+        return NextResponse.json(resp("Only the team owner can change the team's subscription."), { status: 403 })
+      }
       subscriber = user.team
     }
   }

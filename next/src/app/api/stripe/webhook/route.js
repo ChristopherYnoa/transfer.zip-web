@@ -37,7 +37,6 @@ export async function POST(req) {
     event = getStripe().webhooks.constructEvent(payload, sig, process.env.STRIPE_WHSEC);
   } catch (err) {
     console.error("Error verifying webhook signature:", err);
-    console.log(process.env.STRIPE_WHSEC)
     return NextResponse.json(resp(`Webhook Error: ${err.message}`), { status: 500 })
   }
 
