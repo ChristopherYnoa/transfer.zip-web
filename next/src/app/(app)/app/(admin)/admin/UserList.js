@@ -29,8 +29,13 @@ import ProfilePic from "@/components/ProfilePic";
 function Entry({ user, currentUser, onDeleteUser, onUpdateRole }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const isOwner = user.role === ROLES.OWNER
+  const isTargetAdmin = user.role === ROLES.ADMIN
   const currIsOwner = currentUser.role === ROLES.OWNER
-  const canManageRoles = (currentUser.role === ROLES.ADMIN ? (isOwner ? false : true) : false) || currIsOwner
+  // Owner can manage any non-Owner. Admin can manage Members only —
+  // they can't promote into / demote out of ADMIN (peer-role changes
+  // are Owner-only). Mirrored on the server in
+  // api/team/users/[userId]/route.js PUT.
+  const canManageRoles = currIsOwner || (currentUser.role === ROLES.ADMIN && !isOwner && !isTargetAdmin)
   const canDeleteUsers = currentUser.role === ROLES.OWNER
   const isSelf = currentUser.id === user.id
   const showTransferCount = currIsOwner && user.activeTransferCount > 0

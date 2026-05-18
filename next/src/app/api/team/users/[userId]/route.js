@@ -133,6 +133,17 @@ export async function PUT(req, { params }) {
     return NextResponse.json(resp("Owner role cannot be changed"), { status: 403 })
   }
 
+  // Admins can manage Members but not each other — only the Owner gets
+  // to promote into / demote out of ADMIN. Without this guard one Admin
+  // could demote a peer Admin to Member (or promote a Member to Admin)
+  // without the Owner's consent.
+  if (
+    auth.user.role === ROLES.ADMIN &&
+    (user.role === ROLES.ADMIN || role === ROLES.ADMIN)
+  ) {
+    return NextResponse.json(resp("Only the team owner can change Admin roles"), { status: 403 })
+  }
+
   const fromRole = user.role
   user.role = role
   await user.save()
