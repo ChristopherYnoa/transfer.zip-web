@@ -641,3 +641,480 @@ Suggested order for the patch sequence (each is independent):
 Once 1-4 are in, the Teams plan can ship to paying tenants with the
 understanding that the remaining issues are owner-or-admin trust violations
 or pre-existing platform-wide patterns, not Member-can-attack-team primitives.
+
+---
+
+# Round 2 — Additional permission problems
+
+Second pass focused on **role-boundary enforcement** between Owner / Admin /
+Member, and on places where the team's billing or branding state can be
+mutated by someone who shouldn't have that authority. Three new HIGHs and a
+handful of MEDIUMs / LOWs. None of the Round-1 CRITICALs are revisited here.
+
+## HIGH — Admin can demote, promote, and shuffle peer Admins without Owner consent
+
+**File:** `next/src/app/api/team/users/[userId]/route.js:93-161` (PUT handler)
+
+The role-change endpoint gates on `OWNER || ADMIN`:
+
+```js
+if (auth.user.role !== ROLES.OWNER && auth.user.role !== ROLES.ADMIN) {
+  return NextResponse.json(resp("Forbidden"), { status: 403 })
+}
+// ...
+if (user.role === ROLES.OWNER) {
+  return NextResponse.json(resp("Owner role cannot be changed"), { status: 403 })
+}
+
+const fromRole = user.role
+user.role = role          // <-- ADMIN can write ADMIN here against another ADMIN
+await user.save()
+```
+
+The only target-role guard is "can't target Owner." There's no
+"Admin can't change another Admin's role" guard. The UI matches the API
+permissively — `UserList.js:33`'s `canManageRoles` returns true for an Admin
+viewing any non-Owner, including peer Admins.
+
+### What that lets a malicious or compromised Admin do
+
+- Demote **any other Admin** to Member with one POST. The target Admin
+  loses all admin privileges and gets booted out of `/app/admin/*` on the
+  next request (the layout redirects on role change). They don't get
+  notified beyond the existing role-changed email.
+- Promote **any Member** to Admin. The new co-conspirator can then help
+  demote the rest, etc.
+- The Owner only finds out via the activity feed (and the role-changed
+  email *to the demoted user*, not to the Owner).
+
+### Asymmetry with DELETE
+
+`DELETE /api/team/users/[userId]` on the same file is Owner-only
+(`route.js:28`). So Admins can't *remove* peer Admins, but they *can*
+neutralise them. Combined with promote-Member-to-Admin, a single Admin
+can effectively replace every peer with people they control while still
+leaving the existing Admins in `team.users` (so the Owner doesn't see
+sudden departures, just role flips in the feed).
+
+### Fix
+
+Restrict ADMIN target role changes to Owner-only. The minimal patch
+adds one branch after the existing OWNER guard:
+
+```js
+// Only the Owner can promote into / demote out of ADMIN. Admins can
+// flip MEMBER ↔ MEMBER no-ops or … nothing useful, really — but they
+// shouldn't be able to mess with each other.
+if (
+  auth.user.role === ROLES.ADMIN &&
+  (user.role === ROLES.ADMIN || role === ROLES.ADMIN)
+) {
+  return NextResponse.json(
+    resp("Only the team owner can change Admin roles"),
+    { status: 403 }
+  )
+}
+```
+
+Then update `UserList.js:33` to hide the menu when the target is also an
+Admin and the viewer isn't the Owner, so the UI matches the new API.
+
+---
+
+## HIGH — Admin can drain Owner's saved card by chaining "invite with autoPurchaseSeat → revoke invite"
+
+**Files:**
+- `next/src/app/api/team/invite/route.js:62-74` (POST: accepts `autoPurchaseSeat: true` for any Owner-or-Admin)
+- `next/src/app/api/team/invite/route.js:110-144` (DELETE: revokes invites for any Owner-or-Admin, **does not decrement Stripe seat count**)
+- `next/src/lib/server/teamSeats.js:59-80` (`purchaseSeats` uses `proration_behavior: "always_invoice"` → immediate invoice, immediate charge)
+
+### The asymmetry
+
+The codebase enforces a clear "billing actions are Owner-only" boundary for
+the direct billing endpoints:
+
+- `PUT /api/team/seats` requires `ROLES.OWNER` (route.js:20).
+- `POST /api/stripe/create-checkout-session` (now requires OWNER for the
+  teams branch — see Round 1 CRITICAL #2).
+- `POST /api/stripe/create-customer-portal-session` (now requires OWNER for
+  team users — see Round 1 CRITICAL #1).
+
+But `POST /api/team/invite` with `autoPurchaseSeat: true` ends up calling
+`purchaseSeats(team, additionalSeats)` directly
+(`api/team/invite/route.js:68`), which immediately invoices Stripe with
+`proration_behavior: "always_invoice"` and charges the team's default
+payment method **before** the invite is even sent. Admin can call this.
+
+The Admin then revokes the invite via `DELETE /api/team/invite` (also
+Admin-allowed). The Stripe seat quantity is **not decremented** on revoke.
+The team is left with N+1 seats they didn't ask for and an invoice on
+file.
+
+### Concrete steps
+
+```
+# As an Admin (not the Owner)
+curl -X POST https://transfer.zip/api/team/invite \
+  -H 'Cookie: token=<admin-session>' \
+  -H 'content-type: application/json' \
+  -d '{"email":"a1@x.com","autoPurchaseSeat":true,"role":"member"}'
+
+# Repeat with a2@x.com, a3@x.com, …, up to PLANS.teams.maxSeats (25).
+# Each call → immediate Stripe invoice for one extra seat at $10-15/mo.
+
+# Then revoke each invite:
+curl -X DELETE https://transfer.zip/api/team/invite \
+  -H 'Cookie: token=<admin-session>' \
+  -H 'content-type: application/json' \
+  -d '{"_id":"<invite-id>"}'
+
+# Seats stay elevated. Stripe keeps billing the Owner's card.
+# Repeat across multiple billing cycles by adjusting downwards manually
+# in Stripe portal (which the Admin no longer has access to after the
+# Round-1 fix), or simply max it out.
+```
+
+A *single* run takes the team from N seats to 25 seats. Cost delta at the
+default monthly price (per `pricing.js:101`) is $15 × (25 − N) charged
+*immediately* via `always_invoice`.
+
+The Owner has no consent prompt. The Owner finds out via the activity feed
+(`SEAT_PURCHASED` events, but those say "Admin invited X (1 seat added)",
+not "you were charged $375 today"), and via Stripe's invoice email. They
+can call Stripe to dispute, but the line item is for a real subscription
+upgrade they technically authorised by giving Admin role.
+
+### Fix
+
+Reuse the same gate as `PUT /api/team/seats`: Admin can invite *within
+existing capacity*, but `autoPurchaseSeat: true` requires `ROLES.OWNER`.
+
+```js
+const autoPurchaseSeat = body.autoPurchaseSeat === true
+// ...
+if (autoPurchaseSeat && auth.user.role !== ROLES.OWNER) {
+  return NextResponse.json({
+    success: false,
+    message: "Only the team owner can purchase additional seats. Ask your Owner to add a seat first.",
+    code: "SEAT_PURCHASE_OWNER_ONLY",
+  }, { status: 403 })
+}
+```
+
+A complementary fix: when a pending invite is revoked, **decrement** the
+seat count to its lower bound (the higher of `minSeats` and
+`memberCount + remainingPendingInvites`). Either via `setSeatCount` on
+revoke, or by removing the seat at end-of-period. Today the invite-driven
+seat purchase is monotonic-up only, which makes the "invite then revoke"
+pattern a one-way drain.
+
+---
+
+## HIGH — `redeemTeamInviteForUser` auto-purchases a seat without re-checking who's allowed to authorise the purchase
+
+**File:** `next/src/lib/server/teamInvites.js:47-58`
+
+```js
+let seatsPurchasedOnAccept = 0
+if (team.users.length >= (team.seats || 0)) {
+  try {
+    seatsPurchasedOnAccept = (team.users.length + 1) - (team.seats || 0)
+    await purchaseSeats(team, seatsPurchasedOnAccept)
+  } catch (err) {
+    // ...
+  }
+}
+```
+
+The accept path lives in `lib/server/teamInvites.js` and is called from
+both `POST /api/invite/[token]` and (now) from any future entry that
+wants to redeem. It immediately fires `purchaseSeats` against the team's
+Stripe customer if capacity has been eroded between invite send and
+accept — *the invitee* (who has no role in the team and no authority over
+billing) is the actor that completes the API call. There's no "did the
+team's Owner consent to this growth" check, because the invite itself is
+treated as that consent.
+
+That's fine in the *normal* case (Admin sends an invite when they have a
+seat free, then Owner reduces seats; the team is over-capacity-by-one
+when the invitee accepts and the auto-purchase honours the original
+invite).
+
+It's **not** fine when chained with the Admin issue above:
+
+1. Admin sends 20 invites (no `autoPurchaseSeat`). Team is at capacity, 1
+   pending invite would put it over — that one is blocked.
+2. Owner reduces seat count via the portal (the Admin can't do this
+   directly any more after Round-1 fix). Now team is over-capacity.
+3. Pending invitees accept. Each acceptance auto-purchases a seat.
+
+Outcome: the Admin can pre-stage many cheap invites and the **invitees**
+are the ones whose accept-clicks generate the Stripe charges, weeks
+later, after the Owner thought they'd reduced seats.
+
+The fix that makes most sense is layered: (a) the autoPurchaseSeat-only
+gate above kills the cheap chained version, (b) the accept-time
+auto-purchase should respect a cap — e.g. only auto-purchase if the
+*sum* of accepted-this-window seats stays below the original team
+authorisation. The simplest concrete cap: only auto-purchase if the
+invite was explicitly sent with `autoPurchaseSeat: true` (which is now
+Owner-gated after the HIGH above), and otherwise reject the accept with
+`code: "SEATS_FULL"` and let the Owner re-invite.
+
+```js
+if (team.users.length >= (team.seats || 0)) {
+  if (!invite.autoPurchaseAllowed) {
+    throw new InviteRedemptionError(
+      "This team is at seat capacity. Ask the team owner to add a seat and re-send the invite.",
+      { code: "SEATS_FULL", status: 409 }
+    )
+  }
+  // … existing auto-purchase code …
+}
+```
+
+Requires adding `autoPurchaseAllowed: Boolean` to the `TeamInvite` schema
+(default false), and setting it to `true` only when an Owner sent the
+invite with `autoPurchaseSeat: true`.
+
+---
+
+## MEDIUM — Admin can rename the team, edit/delete any team brand profile, and revoke any pending invite
+
+These are deliberate per `TEAM_TODO.md` ("Admin = Full control over team
+settings") but worth surfacing as a single bundle since they're
+collectively a meaningful expansion of Admin power vs. how most "Admin
+under Owner" teams work in other SaaS products:
+
+- `PUT /api/team/route.js:11` — Admin can rename the team. New name shows
+  up in every outgoing invite/share email's subject and body.
+  (`mail.js:75-114`).
+- `findManageableBrandProfile` (`brandProfiles.js:39`) scopes by `team`,
+  not by `author`. Admin can edit or delete any brand profile in the
+  team, including ones the Owner created. `PUT
+  /api/brandprofile/[id]/route.js` also unconditionally clobbers
+  `iconUrl`/`backgroundUrl` if the body omits them (also flagged in
+  Round 1 — the MEDIUM "silently destroys the icon/background").
+- `DELETE /api/team/invite` (route.js:110) — Admin can revoke an invite
+  the Owner sent (and vice versa).
+
+If you intend any of these to be Owner-only ("Admin can manage *their
+own* brand profiles, but only the Owner can touch the canonical company
+brand"), the fix template is the same: add `if (user.role !== OWNER &&
+!profile.author.equals(user._id)) return 403`, or rename-specific
+guards. If the current grants are intentional, the fix is to document
+it in the customer-facing role description and on the role-pick UI in
+`AddUserButton.js:23-26`, where the current text "Full control over
+team settings" is suggestive but not specific.
+
+---
+
+## MEDIUM — Team-membership verification is inconsistent across team-admin routes
+
+Two patterns coexist:
+
+**Pattern A — trust `auth.team` (the populated relation from the session):**
+
+```js
+// api/team/route.js:26
+const team = await Team.findById(admin.team._id)
+
+// api/team/onboard/route.js:12
+const team = await Team.findById(admin.team._id)
+
+// api/team/events/route.js:17
+const query = { team: admin.team._id }
+
+// api/team/transfers/route.js:11
+const transfers = await listTransfersForTeam(admin.team)
+
+// api/team/transfers/[id]/route.js:22
+const transfer = await Transfer.findOne({ _id: transferId, team: admin.team._id })
+```
+
+**Pattern B — re-query `Team.findOne({ users: auth.user._id })`:**
+
+```js
+// api/team/seats/route.js:33
+const team = await Team.findOne({ users: auth.user._id })
+
+// api/team/seats/preview/route.js:24
+const team = await Team.findOne({ users: auth.user._id })
+
+// api/team/invite/route.js:36 and :122
+const team = await Team.findOne({ users: auth.user._id })
+```
+
+Pattern A is faster (the team is already on the session) but doesn't
+verify that `team.users` still contains the user. Pattern B does. The
+two diverge whenever `user.team` and `team.users` drift apart, which the
+DELETE-user handler can leave behind on a partial failure:
+
+```js
+// api/team/users/[userId]/route.js:61-69
+await Team.updateOne({ _id: team._id }, { $pull: { users: userId } })   // step 1
+await User.updateOne({ _id: userId },                                    // step 2
+  { $unset: { team: 1 }, $set: { role: ROLES.OWNER } }
+)
+```
+
+If step 1 succeeds but step 2 fails (network partition mid-handler,
+write rejected by a hook, etc.), the user is no longer in `team.users`
+but their `user.team` still points to the team and `role` is still
+`ADMIN`. Next request: `useTeamAdminAuth()` admits them, Pattern A
+endpoints (rename, onboard, events, transfers list/extend/delete) all
+*still work* against the team they were just removed from. Pattern B
+endpoints (seats, invites) start returning 404.
+
+The fix is to standardise on one. Pattern A is fine if it also asserts
+membership before trusting:
+
+```js
+// In useTeamAdminAuth, after fetching auth:
+if (!auth.team.users?.some(id => id.equals(auth.user._id))) return null
+```
+
+Or, more cheaply, do the `Team.updateOne` and `User.updateOne` inside a
+single Mongoose session/transaction in the DELETE handler so they can't
+drift.
+
+---
+
+## MEDIUM — Owner has no transfer-of-ownership and no leave-team flow
+
+There is no API to:
+- transfer Owner role to another user (`/api/team/users/[userId]` PUT
+  rejects any change away from `ROLES.OWNER`), or
+- have the Owner leave their own team (`/api/user` DELETE rejects on
+  `user.team`, and the DELETE-user handler refuses self-delete and
+  refuses to touch any user whose role is `OWNER`).
+
+Combined with the "Owner is the only role that can cancel the
+subscription via the portal" (Round 1 CRITICAL #1 fix) and "Owner is the
+only role that can buy seats" (Round 1 CRITICAL #2 fix + this round's
+autoPurchaseSeat HIGH), the Owner is now a **single point of failure**
+for the team:
+
+- If the Owner's account is compromised, every billing primitive is
+  exposed and no one else can lock the attacker out. (Admins can't
+  demote the Owner; can't access billing; can't reach the portal.)
+- If the Owner leaves the company, the team is stuck. Admins can run
+  day-to-day operations but can't pay the next invoice, change the card,
+  or upgrade. The team eventually lapses → `handleSubscriptionDeleted`
+  fires → team dissolved, transfers expired, sessions invalidated. No
+  graceful path.
+
+The TEAM_TODO.md already calls this out as out-of-scope ("Owner
+transfer — Owner is currently immutable — if they get hit by a bus the
+team is stuck"). It really shouldn't be out of scope for a launch that
+markets "Centralized billing" and "Member management" to companies.
+Minimum viable: an Owner-only `POST /api/team/transfer-ownership` that
+takes a target Admin's id, demotes self to Admin, and promotes target to
+Owner in one transaction. Bonus: a `POST /api/team/leave` for Members
+and Admins so the team isn't a Hotel California.
+
+---
+
+## MEDIUM — `useTeamAdminAuth` doesn't verify that the populated team's owner role matches the session's role
+
+A small variant of the inconsistency above. `useTeamAdminAuth` returns
+`{ ..., isOwner: user.role === ROLES.OWNER }` based purely on the user
+document's `role` field. There's no cross-check that the team actually
+treats this user as the Owner (i.e., that there is exactly one User with
+`team = this team` and `role = OWNER`, and that user is the session's
+user).
+
+For a healthy team that's the same thing. But the codebase has at least
+two places (Stripe webhook line 84 and line 214) where it queries
+`User.findOne({ team: teamId, role: ROLES.OWNER })` — i.e. they trust the
+*reverse* lookup. If the data drifts, those two views of "who's the
+owner" can diverge:
+
+- The session-side view (Owner is whoever's role says so) admits person A.
+- The webhook side (Owner is whoever's User.findOne returns first) sees
+  person B.
+
+This is unlikely to be exploitable today, but the asymmetry between
+"role field" and "team membership" is the same root cause as the
+Pattern A vs Pattern B issue above. Same fix family — make membership
+the single source of truth.
+
+---
+
+## LOW — `Member can use any team brand profile to phish under the team's name`
+
+`findUsableBrandProfile` (`brandProfiles.js:34`) returns *any* team brand
+profile to *any* team member. A Member can attach the company's brand
+profile to their own transfers or transfer-requests, including ones
+sent to external recipients. The branded email subject says "Files
+available - Acme Inc.", the download page shows the Acme logo, and the
+Member has typed any payload they want into the description and file
+names.
+
+Not a privilege escalation against the team — the brand is the team's
+asset and the Member is on the team — but it's a phishing primitive
+hand-delivered to any team member who turns malicious or whose account
+is compromised. Worth either (a) limiting brand-profile use to
+team-internal recipient lists (require recipient email's domain to
+match an allow-list set by the Owner), or (b) at minimum logging a
+`TeamEvent` of type `TRANSFER_CREATED_WITH_BRAND` so the Owner can audit
+"who's sending what under our logo."
+
+---
+
+## LOW — Admins see secret-coded URLs for every team transfer
+
+`toJsonAsTeamAdmin` (`models/Transfer.js:167-193`) includes the
+`secretCode`. The intent is "admin can download to verify / pull a copy
+before deletion" but the practical effect is that every Admin can fetch
+every team transfer's bytes regardless of who created it, simply by
+hitting `/transfer/<secretCode>` (no auth) or `/api/sign?secretCode=…`
+(no auth). Members may reasonably believe their team-tagged transfers
+are at most *visible* to Admins (file names, sizes); in practice
+they're fully *downloadable*.
+
+If you want a less-than-download view for Admins, drop `secretCode` from
+`toJsonAsTeamAdmin` and add an explicit `POST /api/team/transfers/[id]/sign`
+that returns a one-time download token only when the admin needs the
+content. Same trust grant, but it leaves an audit trail and an explicit
+intent ("I am downloading X").
+
+---
+
+## How this changes the patch order
+
+After Round 1's four fixes plus the three HIGHs above:
+
+| Action                                      | Today (post Round-1) | After Round-2 HIGHs   |
+|---------------------------------------------|----------------------|----------------------|
+| Cancel team subscription                    | Owner                | Owner                |
+| Change card / view invoices                 | Owner                | Owner                |
+| Buy seats directly                          | Owner                | Owner                |
+| Buy seats via invite + autoPurchase         | Owner + **Admin**    | Owner                |
+| Trigger auto-purchase via accepting invite  | invitee always       | Only when Owner pre-authorised |
+| Demote / promote another Admin              | Owner + **Admin**    | Owner                |
+| Promote a Member to Admin                   | Owner + **Admin**    | Owner                |
+| Demote an Admin to Member                   | Owner + **Admin**    | Owner                |
+| Rename team / edit team brand               | Owner + Admin        | Owner + Admin (unchanged — flagged as design decision) |
+| Remove a Member                             | Owner                | Owner                |
+| Remove an Admin                             | Owner                | Owner                |
+
+The end state for billing-and-role authority is "Admin is a powerful
+operational role under the Owner, but cannot touch *who* runs the team
+or *what* the team pays for." That matches "Admin" in most B2B SaaS
+products and avoids the chained-Admin-takeover scenarios above.
+
+Recommended patch order from here:
+
+1. The **Admin role-change** HIGH — one branch in `team/users/[userId]/PUT`,
+   one branch in `UserList.js`. Smallest change with the largest reduction
+   in role-confusion risk.
+2. The **autoPurchaseSeat** HIGH — one branch in `team/invite/POST`.
+3. The **redeem-time auto-purchase** HIGH — adds an `autoPurchaseAllowed`
+   bit to `TeamInvite` and a check in `teamInvites.js`. Slightly larger
+   change because of the schema field, but unblocks the chained attack.
+4. The **transfer-of-ownership / leave-team** MEDIUM (or at least the
+   transfer-of-ownership half), so the Owner ceases to be an
+   un-recoverable single point of failure once you've concentrated all
+   billing/role authority on them.
+
