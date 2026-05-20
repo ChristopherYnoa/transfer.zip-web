@@ -11,6 +11,11 @@ const EmailSharedWith = new mongoose.Schema({
 const TransferRequestSchema = new mongoose.Schema({
     active: { type: Boolean, default: true },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, required: true },
+    // Set once at creation from author.team if the author is on a team.
+    // Never updated — mirrors Transfer.team so that a request stays
+    // attributed to the team it was created under even if the author
+    // later leaves.
+    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", index: true },
     brandProfile: { type: mongoose.Schema.Types.ObjectId, ref: "BrandProfile" },
     name: String,
     description: String,
@@ -36,6 +41,29 @@ TransferRequestSchema.methods.toJsonAsOwner = function () {
         createdAt,
         hasName: !!name,
         brandProfileId: brandProfile ? brandProfile.toString() : undefined,
+    }
+}
+
+// Variant for team Owner/Admin viewing requests across the team.
+// Omits emailsSharedWith (the contacts a member shared their request
+// with are not the admin's business) but includes author identity and
+// secretCode so the UI can show "created by X" and copy the upload
+// link. The author must be populated.
+TransferRequestSchema.methods.toJsonAsTeamAdmin = function () {
+    const { _id, active, name, description, secretCode, createdAt } = this
+    return {
+        id: _id.toString(),
+        active,
+        name: name || "Untitled Request",
+        description,
+        secretCode,
+        createdAt,
+        hasName: !!name,
+        author: this.author && typeof this.author === "object" && this.author._id ? {
+            id: this.author._id.toString(),
+            email: this.author.email,
+            fullName: this.author.fullName,
+        } : undefined,
     }
 }
 

@@ -34,6 +34,11 @@ export async function POST(req) {
 
   const transferRequest = new TransferRequest({
     author: user._id,
+    // Tag with the author's current team (if any) so the request surfaces
+    // in that team's admin view. Mirrors how Transfer.team is set, except
+    // here we always tag — there is no "uploading to someone else's request"
+    // edge case for a request itself.
+    team: user.team ? user.team._id : undefined,
     name,
     description,
     brandProfile: brandProfile ? brandProfile._id : undefined,

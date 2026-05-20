@@ -57,6 +57,7 @@ export default function FloatingBar({ user }) {
       { name: "Overview", href: "/app/admin", icon: LayoutDashboardIcon },
       { name: "Members", href: "/app/admin/members", icon: UsersIcon },
       { name: "Transfers", href: "/app/admin/transfers", icon: ArrowUpIcon },
+      { name: "Requests", href: "/app/admin/requests", icon: MailIcon },
       { name: "Branding", href: "/app/admin/branding", icon: PaintbrushIcon },
       { name: "Activity", href: "/app/admin/activity", icon: ActivityIcon },
       ...(user?.role === "owner"
@@ -70,13 +71,9 @@ export default function FloatingBar({ user }) {
     return (
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 fade-in-up">
         <div className="flex items-center gap-0.5 sm:gap-1 bg-gray-900 rounded-full px-2 sm:px-3 py-2 shadow-2xl">
-          <Link href="/" className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 mr-1 sm:mr-2">
-            <Image alt="logo" src={logo} className="w-6 h-6 sm:w-8 sm:h-8" />
-          </Link>
-
           <Link
             href="/app/sent"
-            className="flex items-center gap-2 rounded-full px-3 sm:px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors ml-2"
+            className="flex items-center gap-2 rounded-full px-3 sm:px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
           >
             <ArrowLeftIcon size={16} />
             <span className="hidden sm:inline">Back</span>

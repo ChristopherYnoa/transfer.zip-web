@@ -12,6 +12,9 @@ describe("TEAM_EVENT constants", () => {
     expect(TEAM_EVENT.SEAT_REDUCED).toBe("seat_reduced");
     expect(TEAM_EVENT.TRANSFER_CREATED).toBe("transfer_created");
     expect(TEAM_EVENT.TRANSFER_DELETED).toBe("transfer_deleted");
+    expect(TEAM_EVENT.TRANSFER_REQUEST_ACTIVATED).toBe("transfer_request_activated");
+    expect(TEAM_EVENT.TRANSFER_REQUEST_DEACTIVATED).toBe("transfer_request_deactivated");
+    expect(TEAM_EVENT.TRANSFER_REQUEST_DELETED).toBe("transfer_request_deleted");
     expect(TEAM_EVENT.TEAM_RENAMED).toBe("team_renamed");
   });
 

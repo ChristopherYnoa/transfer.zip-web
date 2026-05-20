@@ -10,6 +10,8 @@ import {
   CreditCardIcon,
   AlertTriangleIcon,
   PencilIcon,
+  LinkIcon,
+  Link2OffIcon,
 } from "lucide-react";
 
 // Each entry returns the verb-phrase form ("invited foo@example.com"). The
@@ -69,6 +71,25 @@ const TYPES = {
   transfer_deleted: {
     icon: Trash2Icon,
     verb: (e) => `deleted transfer "${e.data.transferName || "Untitled"}"${e.data.byAdmin ? " (admin)" : ""}`,
+  },
+  transfer_request_activated: {
+    icon: LinkIcon,
+    verb: (e) => `reactivated request link "${e.data.transferRequestName || "Untitled"}"${e.data.byAdmin ? " (admin)" : ""}`,
+  },
+  transfer_request_deactivated: {
+    icon: Link2OffIcon,
+    verb: (e) => `deactivated request link "${e.data.transferRequestName || "Untitled"}"${e.data.byAdmin ? " (admin)" : ""}`,
+  },
+  transfer_request_deleted: {
+    icon: Trash2Icon,
+    verb: (e) => {
+      const n = e.data.deletedTransfersCount || 0;
+      const suffix = e.data.byAdmin ? " (admin)" : "";
+      const base = `deleted request link "${e.data.transferRequestName || "Untitled"}"`;
+      return n > 0
+        ? `${base} and ${n} received transfer${n === 1 ? "" : "s"}${suffix}`
+        : `${base}${suffix}`;
+    },
   },
 };
 

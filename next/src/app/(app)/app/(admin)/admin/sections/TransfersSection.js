@@ -136,7 +136,7 @@ function Row({ transfer, canManage, onDelete, onExtend, maxExpiryDays }) {
                   <CalendarPlusIcon size={14} /> Extend expiry
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onDelete(transfer)} className="text-destructive">
+                <DropdownMenuItem variant="destructive" onClick={() => onDelete(transfer)}>
                   <Trash2Icon size={14} /> Delete
                 </DropdownMenuItem>
               </>

@@ -56,6 +56,17 @@ export const listTransfersForTeam = async (team) => {
     .sort({ createdAt: -1 })
 }
 
+// Team-wide list of transfer-request links. Tenant boundary is the
+// TransferRequest.team field, set at creation time and never updated —
+// so requests created before the team field shipped are intentionally
+// invisible to admins (we don't backfill via author membership because
+// the author's team may have changed since).
+export const listTransferRequestsForTeam = async (team) => {
+  return TransferRequest.find({ team: team._id })
+    .populate("author", "email fullName")
+    .sort({ createdAt: -1 })
+}
+
 export const getTransferRequestUploadLink = (transferRequest) => {
   if (!transferRequest) return null
   return `${process.env.SITE_URL}/upload/${transferRequest.secretCode}`

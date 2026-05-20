@@ -10,6 +10,9 @@ export const TEAM_EVENT = {
     SEAT_REDUCED: "seat_reduced",
     TRANSFER_CREATED: "transfer_created",
     TRANSFER_DELETED: "transfer_deleted",
+    TRANSFER_REQUEST_ACTIVATED: "transfer_request_activated",
+    TRANSFER_REQUEST_DEACTIVATED: "transfer_request_deactivated",
+    TRANSFER_REQUEST_DELETED: "transfer_request_deleted",
     TEAM_RENAMED: "team_renamed",
 }
 

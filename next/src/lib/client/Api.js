@@ -181,6 +181,18 @@ export async function extendTeamTransfer(transferId, expiresAt) {
     return await put(`/team/transfers/${transferId}`, { expiresAt })
 }
 
+export async function deleteTeamTransferRequest(transferRequestId) {
+    return await post(`/team/transferrequests/${transferRequestId}/delete`)
+}
+
+export async function activateTeamTransferRequest(transferRequestId) {
+    return await post(`/team/transferrequests/${transferRequestId}/activate`)
+}
+
+export async function deactivateTeamTransferRequest(transferRequestId) {
+    return await post(`/team/transferrequests/${transferRequestId}/deactivate`)
+}
+
 export async function getTeamEvents({ filter = "all", before } = {}) {
     const params = new URLSearchParams()
     if (filter && filter !== "all") params.set("filter", filter)
