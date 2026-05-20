@@ -176,10 +176,17 @@ export async function POST(req) {
 
     const usedBrandProfile = brandProfile || (transferRequest ? transferRequest.brandProfile : undefined)
 
+    // Tag the transfer with the uploader's team only for "sent" transfers
+    // (no transferRequest). Uploads going *into* somebody else's request
+    // link are the uploader's personal business — they shouldn't surface
+    // in their team admin's transfer list just because the user happened
+    // to be signed in to a team in their browser.
+    const teamTag = (auth && !transferRequest) ? auth.user.team?._id : undefined
+
     const transfer = new Transfer({
       transferRequest: transferRequest ? transferRequest._id : undefined,
       author: auth ? auth.user._id : undefined,
-      team: auth?.user?.team?._id,
+      team: teamTag,
       name: transferRequest ? transferRequest.name : name,
       description: transferRequest ? undefined : description,
       expiresAt: new Date(addMilliscondsToCurrentTime(1000 * 60 * 60 * 24 * effectiveExpiresInDays)),
@@ -235,7 +242,10 @@ export async function POST(req) {
 
     await transfer.save()
 
-    if (auth?.user?.team) {
+    // Only log to the team activity feed for team-scoped transfers — mirrors
+    // the teamTag gate above so personal uploads to external request links
+    // stay out of the team's activity log.
+    if (teamTag) {
       logTeamEvent({
         team: auth.user.team,
         type: TEAM_EVENT.TRANSFER_CREATED,

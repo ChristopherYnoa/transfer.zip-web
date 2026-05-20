@@ -26,6 +26,12 @@ export default async function DashboardLayout({ children }) {
     return redirect("/signin");
   }
 
+  // Here we have some redirects based on user's / team's state before they enter the dashboard
+
+  if (auth.user.hasTeam && !auth.user.team.isActive()) {
+    return redirect("/team-paused")
+  }
+
   if (auth.user.getPlan() == "free") {
     return redirect("/onboarding")
   }

@@ -1,6 +1,7 @@
 import { resp } from "@/lib/server/serverUtils";
 import { getStripe } from "@/lib/server/stripe";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
+import { ROLES } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -9,6 +10,13 @@ export async function POST() {
     return NextResponse.json(resp("Unauthorized"), { status: 401 })
   }
   const { user } = auth
+
+  // Only the Owner can manage team billing. Admins manage members and
+  // branding but never get a portal session for the team's customer —
+  // canceling the subscription dissolves the team entirely.
+  if (user.hasTeam && user.role !== ROLES.OWNER) {
+    return NextResponse.json(resp("Forbidden"), { status: 403 })
+  }
 
   const stripe_customer_id = user.hasTeam ? user.team.stripe_customer_id : user.stripe_customer_id
 
