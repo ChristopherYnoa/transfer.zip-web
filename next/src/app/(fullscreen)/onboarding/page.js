@@ -11,10 +11,17 @@ export default async function () {
     return redirect("/signin")
   }
 
-  // Owners of a paid-but-unconfigured team go through team onboarding, not
-  // the solo plan picker.
-  if (auth.user.hasTeam && auth.user.role === ROLES.OWNER && !auth.user.team.onboarded) {
-    return redirect("/onboarding-team")
+  // Members and owners of a team can't pick a solo plan — route them to
+  // the team-specific page (active teams → /app via the layout, paused
+  // teams → /team-paused, mid-onboarding teams → /onboarding-team).
+  if (auth.user.hasTeam) {
+    if (auth.user.role === ROLES.OWNER && !auth.user.team.onboarded) {
+      return redirect("/onboarding-team")
+    }
+    if (!auth.user.team.isActive()) {
+      return redirect("/team-paused")
+    }
+    return redirect("/app")
   }
 
   // Check if user already has active plan

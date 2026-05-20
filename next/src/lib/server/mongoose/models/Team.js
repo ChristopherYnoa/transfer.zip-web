@@ -42,6 +42,10 @@ TeamSchema.methods.getPlan = function () {
     else return "free"
 }
 
+TeamSchema.methods.isActive = function () {
+    return this.getPlan() !== "free"
+}
+
 TeamSchema.methods.hasFeature = function (feature) {
     // Check custom override first
     if (this.customFeatures && this.customFeatures[feature] !== undefined) {

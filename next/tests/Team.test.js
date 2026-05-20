@@ -23,6 +23,17 @@ describe("Team.getPlan", () => {
   });
 });
 
+describe("Team.isActive", () => {
+  it("is true when the subscription is active", () => {
+    expect(new Team({ plan: "teams", planStatus: "active" }).isActive()).toBe(true);
+  });
+
+  it("is false for a zombie team (subscription deleted)", () => {
+    expect(new Team({ plan: "teams", planStatus: "inactive" }).isActive()).toBe(false);
+    expect(new Team({ plan: "teams", planStatus: "canceled" }).isActive()).toBe(false);
+  });
+});
+
 describe("Team feature/limit fallback ladder", () => {
   it("customFeatures override wins over the plan default", () => {
     // teams plan grants CUSTOM_BRANDING; pretend the team has it disabled

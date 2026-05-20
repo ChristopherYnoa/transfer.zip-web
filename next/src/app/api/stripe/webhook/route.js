@@ -1,10 +1,6 @@
 import User from "@/lib/server/mongoose/models/User";
 import Team from "@/lib/server/mongoose/models/Team";
-import TeamInvite from "@/lib/server/mongoose/models/TeamInvite";
-import TeamEvent from "@/lib/server/mongoose/models/TeamEvent";
-import Session from "@/lib/server/mongoose/models/Session";
 import Transfer from "@/lib/server/mongoose/models/Transfer";
-import BrandProfile from "@/lib/server/mongoose/models/BrandProfile";
 import { listTransfersForUser, resp } from "@/lib/server/serverUtils";
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/server/mongoose/db";
@@ -121,6 +117,7 @@ const handleSubscription = async object => {
       })
 
       if (overCapacity) {
+        console.warn(`[handleSubscription] Team ${subscriber._id} is over capacity: ${memberCount} members on ${seatDownChange.to} seats`)
         // Notify the team owner so they can either add seats back or remove
         // members. We don't auto-remove anyone — that's a destructive action
         // the human needs to choose.
@@ -193,51 +190,28 @@ const handleSubscriptionDeleted = async object => {
     const transfers = await listTransfersForUser(subscriber)
     await Promise.all(transfers.map(t => t.updateOne({ expiresAt: new Date() })))
   } else {
-    // Disband the team. We could keep it around in a "zombie" state, but
-    // every consumer (`User.hasTeam`, settings UI, admin layout) assumes
-    // hasTeam implies a working subscription. Cleaner to dissolve the team
-    // and convert everyone back to solo free accounts — the Stripe customer
-    // stays so the previous owner can re-subscribe later.
+    // Keep the team document around in a "zombie" state. Members and the
+    // owner keep their `user.team` link and role; the dashboard layout
+    // redirects them to /team-paused on next request. The owner can
+    // reactivate from there. Expire transfers so we're not silently
+    // serving paid-tier storage to an unpaid team — they come back blank
+    // on resubscribe.
     const teamId = subscriber._id
-    const teamUserIds = await User.find({ team: teamId }).distinct("_id")
+
+    subscriber.updateSubscription({
+      plan: "free",
+      status: "inactive",
+      validUntil: 0,
+      cancelling: false,
+    })
+    await subscriber.save()
 
     await Transfer.updateMany(
       { team: teamId, expiresAt: { $gt: new Date() } },
       { $set: { expiresAt: new Date() } }
     )
 
-    // Transfer team-owned brand profiles to the (former) Owner as personal
-    // profiles. Without this, the team-scoped query in brandProfileScopeQuery
-    // would orphan them (they still carry `team: <dead-id>` so a solo-account
-    // query for `team: { $exists: false }` would never match).
-    const ownerUserId = await User.findOne({ team: teamId, role: ROLES.OWNER }).distinct("_id")
-    if (ownerUserId.length) {
-      await BrandProfile.updateMany(
-        { team: teamId },
-        { $unset: { team: 1 }, $set: { author: ownerUserId[0] } }
-      )
-    } else {
-      // Edge case: somehow no Owner exists on the team. Drop the profiles
-      // rather than leave them orphaned.
-      await BrandProfile.deleteMany({ team: teamId })
-    }
-
-    await User.updateMany(
-      { team: teamId },
-      { $unset: { team: 1 }, $set: { role: ROLES.OWNER } }
-    )
-
-    // Drop active sessions so any open tab reloads as a solo account next
-    // request — no stale `hasTeam: true` in the populated session.
-    if (teamUserIds.length) {
-      await Session.deleteMany({ user: { $in: teamUserIds } })
-    }
-
-    await TeamInvite.deleteMany({ team: teamId })
-    await TeamEvent.deleteMany({ team: teamId })
-    await Team.deleteOne({ _id: teamId })
-
-    console.log(`[handleSubscriptionDeleted] Disbanded team ${teamId} (${teamUserIds.length} users)`)
+    console.log(`[handleSubscriptionDeleted] Paused team ${teamId}`)
   }
 
   console.log(`[handleSubscriptionDeleted] Deleted ${type} subscription for customer: ${object.customer}`)
