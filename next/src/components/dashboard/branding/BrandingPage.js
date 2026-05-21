@@ -47,7 +47,7 @@ export default async function BrandingPage() {
           >
             {!isTeam && (
               <Button asChild>
-                <Link className="mt-4" href="/app/settings?upgrade">Upgrade to Pro &rarr;</Link>
+                <Link className="mt-4" href="/pricing">Upgrade to Pro &rarr;</Link>
               </Button>
             )}
           </EmptySpace>

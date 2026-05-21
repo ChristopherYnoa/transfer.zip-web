@@ -86,7 +86,7 @@ function TransferRequestsWidget() {
               >
                 <div className="bg-gray-100 text-gray-900 text-sm rounded-2xl rounded-bl-sm px-3 py-2 max-w-[85%]">
                   <p>Hey John,</p>
-                  <p className="mt-4">Where should I send you the assets?</p>
+                  <p className="mt-3">Where should I send you the assets?</p>
                 </div>
               </motion.div>
             )}
@@ -116,7 +116,7 @@ function TransferRequestsWidget() {
               >
                 <div className="bg-primary-500 text-white text-sm rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%]">
                   <p>Here you go: <span className="font-mono underline hover:cursor-pointer">transfer.zip/upload/7ab516…</span></p>
-                  <p className="mt-4">No need for an account :)</p>
+                  <p className="mt-3">No need for an account :)</p>
                 </div>
               </motion.div>
             )}

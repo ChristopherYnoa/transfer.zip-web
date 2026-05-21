@@ -14,17 +14,20 @@ export default function LandingNav({ rightSlot, fade = true }) {
           </Link>
           <div className="ms-2 hidden sm:flex">
             <Button asChild size="sm" variant="ghost">
-              <Link href="/#why-choose-us">Features</Link>
+              <Link href="/#features">Features</Link>
             </Button>
             <Button asChild size="sm" variant="ghost">
-              <Link href="/#message-from-founder">About</Link>
+              <Link href="/#comparison">Compare</Link>
             </Button>
             <Button asChild size="sm" variant="ghost">
               <Link href="/pricing">Pricing</Link>
             </Button>
             <Button asChild size="sm" variant="ghost">
-              <Link href="/legal/privacy-policy">Privacy</Link>
+              <Link href="/about-us">About Us</Link>
             </Button>
+            {/* <Button asChild size="sm" variant="ghost">
+              <Link href="/legal/privacy-policy">Privacy</Link>
+            </Button> */}
           </div>
         </div>
       </div>

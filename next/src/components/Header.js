@@ -25,10 +25,10 @@ import { sendEvent } from '@/lib/client/umami'
 import { ZapIcon } from 'lucide-react'
 
 const products = [
-  { name: 'Why Choose Us?', description: 'File Sharing Like it Should Be', href: '/#why-choose-us', icon: "lightbulb" },
-  { name: 'Receive Files with a Link', description: 'Receive Files from Anyone, Anywhere', href: '/#receive-files', icon: "arrow-down" },
-  { name: 'Send Files By Email', description: 'Share Files with Your Whole Organisation.', href: '/#send-files-by-email', icon: "clock" },
-  { name: 'Quick Transfer', description: 'Keep Your Tab Open - Send Without Limits', href: '/quick', icon: "lightning-fill" },
+  { name: 'Why choose us', description: 'What makes Transfer.zip different.', href: '/#why-choose-us', icon: "stars" },
+  { name: 'Reviews', description: 'What real users say about Transfer.zip.', href: '/#reviews', icon: "chat-quote-fill" },
+  { name: 'Features', description: 'Look professional when sharing files.', href: '/#features', icon: "lightbulb" },
+  { name: 'Comparison', description: 'Transfer.zip compared to other services', href: '/#comparison', icon: "lightning-fill" },
 ]
 const callsToAction = [
   { name: 'FAQ', href: "/#faq", icon: "question-lg" },
@@ -176,14 +176,14 @@ export default function Header({ scrollAware }) {
                 </PopoverPanel>
               </Popover>
 
-              <Link href="/#message-from-founder" className="text-sm/6 font-semibold text-gray-900">
-                About
+              <Link href="/#comparison" className="text-sm/6 font-semibold text-gray-900">
+                Compare
               </Link>
               <Link href="/pricing" className="text-sm/6 font-semibold text-gray-900">
                 Pricing
               </Link>
-              <Link href="/legal/privacy-policy" className="text-sm/6 font-semibold text-gray-900">
-                Privacy
+              <Link href="/about-us" className="text-sm/6 font-semibold text-gray-900">
+                About Us
               </Link>
             </PopoverGroup>
           )}
@@ -253,31 +253,31 @@ export default function Header({ scrollAware }) {
                   </Disclosure>
                   <Link
                     onClick={handleLinkClicked}
-                    href="/#message-from-founder"
+                    href="/#comparison"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                   >
-                    About
+                    Compare
                   </Link>
                   <Link
-                    onClick={handleLinkClicked}
                     href="/pricing"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                   >
                     Pricing
                   </Link>
-                  {/* <Link
-                  href="/explore"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
-                  Explore
-                </Link> */}
                   <Link
+                    onClick={handleLinkClicked}
+                    href="/about-us"
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  >
+                    About Us
+                  </Link>
+                  {/* <Link
                     onClick={handleLinkClicked}
                     href="/legal/privacy-policy"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                   >
                     Privacy
-                  </Link>
+                  </Link> */}
                 </div>
                 <div className="py-6">
                   {isLoggedIn ? (

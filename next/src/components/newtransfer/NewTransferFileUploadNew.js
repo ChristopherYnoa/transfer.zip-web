@@ -459,7 +459,7 @@ export default function ({ isDashboard, loaded, user, storage, brandProfiles, in
         </>}
         {tooLittleStorage && (
           <div className="w-full">
-            <button type="button" onClick={() => router.push("/app/settings?upgrade")} className="w-full shadow-sm text-start rounded-lg text-white bg-red-500 px-4 py-3 group transition-colors hover:bg-red-600">
+            <button type="button" onClick={() => router.push("/pricing")} className="w-full shadow-sm text-start rounded-lg text-white bg-red-500 px-4 py-3 group transition-colors hover:bg-red-600">
               <h5 className="font-bold text-sm mb-1"><span className="group-hover:underline">Hey big sender...</span></h5>
               <p className="font-medium text-sm">
                 Your storage is full. Upgrade your subscription now to send bigger files. <span className="group-hover:ms-1 transition-all">&rarr;</span>

@@ -168,7 +168,7 @@ export default function OnboardingPage({ user, hasStripeAccount, hasFreeTrial })
               <form method="POST" action={API_URL + "/stripe/create-customer-portal-session"}>
                 <p className="text-center text-gray-500">
                   <button type="submit" className="font-semibold text-primary-dark text-nowrap hover:underline">
-                    Cancel Subscription <BIcon name={"box-arrow-up-right"} />
+                    Cancel / Manage Subscription <BIcon name={"box-arrow-up-right"} />
                   </button>
                 </p>
               </form>

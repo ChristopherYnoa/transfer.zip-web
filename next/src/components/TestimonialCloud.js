@@ -20,7 +20,7 @@ const testimonials = [
 
 export default function TestimonialCloud({ className }) {
   return (
-    <div className={`bg-gray-50 pt-10 mb-8 border border-dashed ${className}`}>
+    <div id="reviews" className={`bg-gray-50 pt-10 mb-8 border border-dashed ${className}`}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-base/7 font-semibold text-primary">Our Reviews</h2>

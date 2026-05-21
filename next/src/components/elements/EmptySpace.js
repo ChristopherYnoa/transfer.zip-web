@@ -20,7 +20,7 @@ export default function EmptySpace({ title, subtitle, onClick, buttonText, child
       }}
     >
       <h3 className="font-semibold text-3xl mb-1 text-white">{title}</h3>
-      <p className="text-gray-200 mx-auto max-w-xl text-lg">
+      <p className="text-gray-100 mx-auto max-w-xl text-lg">
         {subtitle}
       </p>
       {onClick && <Button size={"sm"} className="mt-4" onClick={onClick}>{buttonText} &rarr;</Button>}

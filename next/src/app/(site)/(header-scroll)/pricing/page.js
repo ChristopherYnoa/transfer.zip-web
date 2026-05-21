@@ -4,6 +4,7 @@ import FAQ from "@/components/FAQ"
 import AuthConditional from "../AuthConditional"
 import NoauthLandingHeaderCTAButton from "../NoauthLandingHeaderCTAButton"
 import PricingComparisonTable from "./PricingComparisonTable"
+import { useServerAuth } from "@/lib/server/wrappers/auth"
 
 export const metadata = {
   title: "Pricing | Transfer.zip",
@@ -34,7 +35,10 @@ export const metadata = {
   },
 }
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const auth = await useServerAuth()
+  const user = auth ? auth.user.toJsonAsClient() : null
+
   const authCta = (
     <AuthConditional
       noauth={<NoauthLandingHeaderCTAButton />}
@@ -48,7 +52,7 @@ export default function PricingPage() {
 
   return (
     <div>
-      <PricingComparisonTable authCta={authCta} />
+      <PricingComparisonTable authCta={authCta} user={user} />
       <FAQ />
       <CTA />
     </div>
