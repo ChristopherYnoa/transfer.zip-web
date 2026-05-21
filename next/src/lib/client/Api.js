@@ -327,6 +327,10 @@ export async function checkCustomDomain(id) {
     return await get(`/customdomain/${id}/check`)
 }
 
+export async function deleteCustomDomain(id) {
+    return await post(`/customdomain/${id}/delete`, {})
+}
+
 // upload
 
 export async function getUpload(secretCode) {

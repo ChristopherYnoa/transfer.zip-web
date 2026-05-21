@@ -1,21 +1,62 @@
 import "server-only"
-import { resolve4 } from "node:dns/promises"
+import { Resolver, resolve4, resolveNs } from "node:dns/promises"
 
 import { ROLES } from "@/lib/roles"
 import User from "./mongoose/models/User"
 import { sendCustomDomainConnected } from "./mail/mail"
 
-// Hosts a user's domain must resolve to (via A or CNAME chain) to count
-// as pointing at us. Resolved fresh on every check — DNS TTLs do the
-// caching.
-const TARGET_HOSTS = ["transfer.zip"]
+// The CNAME value the user's domain must point at to count as ours.
+// CNAME-only on purpose — IP-matching breaks the moment our edge IPs
+// rotate or the user fronts the domain with Cloudflare.
+const TARGET_CNAME = "transfer.zip"
 
-const ipsOf = async (host) => {
-  try {
-    return new Set(await resolve4(host))
-  } catch {
-    return new Set()
+const normalize = (host) => host.toLowerCase().replace(/\.$/, "")
+
+// Walk parent zones until we find authoritative NS records. For
+// "files.acme.com" we try the full host (subdomains rarely have their
+// own NS), then "acme.com" — whichever zone responds first wins.
+const findAuthoritativeNs = async (host) => {
+  const labels = host.split(".")
+  for (let i = 0; i < labels.length - 1; i++) {
+    const zone = labels.slice(i).join(".")
+    try {
+      const ns = await resolveNs(zone)
+      if (ns.length > 0) return ns
+    } catch { /* try parent */ }
   }
+  return []
+}
+
+const ipOfNs = async (nsHost) => {
+  try {
+    const ips = await resolve4(nsHost)
+    return ips[0] || null
+  } catch {
+    return null
+  }
+}
+
+// Ask the zone's authoritative NS directly so a user who just added a
+// CNAME doesn't have to wait out a recursive resolver's negative-cache
+// TTL (often 5–15 min) before verification succeeds. Falls back to
+// returning [] when the authoritative path fails entirely; the periodic
+// re-check will retry.
+const cnamesOf = async (host) => {
+  const nsHosts = await findAuthoritativeNs(host)
+  for (const nsHost of nsHosts) {
+    const nsIp = await ipOfNs(nsHost)
+    if (!nsIp) continue
+    const resolver = new Resolver()
+    resolver.setServers([nsIp])
+    try {
+      return await resolver.resolveCname(host)
+    } catch (err) {
+      // ENODATA/ENOTFOUND from an authoritative server is the final answer.
+      // Other errors (timeout, refused) — try the next NS.
+      if (err.code === "ENODATA" || err.code === "ENOTFOUND") return []
+    }
+  }
+  return []
 }
 
 /**
@@ -23,15 +64,12 @@ const ipsOf = async (host) => {
  * @returns {Promise<{verified: boolean, reason?: string}>}
  */
 export async function verifyDomainResolves(domain) {
-  const userIps = await ipsOf(domain)
-  if (userIps.size === 0) {
-    return { verified: false, reason: "domain-unresolvable" }
+  const cnames = await cnamesOf(domain)
+  if (cnames.length === 0) {
+    return { verified: false, reason: "no-cname" }
   }
-  for (const target of TARGET_HOSTS) {
-    const targetIps = await ipsOf(target)
-    for (const ip of targetIps) {
-      if (userIps.has(ip)) return { verified: true }
-    }
+  if (cnames.some(c => normalize(c) === TARGET_CNAME)) {
+    return { verified: true }
   }
   return { verified: false, reason: "wrong-target" }
 }

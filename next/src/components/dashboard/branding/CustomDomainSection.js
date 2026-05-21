@@ -8,6 +8,7 @@ import BIcon from "@/components/BIcon"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -17,13 +18,14 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { checkCustomDomain, newCustomDomain } from "@/lib/client/Api"
+import { checkCustomDomain, deleteCustomDomain, newCustomDomain } from "@/lib/client/Api"
 
 const POLL_INTERVAL_MS = 5000
 
 export default function CustomDomainSection({ domains: initialDomains, canManage }) {
   const router = useRouter()
   const [domains, setDomains] = useState(initialDomains)
+  const [removingId, setRemovingId] = useState(null)
 
   useEffect(() => {
     setDomains(initialDomains)
@@ -62,6 +64,21 @@ export default function CustomDomainSection({ domains: initialDomains, canManage
     return () => { cancelled = true; clearInterval(intervalId) }
   }, [pendingKey, router])
 
+  const handleRemove = async (id) => {
+    if (removingId) return
+    setRemovingId(id)
+    try {
+      await deleteCustomDomain(id)
+      setDomains(prev => prev.filter(d => d.id !== id))
+      toast.success("Domain removed")
+      router.refresh()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
   return (
     <div className="p-5 sm:p-6 bg-white rounded-xl">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -84,23 +101,81 @@ export default function CustomDomainSection({ domains: initialDomains, canManage
             {domains.map(d => (
               <li key={d.id} className="flex items-center justify-between gap-4 px-4 py-3">
                 <span className="font-mono text-sm text-gray-900 truncate">{d.domain}</span>
-                <DomainStatusPill verified={d.verified} />
+                <div className="flex items-center gap-3 shrink-0">
+                  <DomainStatusPill verified={d.verified} />
+                  <RemoveDomainAction
+                    domain={d}
+                    busy={removingId === d.id}
+                    onConfirm={() => handleRemove(d.id)}
+                  />
+                </div>
               </li>
             ))}
           </ul>
 
           <p className="text-sm text-gray-500 mt-3">
-            Point your domain's <span className="font-mono">CNAME</span> or{" "}
-            <span className="font-mono">A</span> record at <span className="font-mono">transfer.zip</span>
+            Point a <span className="font-mono">CNAME</span> record at{" "}
+            <span className="font-mono">transfer.zip</span>
           </p>
         </>
       ) : (
         <></>
-        // <p className="text-sm text-gray-600 mt-4">
-        //   No domain connected yet.
-        // </p>
       )}
     </div>
+  )
+}
+
+function RemoveDomainAction({ domain, busy, onConfirm }) {
+  if (!domain.verified) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="text-gray-600 hover:text-gray-900"
+        disabled={busy}
+        onClick={onConfirm}
+      >
+        {busy ? "Removing…" : "Remove"}
+      </Button>
+    )
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-gray-600 hover:text-gray-900"
+          disabled={busy}
+        >
+          {busy ? "Removing…" : "Remove"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Remove custom domain</DialogTitle>
+          <DialogDescription>
+            <span className="font-mono">{domain.domain}</span> will stop serving your transfers immediately. Existing links pointing at this domain will break until you reconnect it.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={busy}
+            onClick={onConfirm}
+          >
+            {busy ? "Removing…" : "Remove"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -172,8 +247,8 @@ function ConnectDomainDialog() {
               autoFocus
             />
             <p className="text-xs text-gray-500">
-              Point your domain's <span className="font-mono">CNAME</span> or{" "}
-              <span className="font-mono">A</span> record at our server after adding.
+              You'll need to <span className="font-mono">CNAME</span> it to{" "}
+              <span className="font-mono">transfer.zip</span> after adding.
             </p>
           </div>
           <DialogFooter>
