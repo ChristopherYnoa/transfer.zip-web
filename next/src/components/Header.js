@@ -182,8 +182,8 @@ export default function Header({ scrollAware }) {
               <Link href="/pricing" className="text-sm/6 font-semibold text-gray-900">
                 Pricing
               </Link>
-              <Link href="/about-us" className="text-sm/6 font-semibold text-gray-900">
-                About Us
+              <Link href="/contact" className="text-sm/6 font-semibold text-gray-900">
+                Contact
               </Link>
             </PopoverGroup>
           )}
@@ -259,6 +259,7 @@ export default function Header({ scrollAware }) {
                     Compare
                   </Link>
                   <Link
+                    onClick={handleLinkClicked}
                     href="/pricing"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                   >
@@ -266,10 +267,10 @@ export default function Header({ scrollAware }) {
                   </Link>
                   <Link
                     onClick={handleLinkClicked}
-                    href="/about-us"
+                    href="/contact"
                     className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                   >
-                    About Us
+                    Contact
                   </Link>
                   {/* <Link
                     onClick={handleLinkClicked}

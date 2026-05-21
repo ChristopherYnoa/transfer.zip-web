@@ -23,7 +23,7 @@ export default function LandingNav({ rightSlot, fade = true }) {
               <Link href="/pricing">Pricing</Link>
             </Button>
             <Button asChild size="sm" variant="ghost">
-              <Link href="/about-us">About Us</Link>
+              <Link href="/contact">Contact</Link>
             </Button>
             {/* <Button asChild size="sm" variant="ghost">
               <Link href="/legal/privacy-policy">Privacy</Link>
