@@ -2,7 +2,7 @@ import Transfer from "@/lib/server/mongoose/models/Transfer";
 import { resp } from "@/lib/server/serverUtils";
 import { workerTransferDelete } from "@/lib/server/workerApi";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents";
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 

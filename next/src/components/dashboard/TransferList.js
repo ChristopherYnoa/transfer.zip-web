@@ -1,29 +1,22 @@
 "use client"
 
-import { useParams, useRouter, useSelectedLayoutSegment, useSelectedLayoutSegments } from "next/navigation"
+import { useRouter } from "next/navigation"
 import EmptySpace from "../elements/EmptySpace"
-import { ApplicationContext } from "@/context/ApplicationContext"
-import { useContext, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
-import { deleteTransfer, getDownloadToken, getTransferDownloadLink, registerTransferDownloaded, sendTransferByEmail } from "@/lib/client/Api"
+import { deleteTransfer, getDownloadToken, getTransferDownloadLink, registerTransferDownloaded } from "@/lib/client/Api"
 import { humanTimeSince, humanTimeUntil, parseTransferExpiryDate, sleep, tryCopyToClipboard } from "@/lib/utils"
 import BIcon from "../BIcon"
-import Link from "next/link"
-import { SelectedTransferContext } from "@/context/SelectedTransferProvider"
-import { Separator } from "../ui/separator"
-import { ArrowDownIcon, ArrowUpIcon, SendIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
 
 const Entry = ({ transfer }) => {
   const router = useRouter()
-
-  const { selectedTransferId } = useContext(SelectedTransferContext)
 
   const transferLink = useMemo(() => getTransferDownloadLink(transfer), [transfer])
 
   const { id, name, files, expiresAt, createdAt, hasTransferRequest, finishedUploading, secretCode } = transfer
   const expiryDate = parseTransferExpiryDate(expiresAt)
   const receivedAt = createdAt ? new Date(createdAt) : null
-  const isSelected = id === selectedTransferId
 
   const disabled = !finishedUploading || hasTransferRequest
 
@@ -47,26 +40,12 @@ const Entry = ({ transfer }) => {
   const handleDelete = async e => {
     e.stopPropagation()
     await deleteTransfer(id)
-    // await sleep(1000)
-    // router.refresh()
-    if (selectedTransferId === id) {
-      // router.refresh()
-      // router.push(".")
-      // NextJS can suck my fucking balls https://github.com/vercel/next.js/discussions/70786
-      window.location.replace(".")
-    }
-    else {
-      router.refresh()
-    }
+    router.refresh()
   }
 
   const handleClicked = async e => {
-    if (disabled) {
-
-    }
-    else {
-      isSelected ? router.replace(".") : router.push(hasTransferRequest ? `/app/received/${id}` : `/app/sent/${id}`)
-    }
+    if (disabled) return
+    router.push(hasTransferRequest ? `/app/received/${id}` : `/app/sent/${id}`)
   }
 
   const expiresSoon = expiryDate && (expiryDate - new Date() <= 2 * 24 * 60 * 60 * 1000)
@@ -105,7 +84,7 @@ const Entry = ({ transfer }) => {
   }, [formData])
 
   return (
-    <div onClick={handleClicked} className={`border border-gray-200 group text-start rounded-xl ${isSelected ? "bg-gray-100" : "bg-white"} px-5 py-4 group ${disabled ? "hover:cursor-default" : "hover:cursor-pointer hover:bg-gray-100"} shadow-xs`}>
+    <div onClick={handleClicked} className={`border border-gray-200 group text-start rounded-xl bg-white px-5 py-4 group ${disabled ? "hover:cursor-default" : "hover:cursor-pointer hover:bg-gray-100"} shadow-xs`}>
       {hasTransferRequest && (
         <form method={"POST"} action={formData?.url} ref={formRef} className="hidden">
           <input hidden name="token" value={formData?.token ?? ""} readOnly />
@@ -117,7 +96,7 @@ const Entry = ({ transfer }) => {
         </div>
         <div>
           <div className="flex">
-            <h3 className={`text-lg font-bold mb-0.5 me-1 text-nowrap ${isSelected ? "text-black" : "text-gray-800"}`}>{name}</h3>
+            <h3 className="text-lg font-bold mb-0.5 me-1 text-nowrap text-gray-800">{name}</h3>
             {hasTransferRequest && <div className="ms-1">
               <span className="text-xs bg-gray-400 text-white font-semibold rounded-full px-1.5 py-0.5">
                 {receivedAt ? `Received ${humanTimeSince(receivedAt)} ago` : "Received"}

@@ -12,6 +12,7 @@ import TeamMemberRemovedEmail from './templates/TeamMemberRemovedEmail.jsx';
 import TeamRoleChangedEmail from './templates/TeamRoleChangedEmail.jsx';
 import TeamSeatCapacityReachedEmail from './templates/TeamSeatCapacityReachedEmail.jsx';
 import TeamOverCapacityEmail from './templates/TeamOverCapacityEmail.jsx';
+import CustomDomainConnectedEmail from './templates/CustomDomainConnectedEmail.jsx';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -111,5 +112,12 @@ export async function sendTeamOverCapacity(email, { teamName, memberCount, seats
   await sendMail(TeamOverCapacityEmail({ teamName, memberCount, seats, link }), {
     to: email,
     subject: `${teamName} is over its seat limit - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
+  });
+}
+
+export async function sendCustomDomainConnected(email, { domain, link }) {
+  await sendMail(CustomDomainConnectedEmail({ domain, link }), {
+    to: email,
+    subject: `Custom domain ${domain} is live - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
   });
 }

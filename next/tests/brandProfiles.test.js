@@ -16,7 +16,7 @@ import {
   brandProfileOwnershipFor,
   findUsableBrandProfile,
   findManageableBrandProfile,
-} from "@/lib/server/brandProfiles";
+} from "@/lib/server/mongoose/helpers/brandProfiles";
 import { ROLES } from "@/lib/roles";
 
 const soloUser = { _id: "user1" };

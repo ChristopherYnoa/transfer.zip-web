@@ -118,6 +118,7 @@ export default function ({ initialProfile, isNew, backHref = "/app/branding" }) 
                       <button onClick={handleChooseIcon}>
                         {iconImageUrl ?
                           <Image
+                            className="rounded-md"
                             alt="Brand Profile Logo"
                             width={32}
                             height={32}
@@ -182,7 +183,7 @@ export default function ({ initialProfile, isNew, backHref = "/app/branding" }) 
                       />
                     )
                     : (
-                      <div className="w-full flex flex-col gap-2 items-center justify-center bg-gray-50 text-gray-600 h-60 transition-colors hover:bg-gray-100">
+                      <div className="w-full flex flex-col gap-2 items-center justify-center bg-gray-50 text-gray-600 h-60 transition-colors hover:bg-gray-100 rounded-md">
                         <ImageIcon />
                         <span>Pick image</span>
                       </div>

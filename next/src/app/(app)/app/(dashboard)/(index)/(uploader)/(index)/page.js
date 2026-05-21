@@ -1,4 +1,4 @@
-import { listBrandProfilesForUser } from "@/lib/server/brandProfiles";
+import { listBrandProfilesForUser } from "@/lib/server/mongoose/helpers/brandProfiles";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 
 import NewTransferFileUploadNew from "@/components/newtransfer/NewTransferFileUploadNew";

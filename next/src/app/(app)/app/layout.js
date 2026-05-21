@@ -3,15 +3,7 @@ import { redirect } from "next/navigation";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import ApplicationProvider from "@/context/ApplicationContext";
 import FloatingBar from "./FloatingBar";
-import { FileProvider } from "@/context/FileProvider";
-import { SelectedTransferProvider } from "@/context/SelectedTransferProvider";
-import { IS_SELFHOST } from "@/lib/isSelfHosted";
-import DismissibleBanner from "./DismissibleBanner";
-import Link from "next/link";
-import Image from "next/image";
 import { ROLES } from "@/lib/roles";
-
-import logo from "@/img/icon.png"
 
 export const metadata = {
   title: {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import TransferRequest from "@/lib/server/mongoose/models/TransferRequest"
 import { resp } from "@/lib/server/serverUtils"
 import { useTeamAdminAuth } from "@/lib/server/wrappers/teamAdminAuth"
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents"
 import dbConnect from "@/lib/server/mongoose/db"
 
 // Owner-only: reactivate any request link that belongs to the team.

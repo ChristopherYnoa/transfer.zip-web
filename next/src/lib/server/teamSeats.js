@@ -2,6 +2,7 @@ import { getStripe } from "./stripe"
 import Team from "./mongoose/models/Team"
 
 const LIVE_STATUSES = ["active", "trialing", "past_due"]
+
 // For increases we invoice immediately so the new seat is paid for before it
 // gets used; for decreases we let the proration credit roll into the next
 // invoice rather than refunding mid-cycle.

@@ -6,7 +6,7 @@ import { processAndUploadBrandProfileImages } from "@/app/api/brandprofile/brand
 import {
   brandProfileOwnershipFor,
   canManageBrandProfiles,
-} from "@/lib/server/brandProfiles";
+} from "@/lib/server/mongoose/helpers/brandProfiles";
 import { FEATURE } from "@/lib/pricing";
 
 export async function POST(req) {

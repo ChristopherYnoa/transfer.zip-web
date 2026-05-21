@@ -1,6 +1,6 @@
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { listTransferRequestsForTeam } from "@/lib/server/serverUtils";
-import { enrichTransferRequests } from "@/lib/server/transferRequests";
+import { enrichTransferRequests } from "@/lib/server/mongoose/helpers/transferRequests";
 import RequestsSection from "../sections/RequestsSection";
 
 export const metadata = { title: "Requests" };

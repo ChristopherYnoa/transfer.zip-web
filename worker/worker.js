@@ -89,6 +89,29 @@ app.post("/forward-node-control/*", async (req, reply) => {
 cron.schedule("*/15 * * * *", deleteExpiredTransfers)
 deleteExpiredTransfers()
 
+const NEXT_INTERNAL_URL = process.env.NEXT_INTERNAL_URL
+  || (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "http://next:9001")
+
+const verifyPendingCustomDomains = async () => {
+  try {
+    const r = await fetch(`${NEXT_INTERNAL_URL}/api/internal/customdomain/verify-pending`, {
+      method: "POST",
+    })
+    if (!r.ok) {
+      logger.warn(`verify-pending returned ${r.status}`)
+      return
+    }
+    const j = await r.json()
+    if (j.checked > 0 || j.newlyVerified > 0) {
+      logger.info(`Custom domain verify: checked=${j.checked} newlyVerified=${j.newlyVerified}`)
+    }
+  } catch (e) {
+    logger.error({ err: e }, "verify-pending failed")
+  }
+}
+
+cron.schedule("* * * * *", verifyPendingCustomDomains)
+
 console.log(await getPublicKey())
 
 await app.listen({ port: 3001, host: process.env.NODE_ENV === "development" ? '127.0.0.1' : '0.0.0.0' })

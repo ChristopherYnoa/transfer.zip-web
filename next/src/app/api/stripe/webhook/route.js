@@ -9,7 +9,7 @@ import { headers } from "next/headers";
 import { getPlanByStripeProductId } from "@/lib/pricing";
 import { ROLES } from "@/lib/roles";
 import { sendTeamOverCapacity } from "@/lib/server/mail/mail";
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents";
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents";
 import { logError } from "@/lib/server/errors";
 
 // Find subscriber (User or Team) by Stripe customer ID

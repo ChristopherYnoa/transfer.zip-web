@@ -1,6 +1,6 @@
 import NewTransferFileRequest from "@/components/newtransfer/NewTransferFileRequest"
 import NewTransferFileUploadNew from "@/components/newtransfer/NewTransferFileUploadNew"
-import { listBrandProfilesForUser } from "@/lib/server/brandProfiles"
+import { listBrandProfilesForUser } from "@/lib/server/mongoose/helpers/brandProfiles"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 
 export default async function ConditionalLandingFileRequest({ }) {

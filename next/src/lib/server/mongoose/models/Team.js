@@ -19,7 +19,6 @@ const TeamSchema = new mongoose.Schema({
     // Custom overrides for features and limits (for enterprise/special accounts)
     customFeatures: {
         [FEATURE.CUSTOM_BRANDING]: { type: Boolean },
-        [FEATURE.CUSTOM_DOMAIN]: { type: Boolean },
     },
     customLimits: {
         [LIMIT.MAX_EXPIRY_DAYS]: { type: Number },

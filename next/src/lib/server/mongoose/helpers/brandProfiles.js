@@ -1,16 +1,6 @@
 import "server-only"
-import BrandProfile from "./mongoose/models/BrandProfile"
+import BrandProfile from "../models/BrandProfile"
 import { ROLES } from "@/lib/roles"
-
-// Single source of truth for which brand profiles a user can see, use,
-// or manage. Every API route and server page that touches BrandProfile
-// goes through one of the helpers below — don't write ad-hoc queries
-// that bypass these rules.
-//
-// Rules:
-//   Solo user (no team)      → personal profiles (author=user, team unset)
-//   Team Owner / Admin       → team profiles (team=user.team) — can manage
-//   Team Member              → team profiles (team=user.team) — can use, NOT manage
 
 export const canManageBrandProfiles = (user) =>
     !user.team || user.role === ROLES.OWNER || user.role === ROLES.ADMIN

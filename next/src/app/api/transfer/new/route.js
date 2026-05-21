@@ -1,6 +1,6 @@
 import Transfer from "@/lib/server/mongoose/models/Transfer"
 import TransferRequest from '@/lib/server/mongoose/models/TransferRequest'
-import { findUsableBrandProfile } from "@/lib/server/brandProfiles"
+import { findUsableBrandProfile } from "@/lib/server/mongoose/helpers/brandProfiles"
 import { useServerAuth } from '@/lib/server/wrappers/auth'
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
@@ -21,7 +21,7 @@ import {
 import { RateLimiterMongo } from 'rate-limiter-flexible'
 import { z } from 'zod'
 import { logError, logWarn } from "@/lib/server/errors"
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents"
 
 const fileSchema = z.object({
   tmpId: z.string(),

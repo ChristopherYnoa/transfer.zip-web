@@ -4,7 +4,7 @@ import TransferRequest from "@/lib/server/mongoose/models/TransferRequest"
 import { resp } from "@/lib/server/serverUtils"
 import { workerTransferDelete } from "@/lib/server/workerApi"
 import { useTeamAdminAuth } from "@/lib/server/wrappers/teamAdminAuth"
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents"
 import dbConnect from "@/lib/server/mongoose/db"
 
 // Owner-only: delete any transfer request that belongs to the team

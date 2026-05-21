@@ -1,6 +1,18 @@
 {
   # Where Caddy should send ACME e-mails
   email {$CADDY_ACME_EMAIL}
+
+  on_demand_tls {
+    ask http://next:9001/api/internal/caddy-ask
+  }
+}
+
+# Block all /api/internal/* paths from the public internet. The only
+# legitimate caller is Caddy itself, which reaches next:9001 directly
+# over the docker network and never traverses a site block.
+(block_internal) {
+  @internal path /api/internal/*
+  respond @internal 404
 }
 
 # This is needed for a while, I am removing the blog I've had for a while and
@@ -14,6 +26,8 @@ www.{$CADDY_DOMAIN} {
 }
 
 {$CADDY_DOMAIN} {
+  import block_internal
+
   # Forward websocket to signaling server
   reverse_proxy /ws signaling-server:9002
 
@@ -25,5 +39,15 @@ www.{$CADDY_DOMAIN} {
 # Remove the leading # below and ensure NEXT_PUBLIC_DL_DOMAIN is set in your environment
 # This enables you to have short download links (trnsf.to/[code])
 # {$NEXT_PUBLIC_DL_DOMAIN} {
+#   import block_internal
 #   reverse_proxy next:9001
 # }
+
+# Catch-all for custom domains. Must come AFTER the named site blocks
+https:// {
+  import block_internal
+  tls {
+    on_demand
+  }
+  reverse_proxy next:9001
+}

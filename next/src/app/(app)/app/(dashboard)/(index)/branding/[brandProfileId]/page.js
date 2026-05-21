@@ -1,7 +1,7 @@
 import { isValidObjectId } from "mongoose";
 import { redirect } from "next/navigation";
 import BrandProfileEditor from "@/components/dashboard/branding/BrandProfileEditor";
-import { findManageableBrandProfile } from "@/lib/server/brandProfiles";
+import { findManageableBrandProfile } from "@/lib/server/mongoose/helpers/brandProfiles";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 
 export default async function ({ params }) {

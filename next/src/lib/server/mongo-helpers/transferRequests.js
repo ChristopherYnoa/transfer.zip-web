@@ -1,5 +1,5 @@
 import "server-only"
-import Transfer from "./mongoose/models/Transfer"
+import Transfer from "../models/Transfer"
 
 export const INACTIVE_PAGE_SIZE = 10
 

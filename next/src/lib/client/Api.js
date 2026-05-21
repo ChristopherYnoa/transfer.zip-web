@@ -318,6 +318,15 @@ export async function deleteBrandProfile(id) {
     return await post(`/brandprofile/${id}/delete`, {})
 }
 
+// custom domain
+export async function newCustomDomain(domain) {
+    return await post(`/customdomain/new`, { domain })
+}
+
+export async function checkCustomDomain(id) {
+    return await get(`/customdomain/${id}/check`)
+}
+
 // upload
 
 export async function getUpload(secretCode) {

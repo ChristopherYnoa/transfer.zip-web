@@ -1,6 +1,6 @@
 import "server-only"
-import TeamEvent, { TEAM_EVENT } from "./mongoose/models/TeamEvent"
-import { logError } from "./errors"
+import TeamEvent, { TEAM_EVENT } from "../models/TeamEvent"
+import { logError } from "../../errors"
 
 export { TEAM_EVENT }
 

@@ -1,6 +1,6 @@
 import TransferRequest from "@/lib/server/mongoose/models/TransferRequest"
 import { resp } from "@/lib/server/serverUtils"
-import { enrichTransferRequests, INACTIVE_PAGE_SIZE } from "@/lib/server/transferRequests"
+import { enrichTransferRequests, INACTIVE_PAGE_SIZE } from "@/lib/server/mongoose/helpers/transferRequests"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { NextResponse } from "next/server"
 

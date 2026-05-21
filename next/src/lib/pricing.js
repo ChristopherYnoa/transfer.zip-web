@@ -3,7 +3,6 @@ import QuestionCircle from "@/components/elements/QuestionCircle";
 // Feature flags (boolean capabilities)
 export const FEATURE = {
   CUSTOM_BRANDING: "customBranding",
-  CUSTOM_DOMAIN: "customDomain",
 }
 
 // Numeric limits
@@ -19,7 +18,6 @@ export const FREE_PLAN = {
   price: { monthly: 0, yearly: 0 },
   features: {
     [FEATURE.CUSTOM_BRANDING]: false,
-    [FEATURE.CUSTOM_DOMAIN]: false,
   },
   limits: {
     [LIMIT.MAX_EXPIRY_DAYS]: 0,
@@ -45,7 +43,6 @@ export const PLANS = {
     },
     features: {
       [FEATURE.CUSTOM_BRANDING]: false,
-      [FEATURE.CUSTOM_DOMAIN]: false,
     },
     limits: {
       [LIMIT.MAX_EXPIRY_DAYS]: 14,
@@ -75,7 +72,6 @@ export const PLANS = {
     },
     features: {
       [FEATURE.CUSTOM_BRANDING]: true,
-      [FEATURE.CUSTOM_DOMAIN]: true,
     },
     limits: {
       [LIMIT.MAX_EXPIRY_DAYS]: 365,
@@ -110,7 +106,6 @@ export const PLANS = {
     },
     features: {
       [FEATURE.CUSTOM_BRANDING]: true,
-      [FEATURE.CUSTOM_DOMAIN]: true,
     },
     limits: {
       [LIMIT.MAX_EXPIRY_DAYS]: 365,

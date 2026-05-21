@@ -6,7 +6,7 @@ import Team from "@/lib/server/mongoose/models/Team"
 import User from "@/lib/server/mongoose/models/User"
 import Session from "@/lib/server/mongoose/models/Session"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
-import { redeemTeamInviteForUser, InviteRedemptionError } from "@/lib/server/teamInvites"
+import { redeemTeamInviteForUser, InviteRedemptionError } from "@/lib/server/mongoose/helpers/teamInvites"
 import { logError } from "@/lib/server/errors"
 
 export async function GET(req, { params }) {

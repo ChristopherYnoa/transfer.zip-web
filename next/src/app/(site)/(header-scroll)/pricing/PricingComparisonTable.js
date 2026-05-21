@@ -63,10 +63,10 @@ const SECTIONS = [
         tooltip: "Share a link that lets anyone upload files to you, no account needed.",
         values: { free: false, starter: true, pro: true, teams: true },
       },
-      {
-        label: "Password protection",
-        values: { free: false, starter: true, pro: true, teams: true },
-      },
+      // {
+      //   label: "Password protection",
+      //   values: { free: false, starter: true, pro: true, teams: true },
+      // },
       {
         label: "View & download tracking",
         values: { free: false, starter: true, pro: true, teams: true },
@@ -108,6 +108,10 @@ const SECTIONS = [
         values: { free: false, starter: false, pro: false, teams: true },
       },
       {
+        label: "Member activity logs",
+        values: { free: false, starter: false, pro: false, teams: true },
+      },
+      {
         label: "Priority support",
         values: { free: false, starter: false, pro: false, teams: true },
       },
@@ -122,7 +126,7 @@ const SECTIONS = [
       },
       {
         label: "Encryption at rest",
-        values: { free: false, starter: true, pro: true, teams: true },
+        values: { free: true, starter: true, pro: true, teams: true },
       },
       {
         label: "No AI training on your data",
@@ -130,6 +134,10 @@ const SECTIONS = [
       },
       {
         label: "Open source",
+        values: { free: true, starter: true, pro: true, teams: true },
+      },
+      {
+        label: "No trackers",
         values: { free: true, starter: true, pro: true, teams: true },
       },
     ],
@@ -372,7 +380,7 @@ export default function PricingComparisonTable({ authCta }) {
           </div>
 
           <p className="mt-10 text-center text-sm text-gray-500">
-            All paid plans include a 7-day free trial. $0 due today. Cancel anytime.
+            All individual plans include a 7-day free trial. $0 due today. Cancel anytime.
           </p>
         </div>
       </div>

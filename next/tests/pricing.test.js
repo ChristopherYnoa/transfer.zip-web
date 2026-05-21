@@ -58,22 +58,18 @@ describe("pricing — plan lookup", () => {
 describe("pricing — hasFeature", () => {
   it("free plan has no paid features", () => {
     expect(hasFeature("free", FEATURE.CUSTOM_BRANDING)).toBe(false);
-    expect(hasFeature("free", FEATURE.CUSTOM_DOMAIN)).toBe(false);
   });
 
-  it("starter excludes custom branding and domain", () => {
+  it("starter excludes custom branding", () => {
     expect(hasFeature("starter", FEATURE.CUSTOM_BRANDING)).toBe(false);
-    expect(hasFeature("starter", FEATURE.CUSTOM_DOMAIN)).toBe(false);
   });
 
-  it("pro includes custom branding and domain", () => {
+  it("pro includes custom branding", () => {
     expect(hasFeature("pro", FEATURE.CUSTOM_BRANDING)).toBe(true);
-    expect(hasFeature("pro", FEATURE.CUSTOM_DOMAIN)).toBe(true);
   });
 
-  it("teams includes custom branding and domain", () => {
+  it("teams includes custom branding", () => {
     expect(hasFeature("teams", FEATURE.CUSTOM_BRANDING)).toBe(true);
-    expect(hasFeature("teams", FEATURE.CUSTOM_DOMAIN)).toBe(true);
   });
 
   it("unknown plan or feature returns false (does not throw)", () => {

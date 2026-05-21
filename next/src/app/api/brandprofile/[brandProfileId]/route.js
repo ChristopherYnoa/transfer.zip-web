@@ -2,7 +2,7 @@ import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";
 import { processAndUploadBrandProfileImages } from "@/app/api/brandprofile/brandProfileUtils";
-import { findManageableBrandProfile } from "@/lib/server/brandProfiles";
+import { findManageableBrandProfile } from "@/lib/server/mongoose/helpers/brandProfiles";
 
 export async function PUT(req, { params }) {
   const auth = await useServerAuth();

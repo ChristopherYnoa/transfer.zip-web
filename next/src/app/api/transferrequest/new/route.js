@@ -1,6 +1,6 @@
 import { sendTransferRequestReceived, sendTransferRequestShare, sendTransferShare } from "@/lib/server/mail/mail";
 import TransferRequest from "@/lib/server/mongoose/models/TransferRequest";
-import { findUsableBrandProfile } from "@/lib/server/brandProfiles";
+import { findUsableBrandProfile } from "@/lib/server/mongoose/helpers/brandProfiles";
 import { getTransferRequestUploadLink, resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";

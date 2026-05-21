@@ -10,7 +10,7 @@ import { userHasLiveStripeSubscription } from "@/lib/server/stripe"
 import { purchaseSeats } from "@/lib/server/teamSeats"
 import { logError } from "@/lib/server/errors"
 import { ROLES } from "@/lib/roles"
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents"
 
 export async function POST(req) {
   const auth = await useServerAuth()

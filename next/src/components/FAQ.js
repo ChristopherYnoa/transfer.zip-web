@@ -5,11 +5,6 @@ import BIcon from './BIcon'
 
 const faqs = [
   {
-    question: "Do you train AI models with my data?",
-    answer:
-      <><a className="text-primary underline" href="https://www.theartnewspaper.com/2025/07/28/wetransfer-artificial-intelligence-terms-service-artists-intellectual-property">Unlike WeTransfer</a>, we never train AI models with your data. Paid transfers are only sent from A to B and are permanently removed on expiry. Quick Transfers are end-to-end encrypted, streamed directly between peers, and are never stored. We offer unprecedented privacy for a very low price.</>
-  },
-  {
     question: "Why pay for Transfer.zip when Quick Transfers is free?",
     answer:
       "A paid subscription unlocks the dashboard, lets you share files that don't expire instantly, and offers cheaper, faster transfers than competitors."
@@ -18,6 +13,19 @@ const faqs = [
     question: "Is there really no file size limit?",
     answer:
       "Quick Transfers has no file size limit. Regular transfers have a limit based on your plan, but we never limit how many transfers you can send."
+  },
+  {
+    question: "Is there a free trial available?",
+    answer: "Yes, a 7-day free trial is available for most users."
+  },
+  {
+    question: "Do you offer refunds?",
+    answer: "Contact support and we'll sort it out. You can also cancel anytime — your plan stays active until the end of the current billing period."
+  },
+  {
+    question: "Do you train AI models with my data?",
+    answer:
+      <><a className="text-primary underline" href="https://www.theartnewspaper.com/2025/07/28/wetransfer-artificial-intelligence-terms-service-artists-intellectual-property">Unlike WeTransfer</a>, we never train AI models with your data. Paid transfers are only sent from A to B and are permanently removed on expiry. Quick Transfers are end-to-end encrypted, streamed directly between peers, and are never stored. We offer unprecedented privacy for a very low price.</>
   },
   {
     question: "How do Quick Transfers work?",
@@ -51,14 +59,6 @@ const faqs = [
   {
     question: "What payment methods are accepted?",
     answer: "All major credit cards via Stripe."
-  },
-  {
-    question: "Is there a free trial available?",
-    answer: "Yes, a 7-day free trial is available for most users."
-  },
-  {
-    question: "Do you offer refunds?",
-    answer: "Contact support and we'll sort it out. You can also cancel anytime — your plan stays active until the end of the current billing period."
   },
   {
     question: "How do I cancel my subscription or delete my account?",

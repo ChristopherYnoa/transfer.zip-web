@@ -7,7 +7,7 @@ import Transfer from "@/lib/server/mongoose/models/Transfer"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { resp } from "@/lib/server/serverUtils"
 import { ROLES } from "@/lib/roles"
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents"
 import { sendTeamMemberRemoved, sendTeamRoleChanged } from "@/lib/server/mail/mail"
 import { logError } from "@/lib/server/errors"
 

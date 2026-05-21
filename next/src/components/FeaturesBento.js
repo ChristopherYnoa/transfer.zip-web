@@ -1,57 +1,126 @@
 "use client"
 
 import { AnimatePresence, motion, useInView } from "framer-motion"
-import { FileTextIcon, FolderIcon, LockIcon, SendIcon, ZapIcon } from "lucide-react"
+import { SendIcon, ZapIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { IslandReveal } from "./IslandReveal"
 import { cn } from "@/lib/utils"
 
-function TransferRequestsWidget() {
+function TypingDots({ color = "bg-gray-400" }) {
   return (
-    <div className="space-y-3">
-      <IslandReveal>
-        <div className="bg-white rounded-xl p-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="size-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-              <FolderIcon className="size-5 text-primary-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">Q4 deliverables</p>
-              <p className="text-xs text-gray-500 truncate">transfer.zip/upload/7ab5160f...</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div className="size-1.5 rounded-full bg-primary-500 animate-pulse" />
-            <span className="text-xs text-gray-500 font-medium">1 transfer</span>
-          </div>
-        </div>
-      </IslandReveal>
+    <div className="flex items-center gap-1 py-1">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className={cn("size-1.5 rounded-full", color)}
+          animate={{ y: [0, -3, 0] }}
+          transition={{
+            duration: 0.8,
+            ease: "easeInOut",
+            repeat: Infinity,
+            delay: i * 0.15,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
 
-      <IslandReveal delay={150}>
-        <div className="bg-white rounded-xl p-3">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <FileTextIcon className="size-4 text-gray-500" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">project-final.zip</p>
-              <p className="text-xs text-gray-500">82.4 MB · uploading</p>
-            </div>
-          </div>
-          <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-primary-500 rounded-full"
-              initial={{ width: "0%" }}
-              animate={{ width: ["0%", "100%", "100%"] }}
-              transition={{
-                duration: 3,
-                times: [0, 0.7, 1],
-                ease: "easeOut",
-                repeat: Infinity,
-                repeatDelay: 1.5,
-              }}
-            />
-          </div>
+function TransferRequestsWidget() {
+  const [step, setStep] = useState(0)
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: "-50px" })
+
+  useEffect(() => {
+    if (!inView) return
+    let cancelled = false
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+    async function run() {
+      await sleep(500)
+      if (cancelled) return
+      setStep(1)
+      await sleep(500)
+      if (cancelled) return
+      setStep(2)
+      await sleep(800)
+      if (cancelled) return
+      setStep(3)
+      await sleep(1400)
+      if (cancelled) return
+      setStep(4)
+    }
+
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [inView])
+
+  return (
+    <div ref={ref}>
+      <IslandReveal>
+        <div className="bg-white rounded-xl p-3 space-y-2 min-h-[5.5rem]">
+          <AnimatePresence mode="wait" initial={false}>
+            {step === 1 && (
+              <motion.div
+                key="left-typing"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="flex justify-start"
+              >
+                <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-3 py-2.5">
+                  <TypingDots />
+                </div>
+              </motion.div>
+            )}
+            {step >= 2 && (
+              <motion.div
+                key="left-message"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex justify-start"
+              >
+                <div className="bg-gray-100 text-gray-900 text-sm rounded-2xl rounded-bl-sm px-3 py-2 max-w-[85%]">
+                  <p>Hey John,</p>
+                  <p className="mt-4">Where should I send you the assets?</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence mode="wait" initial={false}>
+            {step === 3 && (
+              <motion.div
+                key="right-typing"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="flex justify-end"
+              >
+                <div className="bg-primary-500 rounded-2xl rounded-br-sm px-3 py-2.5">
+                  <TypingDots color="bg-white" />
+                </div>
+              </motion.div>
+            )}
+            {step >= 4 && (
+              <motion.div
+                key="right-message"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex justify-end"
+              >
+                <div className="bg-primary-500 text-white text-sm rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%]">
+                  <p>Here you go: <span className="font-mono underline hover:cursor-pointer">transfer.zip/upload/7ab516…</span></p>
+                  <p className="mt-4">No need for an account :)</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </IslandReveal>
     </div>
@@ -346,7 +415,7 @@ export default function FeaturesBento() {
             {" "}when sharing files.
           </p>
           <p className="mt-6 text-lg/8 text-gray-600">
-            From upload links anyone can use to end-to-end encrypted transfers — Transfer.zip handles every part of the file lifecycle, professionally.
+            Transfer.zip handles every part of the file lifecycle, professionally.
           </p>
         </div>
       </div>

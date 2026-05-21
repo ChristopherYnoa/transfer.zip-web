@@ -1,5 +1,5 @@
 import { LIMIT } from "@/lib/pricing";
-import { findUsableBrandProfile } from "@/lib/server/brandProfiles";
+import { findUsableBrandProfile } from "@/lib/server/mongoose/helpers/brandProfiles";
 import Transfer from "@/lib/server/mongoose/models/Transfer";
 import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";

@@ -1,7 +1,7 @@
 import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";
-import { findManageableBrandProfile } from "@/lib/server/brandProfiles";
+import { findManageableBrandProfile } from "@/lib/server/mongoose/helpers/brandProfiles";
 
 export async function POST(req, { params }) {
   const auth = await useServerAuth();

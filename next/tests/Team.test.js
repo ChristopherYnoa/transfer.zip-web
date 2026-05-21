@@ -58,7 +58,6 @@ describe("Team feature/limit fallback ladder", () => {
   it("falls through to the plan default when no override is set", () => {
     const team = new Team({ plan: "teams", planStatus: "active" });
     expect(team.hasFeature(FEATURE.CUSTOM_BRANDING)).toBe(true);
-    expect(team.hasFeature(FEATURE.CUSTOM_DOMAIN)).toBe(true);
   });
 
   it("customLimits override wins over the plan default", () => {

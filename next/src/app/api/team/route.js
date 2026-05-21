@@ -3,7 +3,7 @@ import dbConnect from "@/lib/server/mongoose/db"
 import Team from "@/lib/server/mongoose/models/Team"
 import { useTeamAdminAuth } from "@/lib/server/wrappers/teamAdminAuth"
 import { resp } from "@/lib/server/serverUtils"
-import { logTeamEvent, TEAM_EVENT } from "@/lib/server/teamEvents"
+import { logTeamEvent, TEAM_EVENT } from "@/lib/server/mongoose/helpers/teamEvents"
 
 const NAME_MIN = 1
 const NAME_MAX = 60
