@@ -1,6 +1,5 @@
 "use client"
 
-import BIcon from "@/components/BIcon";
 import { ArrowRightIcon, CopyIcon, LinkIcon, PlusIcon, RotateCcwIcon, ZapIcon } from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import { Button } from "../ui/button";
