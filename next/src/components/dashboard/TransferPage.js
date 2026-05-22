@@ -1,7 +1,7 @@
 "use client"
 
 import { toast } from "sonner"
-import { deleteTransfer, getTransferDownloadLink, putTransfer, sendTransferByEmail } from "@/lib/client/Api"
+import { deleteTransfer, putTransfer, sendTransferByEmail } from "@/lib/client/Api"
 import { getLimit, LIMIT } from "@/lib/pricing"
 import { humanFileSize } from "@/lib/transferUtils"
 import { parseTransferExpiryDate, tryCopyToClipboard } from "@/lib/utils"
@@ -30,7 +30,7 @@ import BIcon from "../BIcon"
 export default function ({ user, transfer }) {
   const router = useRouter()
 
-  const transferLink = getTransferDownloadLink(transfer)
+  const transferLink = transfer.downloadUrl
 
   const handleCopy = async e => {
     if (await tryCopyToClipboard(transferLink)) {

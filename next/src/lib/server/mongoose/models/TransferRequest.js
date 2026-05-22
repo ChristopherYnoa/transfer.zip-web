@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import crypto from "crypto"
 
+import { getDownloadDomainFor } from '../helpers/customDomains';
+
 import BrandProfile from './BrandProfile';
 
 const EmailSharedWith = new mongoose.Schema({
@@ -29,7 +31,7 @@ TransferRequestSchema.methods.addSharedEmail = function (email) {
     this.emailsSharedWith.push({ email })
 }
 
-TransferRequestSchema.methods.toJsonAsOwner = function () {
+TransferRequestSchema.methods.toJsonAsOwner = async function () {
     const { _id, active, name, description, secretCode, emailsSharedWith, createdAt, brandProfile } = this
     return {
         id: _id.toString(),
@@ -37,6 +39,7 @@ TransferRequestSchema.methods.toJsonAsOwner = function () {
         name: name || "Untitled Request",
         description,
         secretCode,
+        uploadUrl: await this.getUploadLink(),
         emailsSharedWith: emailsSharedWith.map(entry => ({ time: entry.time, email: entry.email })),
         createdAt,
         hasName: !!name,
@@ -49,7 +52,7 @@ TransferRequestSchema.methods.toJsonAsOwner = function () {
 // with are not the admin's business) but includes author identity and
 // secretCode so the UI can show "created by X" and copy the upload
 // link. The author must be populated.
-TransferRequestSchema.methods.toJsonAsTeamAdmin = function () {
+TransferRequestSchema.methods.toJsonAsTeamAdmin = async function () {
     const { _id, active, name, description, secretCode, createdAt } = this
     return {
         id: _id.toString(),
@@ -57,6 +60,7 @@ TransferRequestSchema.methods.toJsonAsTeamAdmin = function () {
         name: name || "Untitled Request",
         description,
         secretCode,
+        uploadUrl: await this.getUploadLink(),
         createdAt,
         hasName: !!name,
         author: this.author && typeof this.author === "object" && this.author._id ? {
@@ -67,19 +71,24 @@ TransferRequestSchema.methods.toJsonAsTeamAdmin = function () {
     }
 }
 
-TransferRequestSchema.methods.toJsonAsUploader = function () {
+TransferRequestSchema.methods.toJsonAsUploader = async function () {
     const { _id, name, description, secretCode, brandProfile } = this
     return {
         id: _id.toString(),
         name: name || "Untitled Request",
         description,
         secretCode,
+        uploadUrl: await this.getUploadLink(),
         hasName: !!name,
         brandProfileId: brandProfile ? brandProfile.toString() : undefined,
     }
 }
 
-TransferRequestSchema.methods.getUploadLink = function () {
+TransferRequestSchema.methods.getUploadLink = async function () {
+    const customDomain = await getDownloadDomainFor({ team: this.team, user: this.author?._id || this.author })
+    if (customDomain) {
+        return `https://${customDomain}/upload/${this.secretCode}`
+    }
     return `${process.env.SITE_URL}/upload/${this.secretCode}`
 }
 

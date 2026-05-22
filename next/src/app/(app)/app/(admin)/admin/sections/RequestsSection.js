@@ -39,7 +39,6 @@ import {
   activateTeamTransferRequest,
   deactivateTeamTransferRequest,
   deleteTeamTransferRequest,
-  getTransferRequestUploadLink,
 } from "@/lib/client/Api";
 import { tryCopyToClipboard } from "@/lib/utils";
 import { ROLES } from "@/lib/roles";
@@ -51,7 +50,7 @@ import AdminCard from "../AdminCard";
 function Row({ request, canManage, busy, onCopy, onToggleActive, onDelete }) {
   const author = request.author;
   const handleCopy = async () => {
-    if (await tryCopyToClipboard(getTransferRequestUploadLink(request))) {
+    if (await tryCopyToClipboard(request.uploadUrl)) {
       toast.success("Copied link");
     }
     onCopy?.(request);

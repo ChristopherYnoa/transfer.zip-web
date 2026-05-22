@@ -10,6 +10,6 @@ export async function GET() {
 
   const transfers = await listTransfersForTeam(admin.team)
   return NextResponse.json(resp({
-    transfers: transfers.map(t => t.toJsonAsTeamAdmin()),
+    transfers: await Promise.all(transfers.map(t => t.toJsonAsTeamAdmin())),
   }))
 }

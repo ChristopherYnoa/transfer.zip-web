@@ -1,7 +1,7 @@
 import { sendTransferRequestReceived, sendTransferRequestShare, sendTransferShare } from "@/lib/server/mail/mail";
 import TransferRequest from "@/lib/server/mongoose/models/TransferRequest";
 import { findUsableBrandProfile } from "@/lib/server/mongoose/helpers/brandProfiles";
-import { getTransferRequestUploadLink, resp } from "@/lib/server/serverUtils";
+import { resp } from "@/lib/server/serverUtils";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
@@ -44,8 +44,6 @@ export async function POST(req) {
     brandProfile: brandProfile ? brandProfile._id : undefined,
   })
 
-  console.log(transferRequest, getTransferRequestUploadLink(transferRequest))
-
   if (emails.length > getMaxRecipientsForPlan(user.getPlan())) {
     return NextResponse.json(resp("too many recipients"));
   }
@@ -64,7 +62,7 @@ export async function POST(req) {
       await sendTransferRequestShare(email, {
         name: name || "Untitled Transfer Request",
         description: description,
-        link: getTransferRequestUploadLink(transferRequest),
+        link: await transferRequest.getUploadLink(),
         brand: brandProfile ? brandProfile.toJsonAsClient() : undefined
       })
       await transferRequest.addSharedEmail(email)
@@ -78,5 +76,5 @@ export async function POST(req) {
     await brandProfile.save()
   }
 
-  return NextResponse.json(resp({ transferRequest: transferRequest.toJsonAsOwner() }))
+  return NextResponse.json(resp({ transferRequest: await transferRequest.toJsonAsOwner() }))
 }

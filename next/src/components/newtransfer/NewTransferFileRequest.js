@@ -20,7 +20,7 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import { GlobalContext } from "@/context/GlobalContext";
-import { getTransferRequestUploadLink, newTransferRequest } from "@/lib/client/Api";
+import { newTransferRequest } from "@/lib/client/Api";
 import Link from "next/link";
 import BrandingToggle from "./BrandingToggle";
 import DynamicIsland from "./DynamicIsland";
@@ -168,7 +168,7 @@ export default function ({ isDashboard, loaded, user, storage, brandProfiles, in
   }
 
   const handleCopyClick = async e => {
-    if (await tryCopyToClipboard(getTransferRequestUploadLink(transferRequest))) {
+    if (await tryCopyToClipboard(transferRequest.uploadUrl)) {
       toast.success("Copied Link", { description: "The request link was successfully copied to the clipboard!" })
     }
   }

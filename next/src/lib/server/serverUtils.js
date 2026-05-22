@@ -67,10 +67,6 @@ export const listTransferRequestsForTeam = async (team) => {
     .sort({ createdAt: -1 })
 }
 
-export const getTransferRequestUploadLink = (transferRequest) => {
-  if (!transferRequest) return null
-  return `${process.env.SITE_URL}/upload/${transferRequest.secretCode}`
-}
 export const getMaxStorageForPlan = (plan) => {
   return getLimit(plan, LIMIT.STORAGE) ?? 0
 }

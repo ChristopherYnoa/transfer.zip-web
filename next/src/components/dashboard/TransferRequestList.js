@@ -10,7 +10,6 @@ import {
   deactivateTransferRequest,
   deleteTransferRequest,
   getTransferRequestList,
-  getTransferRequestUploadLink,
 } from "@/lib/client/Api"
 import BIcon from "../BIcon"
 import { Link2OffIcon, LinkIcon } from "lucide-react"
@@ -29,7 +28,7 @@ const INACTIVE_PAGE_SIZE = 10
 const Entry = ({ transferRequest, onLocalUpdate }) => {
   const { transferId: displayedTransferId } = useParams()
 
-  const uploadLink = useMemo(() => getTransferRequestUploadLink(transferRequest), [transferRequest])
+  const uploadLink = transferRequest.uploadUrl
   const { active, id, name } = transferRequest
   const receivedTransfers = transferRequest.receivedTransfers || []
 

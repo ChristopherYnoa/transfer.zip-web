@@ -36,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { deleteTeamTransfer, extendTeamTransfer, getTransferDownloadLink } from "@/lib/client/Api";
+import { deleteTeamTransfer, extendTeamTransfer } from "@/lib/client/Api";
 import { humanFileSize } from "@/lib/transferUtils";
 import { humanTimeUntil, tryCopyToClipboard } from "@/lib/utils";
 import { ROLES } from "@/lib/roles";
@@ -71,7 +71,7 @@ function Row({ transfer, canManage, onDelete, onExtend, maxExpiryDays }) {
   const expired = expiresAt && expiresAt <= new Date();
 
   const handleCopy = async () => {
-    if (await tryCopyToClipboard(getTransferDownloadLink(transfer))) {
+    if (await tryCopyToClipboard(transfer.downloadUrl)) {
       toast.success("Copied link");
     }
   };

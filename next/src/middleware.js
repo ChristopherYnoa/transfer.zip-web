@@ -18,16 +18,15 @@ const customDomainWhitelist = [
   "/api", "/transfer", "/upload"
 ]
 
-// Hosts our deployment serves directly. Anything else is a custom domain.
-// We trust Caddy to only forward requests for hosts we've actually issued
-// certs for, but we still match strictly here so a header like
+// The main marketing/app host. Anything else — the DL domain
+// (trnsf.to) or a customer's verified custom domain — is "external"
+// and only serves transfer/upload routes. We trust Caddy to gate which
+// hosts reach us, but match strictly so a lookalike like
 // `eviltransfer.zip` can't impersonate our zone.
 const isOwnHost = (host) => {
   if (!host) return true
   const lower = host.toLowerCase().split(":")[0]
-  const zones = ["transfer.zip"]
-  if (process.env.NEXT_PUBLIC_DL_DOMAIN) zones.push(process.env.NEXT_PUBLIC_DL_DOMAIN.toLowerCase())
-  return zones.some((zone) => lower === zone || lower.endsWith(`.${zone}`))
+  return lower === "transfer.zip" || lower.endsWith(".transfer.zip")
 }
 
 const legacyRedirects = [
@@ -56,64 +55,48 @@ export function middleware(req) {
   const { pathname } = req.nextUrl
 
   const hostHeader = req.headers.get("host") ?? ""
-  const onCustomDomain = !isOwnHost(hostHeader)
+  const isExternalHost = !isOwnHost(hostHeader) && process.env.NODE_ENV !== "development"
 
   // Add CORS headers for /api requests so they still work cross-origin
-  // from the DL domain or any custom domain. Same-origin calls (host is
-  // our own zone) don't need CORS and would just get a bogus header.
-  if (pathname.startsWith('/api')) {
-    let origin
-    if (process.env.NEXT_PUBLIC_DL_DOMAIN && hostHeader === process.env.NEXT_PUBLIC_DL_DOMAIN) {
-      origin = `https://${process.env.NEXT_PUBLIC_DL_DOMAIN}`
-    }
-    else if (onCustomDomain) {
-      origin = `https://${hostHeader}`
+  // from the DL domain or any custom domain. Same-origin calls don't
+  // need CORS and would just get a bogus header.
+  if (pathname.startsWith('/api') && isExternalHost) {
+    const origin = `https://${hostHeader}`
+    if (req.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Max-Age': '86400',
+        },
+      })
     }
 
-    if (origin) {
-      if (req.method === 'OPTIONS') {
-        return new NextResponse(null, {
-          status: 200,
-          headers: {
-            'Access-Control-Allow-Origin': origin,
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Max-Age': '86400',
-          },
-        })
-      }
-
-      const response = NextResponse.next()
-      response.headers.set('Access-Control-Allow-Origin', origin)
-      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      return response
-    }
+    const response = NextResponse.next()
+    response.headers.set('Access-Control-Allow-Origin', origin)
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    return response
   }
 
-  // DL domain: short /{uuid} URLs rewrite to /transfer/{uuid}, everything
-  // else bounces back to the main site with the same pathname preserved.
-  if (process.env.NEXT_PUBLIC_DL_DOMAIN && hostHeader === process.env.NEXT_PUBLIC_DL_DOMAIN) {
+  // External hosts (DL domain or a custom domain): short /{uuid} URLs
+  // rewrite to /transfer/{uuid}, and anything outside the transfer/
+  // upload/api whitelist bounces back to the main site with the same
+  // pathname preserved (no landing page or signin flow on someone
+  // else's domain).
+  if (isExternalHost) {
     const uuidPattern = /^\/([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i
     const match = pathname.match(uuidPattern)
-
     if (match) {
-      const secretCode = match[1]
       const newUrl = req.nextUrl.clone()
-      newUrl.pathname = `/transfer/${secretCode}`
+      newUrl.pathname = `/transfer/${match[1]}`
       return NextResponse.rewrite(newUrl)
     }
 
-    const redirectUrl = new URL(pathname, process.env.SITE_URL)
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  // Custom domains: only let through transfer/upload/api routes so users
-  // can't browse our landing page on someone else's domain. Skipped in
-  // dev so localhost still serves everything.
-  if (onCustomDomain && process.env.NODE_ENV !== "development") {
     if (customDomainWhitelist.every((prefix) => !pathname.startsWith(prefix))) {
-      return NextResponse.redirect("https://transfer.zip")
+      return NextResponse.redirect(new URL(pathname, process.env.SITE_URL))
     }
   }
 

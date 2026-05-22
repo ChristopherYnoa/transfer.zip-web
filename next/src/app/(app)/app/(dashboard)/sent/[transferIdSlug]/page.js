@@ -25,6 +25,6 @@ export default async function ({ params }) {
   // const brandProfiles = await BrandProfile.find({ author: auth.user._id })
 
   return (
-    <TransferPage user={auth.user.toJsonAsClient()} transfer={selectedTransfer.toJsonAsOwner()} />
+    <TransferPage user={auth.user.toJsonAsClient()} transfer={await selectedTransfer.toJsonAsOwner()} />
   )
 }

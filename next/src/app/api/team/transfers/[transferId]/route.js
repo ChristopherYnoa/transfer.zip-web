@@ -43,5 +43,5 @@ export async function PUT(req, { params }) {
 
   await transfer.save()
 
-  return NextResponse.json(resp({ transfer: transfer.toJsonAsTeamAdmin() }))
+  return NextResponse.json(resp({ transfer: await transfer.toJsonAsTeamAdmin() }))
 }

@@ -45,8 +45,8 @@ export async function GET() {
       usedFreeTrial: user.usedFreeTrial,
       planStatus: user.planStatus
     },
-    transfers: transfers.map(t => t.toJsonAsOwner()),
-    transferRequests: transferRequests.map(r => r.toJsonAsOwner()),
+    transfers: await Promise.all(transfers.map(t => t.toJsonAsOwner())),
+    transferRequests: await Promise.all(transferRequests.map(r => r.toJsonAsOwner())),
     brandProfiles: brandProfiles.map(b => b.toJsonAsClient())
   }
 

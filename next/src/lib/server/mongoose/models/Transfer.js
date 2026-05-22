@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import crypto from "crypto"
 
 import BrandProfile from './BrandProfile';
+import { getDownloadDomainFor } from '../helpers/customDomains';
 
 // These keys are not protecting anything critical. It is just so that the Transfer password is
 // not in plain-text in the database. We also do not want to hash it, as we need to let the user
@@ -133,7 +134,7 @@ TransferSchema.methods.registerFile = function (fileInfo) {
 }
 
 // TODO: Fix this mess
-TransferSchema.methods.toJsonAsOwner = function () {
+TransferSchema.methods.toJsonAsOwner = async function () {
     const { _id, name, description, expiresAt, secretCode, emailsSharedWith, createdAt, downloads, views, files, size } = this
     return {
         id: _id.toString(),
@@ -141,6 +142,7 @@ TransferSchema.methods.toJsonAsOwner = function () {
         description,
         expiresAt,
         secretCode,
+        downloadUrl: await this.getDownloadLink(),
         hasPassword: this.hasPassword(),
         password: this.getPassword(),
         emailsSharedWith: emailsSharedWith.map(entry => ({ time: entry.time, email: entry.email })),
@@ -164,7 +166,7 @@ TransferSchema.methods.toJsonAsOwner = function () {
 // Omits the plaintext password (we don't want a team admin browsing
 // other members' download passwords) but includes author identity so
 // the UI can show "uploaded by X". The author must be populated.
-TransferSchema.methods.toJsonAsTeamAdmin = function () {
+TransferSchema.methods.toJsonAsTeamAdmin = async function () {
     const { _id, name, description, expiresAt, secretCode, createdAt, downloads, views, files, size } = this
     return {
         id: _id.toString(),
@@ -172,6 +174,7 @@ TransferSchema.methods.toJsonAsTeamAdmin = function () {
         description,
         expiresAt,
         secretCode,
+        downloadUrl: await this.getDownloadLink(),
         hasPassword: this.hasPassword(),
         statistics: {
             downloads: { length: downloads?.length },
@@ -210,7 +213,11 @@ TransferSchema.methods.toJsonAsTeamAdmin = function () {
 //     }
 // }
 
-TransferSchema.methods.getDownloadLink = function () {
+TransferSchema.methods.getDownloadLink = async function () {
+    const customDomain = await getDownloadDomainFor({ team: this.team, user: this.author?._id || this.author })
+    if (customDomain) {
+        return `https://${customDomain}/${this.secretCode}`
+    }
     if (process.env.NEXT_PUBLIC_DL_DOMAIN) {
         return `https://${process.env.NEXT_PUBLIC_DL_DOMAIN}/${this.secretCode}`
     }

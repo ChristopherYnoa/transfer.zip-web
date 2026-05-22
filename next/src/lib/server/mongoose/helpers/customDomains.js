@@ -23,6 +23,22 @@ export const customDomainOwnershipFor = (user) => {
 export const listCustomDomainsForUser = (user) =>
   CustomDomain.find(customDomainScopeQuery(user)).sort({ createdAt: -1 })
 
+// Look up the verified hostname for a Transfer/TransferRequest's
+// ownership scope. Mirrors customDomainScopeQuery: prefer team when
+// present (a transfer authored under a team keeps team branding even
+// if the author later leaves), otherwise fall back to the author's
+// personal domain. Returns the lowercase hostname or null.
+export const getDownloadDomainFor = async ({ team, user } = {}) => {
+  const query = team
+    ? { team }
+    : user ? { user, team: { $exists: false } } : null
+  if (!query) return null
+  const domain = await CustomDomain.findOne({ ...query, verified: true })
+    .select("domain")
+    .lean()
+  return domain?.domain || null
+}
+
 // Zones whose root and any subdomain must never end up as a CustomDomain.
 // transfer.zip is hardcoded so it's blocked even when SITE_URL points
 // elsewhere in dev. SITE_URL / NEXT_PUBLIC_DL_DOMAIN catch any extra

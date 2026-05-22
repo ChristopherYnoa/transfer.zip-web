@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import EmptySpace from "../elements/EmptySpace"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
-import { deleteTransfer, getDownloadToken, getTransferDownloadLink, registerTransferDownloaded } from "@/lib/client/Api"
+import { deleteTransfer, getDownloadToken, registerTransferDownloaded } from "@/lib/client/Api"
 import { humanTimeSince, humanTimeUntil, parseTransferExpiryDate, sleep, tryCopyToClipboard } from "@/lib/utils"
 import BIcon from "../BIcon"
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
@@ -12,7 +12,7 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
 const Entry = ({ transfer }) => {
   const router = useRouter()
 
-  const transferLink = useMemo(() => getTransferDownloadLink(transfer), [transfer])
+  const transferLink = transfer.downloadUrl
 
   const { id, name, files, expiresAt, createdAt, hasTransferRequest, finishedUploading, secretCode } = transfer
   const expiryDate = parseTransferExpiryDate(expiresAt)

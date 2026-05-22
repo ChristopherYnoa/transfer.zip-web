@@ -256,13 +256,6 @@ export async function deleteTransfer(transferId) {
     return await post(`/transfer/${transferId}/delete`)
 }
 
-export const getTransferDownloadLink = (transfer) => {
-    if (process.env.NEXT_PUBLIC_DL_DOMAIN) {
-        return `https://${process.env.NEXT_PUBLIC_DL_DOMAIN}/${transfer.secretCode}`
-    }
-    return typeof window === "undefined" ? `${process.env.SITE_URL}/transfer/${transfer.secretCode}` : `${window.location.origin}/transfer/${transfer.secretCode}`
-}
-
 export const getTransferAttachmentLink = (transfer) => {
     if (!transfer) return null
     return `${API_URL}/download/${transfer.secretCode}`
@@ -285,12 +278,6 @@ export async function newTransferRequest(data) {
 
 export async function sendTransferRequestByEmail(transferRequestId, emails) {
     return await post(`/transferrequest/${transferRequestId}/sendbyemail`, { emails })
-}
-
-export const getTransferRequestUploadLink = (transferRequest) => {
-    if (!transferRequest) return null
-    if (typeof window === "undefined") return null
-    return `${window.location.protocol}//${window.location.host}/upload/${transferRequest.secretCode}`
 }
 
 export async function activateTransferRequest(transferRequestId) {

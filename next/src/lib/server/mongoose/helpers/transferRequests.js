@@ -12,13 +12,16 @@ export const INACTIVE_PAGE_SIZE = 10
 // author identity is exposed and emailsSharedWith is not.
 export async function enrichTransferRequests(transferRequestDocs, serializer = "toJsonAsOwner") {
   return Promise.all(transferRequestDocs.map(async request => {
-    const transfers = await Transfer.find({
-      transferRequest: request._id,
-      "files.0": { $exists: true }
-    }).select("_id name files").sort({ createdAt: -1 })
+    const [transfers, serialized] = await Promise.all([
+      Transfer.find({
+        transferRequest: request._id,
+        "files.0": { $exists: true }
+      }).select("_id name files").sort({ createdAt: -1 }),
+      request[serializer](),
+    ])
 
     return {
-      ...request[serializer](),
+      ...serialized,
       receivedTransfersCount: transfers.length,
       receivedTransfers: transfers.map(t => ({
         id: t._id.toString(),

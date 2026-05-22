@@ -10,10 +10,11 @@ export default async function ({ children }) {
 
   const sentTransfers = transfers.filter(transfer => !transfer.transferRequest)
   // const receivedTransfers = transfers.filter(transfer => transfer.hasTransferRequest)
+  const sentTransfersJson = await Promise.all(sentTransfers.map(transfer => transfer.toJsonAsOwner()))
 
   return (
     <GenericPage title={"Sent"}>
-      <TransferList transfers={sentTransfers.map(transfer => transfer.toJsonAsOwner())} emptyFallback={(
+      <TransferList transfers={sentTransfersJson} emptyFallback={(
         <EmptySpace title={"Your Sent Transfers"} subtitle={"Transfers you have sent will appear here. Go ahead and send some files!"} />
       )} />
       {children}

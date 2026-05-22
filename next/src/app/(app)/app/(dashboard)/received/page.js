@@ -9,10 +9,11 @@ export default async function () {
   const transfers = await listTransfersForUser(user)
   // const sentTransfers = transfers.filter(transfer => !transfer.hasTransferRequest)
   const receivedTransfers = transfers.filter(transfer => transfer.transferRequest)
+  const receivedTransfersJson = await Promise.all(receivedTransfers.map(transfer => transfer.toJsonAsOwner()))
 
   return (
     <GenericPage title={"Received"}>
-      <TransferList transfers={receivedTransfers.map(transfer => transfer.toJsonAsOwner())} emptyFallback={(
+      <TransferList transfers={receivedTransfersJson} emptyFallback={(
         <EmptySpace title={"Your Received Transfers"} subtitle={"Received files from transfer requests will appear here."} />
       )} />
     </GenericPage>

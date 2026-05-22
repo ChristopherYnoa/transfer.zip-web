@@ -4,6 +4,7 @@ import Team from "@/lib/server/mongoose/models/Team"
 import User from "@/lib/server/mongoose/models/User"
 import Session from "@/lib/server/mongoose/models/Session"
 import Transfer from "@/lib/server/mongoose/models/Transfer"
+import TransferRequest from "@/lib/server/mongoose/models/TransferRequest"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import { resp } from "@/lib/server/serverUtils"
 import { ROLES } from "@/lib/roles"
@@ -47,13 +48,18 @@ export async function DELETE(req, { params }) {
     return NextResponse.json(resp("Owner cannot be deleted"), { status: 403 })
   }
 
-  // Reassign the removed member's team-tagged transfers to the Owner so
-  // (a) the team keeps managing them, (b) the now-solo ex-member can't reach
-  // back in to edit/delete via /api/transfer/:id (which authorizes by author),
+  // Reassign the removed member's team-tagged transfers AND transfer requests
+  // to the Owner so (a) the team keeps managing them, (b) the now-solo ex-member
+  // can't reach back in to edit/delete via the per-author endpoints
+  // (/api/transfer/:id and /api/transferrequest/:id, which authorize by author),
   // and (c) the data doesn't end up siloed on a free-tier personal account.
-  // We only touch transfers tagged with this team — anything the user created
-  // before joining or via their own transfer requests stays theirs.
+  // We only touch docs tagged with this team — anything the user created
+  // outside the team context stays theirs.
   const reassignResult = await Transfer.updateMany(
+    { author: userId, team: team._id },
+    { $set: { author: auth.user._id } }
+  )
+  const reassignRequestsResult = await TransferRequest.updateMany(
     { author: userId, team: team._id },
     { $set: { author: auth.user._id } }
   )
@@ -78,6 +84,7 @@ export async function DELETE(req, { params }) {
       userId: userId.toString(),
       email: user?.email,
       transfersReassigned: reassignResult.modifiedCount || 0,
+      transferRequestsReassigned: reassignRequestsResult.modifiedCount || 0,
     },
   })
 
