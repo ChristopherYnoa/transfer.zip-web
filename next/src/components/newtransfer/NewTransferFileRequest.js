@@ -26,15 +26,7 @@ import BrandingToggle from "./BrandingToggle";
 import DynamicIsland from "./DynamicIsland";
 import { toast } from "sonner";
 import { ApplicationContext } from "@/context/ApplicationContext";
-
-function AddedEmailField({ email, onAction }) {
-  return (
-    <li className="pt-1 text-sm group flex relative items-center">
-      <span className="text-primary-900 font-medium bg-primary-100 px-2 py-0.5 rounded-full">{email}</span>
-      <button type="button" onClick={() => onAction("delete", email)} className="text-destructive bg-white rounded-full border px-1 absolute right-0 opacity-0 group-hover:opacity-100"><BIcon name={"x"} /></button>
-    </li>
-  )
-}
+import AddedEmailField from "./AddedEmailField";
 
 export default function ({ isDashboard, loaded, user, storage, brandProfiles, initialTab }) {
 

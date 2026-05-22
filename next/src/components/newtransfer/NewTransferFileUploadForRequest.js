@@ -23,15 +23,6 @@ import { FileContext } from "@/context/FileProvider";
 import { GlobalContext } from "@/context/GlobalContext";
 import DynamicIsland from "./DynamicIsland";
 
-function AddedEmailField({ email, onAction }) {
-  return (
-    <li className="pt-1 text-sm group flex relative items-center">
-      <span className="text-primary-900 font-medium bg-primary-100 px-2 py-0.5 rounded-full">{email}</span>
-      <button type="button" onClick={() => onAction("delete", email)} className="text-destructive bg-white rounded-full border px-1 absolute right-0 opacity-0 group-hover:opacity-100"><BIcon name={"x"} /></button>
-    </li>
-  )
-}
-
 export default function ({ brandProfile, transferRequest }) {
 
   const router = useRouter()

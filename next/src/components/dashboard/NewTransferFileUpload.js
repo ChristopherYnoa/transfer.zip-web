@@ -18,15 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { prepareTransferFiles, uploadFiles } from "@/lib/client/uploader";
 import Image from "next/image";
 import { getMaxRecipientsForPlan } from "../../lib/getMaxRecipientsForPlan";
-
-function AddedEmailField({ email, onAction }) {
-  return (
-    <li className="pt-1 text-sm group flex relative items-center">
-      <span className="text-primary-900 font-medium bg-primary-100 px-2 py-0.5 rounded-full">{email}</span>
-      <button type="button" onClick={() => onAction("delete", email)} className="text-destructive bg-white rounded-full border px-1 absolute right-0 opacity-0 group-hover:opacity-100"><BIcon name={"x"} /></button>
-    </li>
-  )
-}
+import AddedEmailField from "../newtransfer/AddedEmailField";
 
 export default function ({ user, storage, brandProfiles }) {
 
