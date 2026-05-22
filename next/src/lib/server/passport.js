@@ -19,6 +19,7 @@ if (USING_PASSPORT && !passport._strategy("google")) {
             user = new User({
               googleId: profile.id,
               email: profile.emails[0].value,
+              onboarded: false,
             })
             await user.save()
           }

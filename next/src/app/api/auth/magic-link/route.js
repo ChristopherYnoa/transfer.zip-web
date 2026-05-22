@@ -19,7 +19,7 @@ export async function POST(req) {
   const existingUser = await User.findOne({ email: { $eq: email } })
   let user = existingUser
   if (!user) {
-    user = new User({ email })
+    user = new User({ email, onboarded: false })
     try {
       await user.save()
     } catch (err) {

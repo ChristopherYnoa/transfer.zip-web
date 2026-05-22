@@ -63,8 +63,8 @@ export async function getUser() {
     return await get("/user")
 }
 
-export async function onboard(onboardObj) {
-    return await post("/user/onboard", onboardObj)
+export async function markUserOnboarded() {
+    return await post("/user/onboard", {})
 }
 
 export async function getUserStorage() {

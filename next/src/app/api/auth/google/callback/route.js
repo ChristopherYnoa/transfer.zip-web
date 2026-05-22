@@ -27,7 +27,7 @@ export async function GET(req) {
   const { sub: googleId, email } = ticket.getPayload();
 
   let user = await User.findOne({ googleId });
-  if (!user) user = await User.create({ googleId, email });
+  if (!user) user = await User.create({ googleId, email, onboarded: false });
 
   const session = await Session.create({ user });
 

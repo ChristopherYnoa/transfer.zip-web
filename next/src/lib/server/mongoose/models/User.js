@@ -58,7 +58,11 @@ const UserSchema = new mongoose.Schema({
     usedFreeTrial: { type: Boolean, default: false },
 
     // verified: { type: Boolean, default: false },
-    // onboarded: { type: Boolean, default: false },
+
+    // No default — undefined means "predates the onboarding flow" and is
+    // treated as already onboarded. New users get explicit `false` from
+    // their creation site so they go through /onboarding-pro after paying.
+    onboarded: { type: Boolean },
 
     customMaxStorageBytes: { type: Number },
 
@@ -230,10 +234,6 @@ UserSchema.virtual("verified").get(function () {
 
 UserSchema.virtual("hasPassword").get(function () {
     return !!this.hash
-});
-
-UserSchema.virtual("onboarded").get(function () {
-    return this.getPlan() !== "free";
 });
 
 UserSchema.set('toJSON', { virtuals: true });

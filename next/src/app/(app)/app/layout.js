@@ -32,6 +32,12 @@ export default async function DashboardLayout({ children }) {
     return redirect("/onboarding-team")
   }
 
+  // Strict false — `undefined` means the user predates the onboarding
+  // flow and shouldn't be pulled into it.
+  if (!auth.user.hasTeam && auth.user.onboarded === false) {
+    return redirect("/onboarding-pro")
+  }
+
   // const storage = await auth.user.getStorage()
 
   return (
