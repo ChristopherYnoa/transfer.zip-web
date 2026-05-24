@@ -6,9 +6,8 @@ import User from "./mongoose/models/User"
 import { sendCustomDomainConnected } from "./mail/mail"
 
 // The CNAME value the user's domain must point at to count as ours.
-// CNAME-only on purpose — IP-matching breaks the moment our edge IPs
-// rotate or the user fronts the domain with Cloudflare.
-const TARGET_CNAME = "transfer.zip"
+// CNAME-only on purpose
+const TARGET_CNAME = process.env.CUSTOM_DOMAIN_TARGET_CNAME || "transfer.zip"
 
 const normalize = (host) => host.toLowerCase().replace(/\.$/, "")
 
