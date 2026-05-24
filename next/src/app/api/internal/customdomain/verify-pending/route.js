@@ -19,8 +19,6 @@ const BATCH_LIMIT = 100
 export async function POST(req) {
   await dbConnect()
 
-  console.log("POST verify-pending")
-
   const cutoff = new Date(Date.now() - STALE_AFTER_MS)
   const domains = await CustomDomain.find({
     verified: false,
@@ -29,8 +27,6 @@ export async function POST(req) {
       { lastCheckedAt: { $lt: cutoff } },
     ],
   }).limit(BATCH_LIMIT)
-
-  console.log("domains:", domains)
 
   let newlyVerified = 0
   for (const doc of domains) {

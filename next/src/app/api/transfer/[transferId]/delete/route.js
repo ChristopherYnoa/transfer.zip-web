@@ -19,10 +19,12 @@ export async function POST(req, { params }) {
   const transfer = await Transfer.findById(transferId)
     .populate('transferRequest');              // full populate; we'll check it ourselves
 
-  // Authorisation check in one place
+  // Authorisation check in one place. `author` is unset for guest uploads
+  // into a transfer request, so guard it before calling .equals — those
+  // transfers are deletable by the request owner via the second branch.
   const authorized =
     transfer &&
-    (transfer.author.equals(user._id) ||
+    ((transfer.author && transfer.author.equals(user._id)) ||
       (transfer.transferRequest &&
         transfer.transferRequest.author.equals(user._id)));
 

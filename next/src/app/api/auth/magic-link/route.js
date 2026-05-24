@@ -1,9 +1,11 @@
 import crypto from "crypto"
+import mongoose from "mongoose"
 import { sendMagicLink } from '@/lib/server/mail/mail'
 import dbConnect from '@/lib/server/mongoose/db'
 import MagicLink from '@/lib/server/mongoose/models/MagicLink'
 import User from '@/lib/server/mongoose/models/User'
 import { resp } from '@/lib/server/serverUtils'
+import { getMagicLinkRequestRateLimiter } from '@/lib/server/rate-limits/rateLimiters'
 import { NextResponse } from 'next/server'
 
 export async function POST(req) {
@@ -15,6 +17,14 @@ export async function POST(req) {
   }
 
   await dbConnect()
+
+  // Per-email cap: stops attackers from inbox-bombing a victim and from
+  // creating an unbounded number of ghost-User rows via this endpoint.
+  try {
+    await getMagicLinkRequestRateLimiter(mongoose).consume(email)
+  } catch {
+    return NextResponse.json(resp("Too many magic links requested for this email. Try again later."), { status: 429 })
+  }
 
   const existingUser = await User.findOne({ email: { $eq: email } })
   let user = existingUser

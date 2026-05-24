@@ -11,12 +11,16 @@ const TARGET_CNAME = process.env.CUSTOM_DOMAIN_TARGET_CNAME || "transfer.zip"
 
 const normalize = (host) => host.toLowerCase().replace(/\.$/, "")
 
-// Walk parent zones until we find authoritative NS records. For
-// "files.acme.com" we try the full host (subdomains rarely have their
-// own NS), then "acme.com" — whichever zone responds first wins.
+// Walk parent zones until we find authoritative NS records. For a
+// subdomain like "files.acme.com" we start at "acme.com" and skip the
+// host itself: when the host has a CNAME, resolveNs follows the CNAME
+// (RFC 1034 §3.6.2) and returns NS records for the *target's* zone,
+// which then can't answer authoritatively for the host. For an apex
+// ("acme.com"), the host is the start.
 const findAuthoritativeNs = async (host) => {
   const labels = host.split(".")
-  for (let i = 0; i < labels.length - 1; i++) {
+  const startIdx = labels.length > 2 ? 1 : 0
+  for (let i = startIdx; i < labels.length - 1; i++) {
     const zone = labels.slice(i).join(".")
     try {
       const ns = await resolveNs(zone)
@@ -89,8 +93,6 @@ export async function runVerification(doc) {
   }
   await doc.save()
 
-  console.log("result:", result, "domain:", doc.domain)
-  
   if (result.verified && !wasVerified) {
     try {
       await notifyDomainConnected(doc)

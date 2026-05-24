@@ -46,6 +46,29 @@ export const getCustomDomainCheckRateLimiter = (conn) => {
 }
 
 /**
+ * Caps magic-link emails per address. Stops an attacker from inbox-bombing a
+ * victim by hammering POST /api/auth/magic-link (also caps ghost-User row
+ * creation for unknown emails). 5/hr covers normal "didn't get it, retry"
+ * behaviour with room to spare.
+ *
+ * @param {*} conn
+ * @returns {RateLimiterMongo}
+ */
+export const getMagicLinkRequestRateLimiter = (conn) => {
+  let cached = global.magicLinkRequestRateLimiter;
+  if (cached) return cached
+
+  const rateLimiter = new RateLimiterMongo({
+    storeClient: conn.connections[0],
+    points: 5,
+    tableName: "ratelimit-magic-link-request",
+    duration: 3600,
+  })
+  global.magicLinkRequestRateLimiter = rateLimiter
+  return rateLimiter
+}
+
+/**
  * Caps brute-force attempts against the 6-digit magic-link code. Keyed on the
  * MagicLink _id, so each cross-device sign-in gets its own budget. 10 tries
  * over the link's 15m lifetime leaves ~6 orders of magnitude on the 6-digit
