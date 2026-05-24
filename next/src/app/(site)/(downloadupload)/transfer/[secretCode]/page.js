@@ -14,6 +14,7 @@ import Image from "next/image";
 import { headers } from "next/headers";
 import { isBot } from "@/lib/isBot";
 import { useServerAuth } from "@/lib/server/wrappers/auth";
+import { isCustomDomainHost } from "@/lib/hostUtils";
 
 export async function generateMetadata({ params }) {
   const { secretCode } = await params
@@ -61,14 +62,16 @@ export default async function ({ params }) {
 
   const auth = await useServerAuth()
 
+  const headersList = await headers()
   if (!transfer?.author || !auth || auth.user._id.toString() !== transfer.author._id.toString()) {
-    const headersList = await headers()
     const userAgent = headersList.get("user-agent") || ""
     if (!isBot(userAgent)) {
       transfer.logView()
       await transfer.save()
     }
   }
+
+  const isCustomDomain = isCustomDomainHost(headersList.get("host"))
 
   const expiryDate = parseTransferExpiryDate(transfer.expiresAt)
 
@@ -77,7 +80,7 @@ export default async function ({ params }) {
   return (
     <>
       <div className="grid min-h-[100vh] place-items-center ">
-        {brandProfile ? <BrandHeader brandProfile={brandProfile} /> : <Header />}
+        {brandProfile ? <BrandHeader brandProfile={brandProfile} /> : !isCustomDomain && <Header />}
         {brandProfile && brandProfile.backgroundUrl && (
           <Image
             fill
@@ -105,7 +108,7 @@ export default async function ({ params }) {
           </div>
         </div>
       </div>
-      {(!IS_SELFHOST && !brandProfile) && (
+      {(!IS_SELFHOST && !brandProfile && !isCustomDomain) && (
         <>
           <Features1 />
           <TestimonialCloud />

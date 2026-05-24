@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { IS_SELFHOST } from "./lib/isSelfHosted"
 import { AB_TESTS } from "./lib/abtests"
 import { abTest } from "./lib/server/abtestServer"
+import { isOwnHost } from "./lib/hostUtils"
 
 const selfHostBlacklist = [
   "/api/stripe"
@@ -17,17 +18,6 @@ const selfHostWhitelist = [
 const customDomainWhitelist = [
   "/api", "/transfer", "/upload"
 ]
-
-// The main marketing/app host. Anything else — the DL domain
-// (trnsf.to) or a customer's verified custom domain — is "external"
-// and only serves transfer/upload routes. We trust Caddy to gate which
-// hosts reach us, but match strictly so a lookalike like
-// `eviltransfer.zip` can't impersonate our zone.
-const isOwnHost = (host) => {
-  if (!host) return true
-  const lower = host.toLowerCase().split(":")[0]
-  return lower === "transfer.zip" || lower.endsWith(".transfer.zip")
-}
 
 const legacyRedirects = [
   { from: "/quick-share", to: "/quick" },

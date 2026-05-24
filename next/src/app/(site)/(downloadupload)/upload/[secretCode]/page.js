@@ -5,8 +5,10 @@ import IndieStatement from "@/components/IndieStatement";
 import NewTransferFileUploadForRequest from "@/components/newtransfer/NewTransferFileUploadForRequest";
 import TestimonialCloud from "@/components/TestimonialCloud";
 import { IS_SELFHOST } from "@/lib/isSelfHosted";
+import { isCustomDomainHost } from "@/lib/hostUtils";
 import dbConnect from "@/lib/server/mongoose/db";
 import TransferRequest from "@/lib/server/mongoose/models/TransferRequest";
+import { headers } from "next/headers";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import BrandHeader from "../../BrandHeader";
@@ -51,10 +53,13 @@ export default async function ({ params }) {
 
   let { brandProfile } = transferRequest
 
+  const headersList = await headers()
+  const isCustomDomain = isCustomDomainHost(headersList.get("host"))
+
   return (
     <>
       <div className="grid min-h-[100vh] place-items-center ">
-        {brandProfile ? <BrandHeader brandProfile={brandProfile} /> : <Header />}
+        {brandProfile ? <BrandHeader brandProfile={brandProfile} /> : !isCustomDomain && <Header />}
         {brandProfile && brandProfile.backgroundUrl && (
           <Image
             fill
@@ -65,7 +70,7 @@ export default async function ({ params }) {
         )}
         <NewTransferFileUploadForRequest brandProfile={brandProfile?.toJsonAsClient()} transferRequest={await transferRequest.toJsonAsUploader()} />
       </div>
-      {(!IS_SELFHOST && !brandProfile) && (
+      {(!IS_SELFHOST && !brandProfile && !isCustomDomain) && (
         <>
           <Features1 />
           <TestimonialCloud />
