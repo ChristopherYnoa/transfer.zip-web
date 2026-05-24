@@ -20,14 +20,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { FREE_PLAN, PLANS } from "@/lib/pricing"
+import { PLANS } from "@/lib/pricing"
 import { sendEvent } from "@/lib/client/umami"
 import { API_URL, changeSubscription, changeSubscriptionPreview, createCheckoutSession } from "@/lib/client/Api"
 import { cn, sleep } from "@/lib/utils"
 
-const PLAN_ORDER = ["free", "starter", "pro", "teams"]
+const PLAN_ORDER = ["starter", "pro", "teams"]
 const FEATURED_PLAN = "pro"
-const ALL_PLANS = { free: FREE_PLAN, ...PLANS }
 
 const SECTIONS = [
   {
@@ -35,23 +34,23 @@ const SECTIONS = [
     rows: [
       {
         label: "Max file size",
-        values: { free: "Unlimited (Quick only)", starter: "200 GB", pro: "1 TB", teams: "1 TB" },
+        values: { starter: "200 GB", pro: "1 TB", teams: "1 TB" },
       },
       {
         label: "File expiry",
-        values: { free: "Session only", starter: "14 days", pro: "365 days", teams: "365 days" },
+        values: { starter: "14 days", pro: "365 days", teams: "365 days" },
       },
       {
         label: "Storage",
-        values: { free: false, starter: "200 GB", pro: "1 TB", teams: "1 TB per user" },
+        values: { starter: "200 GB", pro: "1 TB", teams: "1 TB per user" },
       },
       {
         label: "Unlimited transfers",
-        values: { free: true, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "Email recipients per send",
-        values: { free: false, starter: "10", pro: "30", teams: "30" },
+        values: { starter: "10", pro: "30", teams: "30" },
       },
     ],
   },
@@ -61,28 +60,24 @@ const SECTIONS = [
       {
         label: "Quick Transfers (peer-to-peer)",
         tooltip: "Stream files directly between browsers — nothing is stored on our servers.",
-        values: { free: true, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "Stored transfers",
-        values: { free: false, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "Send files by email",
-        values: { free: false, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "File request links",
         tooltip: "Share a link that lets anyone upload files to you, no account needed.",
-        values: { free: false, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
-      // {
-      //   label: "Password protection",
-      //   values: { free: false, starter: true, pro: true, teams: true },
-      // },
       {
         label: "View & download tracking",
-        values: { free: false, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
     ],
   },
@@ -92,16 +87,16 @@ const SECTIONS = [
       {
         label: "Custom logo & colors",
         tooltip: "Add your own logo and customize backgrounds on download pages.",
-        values: { free: false, starter: false, pro: true, teams: true },
+        values: { starter: false, pro: true, teams: true },
       },
       {
         label: "Custom domain",
         tooltip: "Send from your own domain, e.g. files.yourcompany.com",
-        values: { free: false, starter: false, pro: true, teams: true },
+        values: { starter: false, pro: true, teams: true },
       },
       {
         label: "Branded email templates",
-        values: { free: false, starter: false, pro: true, teams: true },
+        values: { starter: false, pro: true, teams: true },
       },
     ],
   },
@@ -110,23 +105,23 @@ const SECTIONS = [
     rows: [
       {
         label: "Centralized billing",
-        values: { free: false, starter: false, pro: false, teams: true },
+        values: { starter: false, pro: false, teams: true },
       },
       {
         label: "Member management",
-        values: { free: false, starter: false, pro: false, teams: true },
+        values: { starter: false, pro: false, teams: true },
       },
       {
         label: "Roles & permissions",
-        values: { free: false, starter: false, pro: false, teams: true },
+        values: { starter: false, pro: false, teams: true },
       },
       {
         label: "Member activity logs",
-        values: { free: false, starter: false, pro: false, teams: true },
+        values: { starter: false, pro: false, teams: true },
       },
       {
         label: "Priority support",
-        values: { free: false, starter: false, pro: false, teams: true },
+        values: { starter: false, pro: false, teams: true },
       },
     ],
   },
@@ -135,35 +130,37 @@ const SECTIONS = [
     rows: [
       {
         label: "End-to-end encryption (Quick)",
-        values: { free: true, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "Encryption at rest",
-        values: { free: true, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "No AI training on your data",
-        values: { free: true, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "Open source",
-        values: { free: true, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
       {
         label: "No trackers",
-        values: { free: true, starter: true, pro: true, teams: true },
+        values: { starter: true, pro: true, teams: true },
       },
     ],
   },
 ]
 
 const TAGLINES = {
-  free: "Perfect for occasional, peer-to-peer transfers.",
   starter: "For individuals sending a few files a week.",
   pro: "For power users who send big files all day, every day.",
   teams: "For teams and companies sharing files together.",
 }
 
+// "free" stays in the tier ladder because users currently on the free
+// plan still view this page — they need the free→paid upgrade path
+// even though Free is no longer rendered as a column.
 const PLAN_TIER = { free: 0, starter: 1, pro: 2 }
 
 function getSoloTier(planId) {
@@ -171,15 +168,13 @@ function getSoloTier(planId) {
 }
 
 function getCta(planId) {
-  if (planId === "free") return "Use for free"
   if (planId === "teams") return "Get started"
   return "Start 7-day trial"
 }
 
 function getCtaConfig({ user, planId }) {
   if (!user) {
-    const href = planId === "free" ? "/" : "/app"
-    return { kind: "link", href, label: getCta(planId) }
+    return { kind: "link", href: "/app", label: getCta(planId) }
   }
 
   const currentPlan = user.plan
@@ -195,7 +190,6 @@ function getCtaConfig({ user, planId }) {
   }
 
   if (planId === currentPlan) {
-    if (planId === "free") return { kind: "current-free" }
     return { kind: "manage", label: "Manage billing" }
   }
 
@@ -213,16 +207,11 @@ function getCtaConfig({ user, planId }) {
     return { kind: "upgrade", tier: planId, label: "Upgrade to Pro" }
   }
 
-  if (planId === "free") {
-    return { kind: "link", href: "/app/settings", label: "Manage subscription" }
-  }
-
   return { kind: "downgrade", tier: planId, label: "Downgrade" }
 }
 
 function getDisplayPrice(planId, frequency) {
-  if (planId === "free") return { amount: 0, suffix: "" }
-  const plan = ALL_PLANS[planId]
+  const plan = PLANS[planId]
   const amount = plan.price[frequency]
   const suffix = planId === "teams" ? "/user/mo" : "/mo"
   return { amount, suffix }
@@ -239,11 +228,11 @@ function ValueCell({ value }) {
 }
 
 function PlanHeader({ planId, frequency, featured, layout, stuck, user, onAction, busy }) {
-  const plan = ALL_PLANS[planId]
+  const plan = PLANS[planId]
   const { amount, suffix } = getDisplayPrice(planId, frequency)
   const isCompact = layout === "desktop"
   const cta = getCtaConfig({ user, planId })
-  const isCurrent = cta.kind === "current-free" || cta.kind === "manage"
+  const isCurrent = cta.kind === "manage"
 
   const ctaClasses = cn(
     "block rounded-md px-3 text-center text-sm font-semibold transition-all",
@@ -279,12 +268,10 @@ function PlanHeader({ planId, frequency, featured, layout, stuck, user, onAction
       {!stuck && (
         <p className="text-xs text-gray-500 min-h-4">
           {planId === "teams" && (frequency === "yearly" ? "Minimum 2 users, billed annually" : "Minimum 2 users")}
-          {frequency === "yearly" && planId !== "free" && planId !== "teams" && `Billed annually as $${ALL_PLANS[planId].price.yearly * 12}/year`}
+          {frequency === "yearly" && planId !== "teams" && `Billed annually as $${PLANS[planId].price.yearly * 12}/year`}
         </p>
       )}
-      {cta.kind === "current-free" ? (
-        <span className={cn(ctaClasses, "opacity-60 cursor-default")}>Current plan</span>
-      ) : cta.kind === "link" ? (
+      {cta.kind === "link" ? (
         <Link
           href={cta.href}
           onClick={() => sendEvent("pricing_table_cta_click", { plan: planId, frequency })}
@@ -428,11 +415,10 @@ export default function PricingComparisonTable({ authCta, user }) {
             <div className="rounded-2xl ring-1 ring-gray-200 overflow-clip bg-white shadow-xl">
               <table className="w-full border-collapse table-fixed">
                 <colgroup>
+                  <col className="w-[34%]" />
                   <col className="w-[22%]" />
-                  <col className="w-[19.5%]" />
-                  <col className="w-[19.5%]" />
-                  <col className="w-[19.5%] bg-primary-50" />
-                  <col className="w-[19.5%]" />
+                  <col className="w-[22%] bg-primary-50" />
+                  <col className="w-[22%]" />
                 </colgroup>
                 <thead>
                   <tr>
@@ -468,7 +454,6 @@ export default function PricingComparisonTable({ authCta, user }) {
                       <th scope="colgroup" colSpan={1} className="px-6 pt-12 pb-3 text-left">
                         <h4 className="text-base font-bold text-gray-900">{section.name}</h4>
                       </th>
-                      <td className="border-l border-gray-200"></td>
                       <td className="border-l border-gray-200"></td>
                       <td className="border-l border-gray-200"></td>
                       <td className="border-l border-gray-200"></td>
@@ -549,7 +534,7 @@ export default function PricingComparisonTable({ authCta, user }) {
       <Dialog open={showUpgrade} onOpenChange={(open) => { if (!confirming) setShowUpgrade(open) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm upgrade to {upgradeTier ? ALL_PLANS[upgradeTier]?.name : ""}</DialogTitle>
+            <DialogTitle>Confirm upgrade to {upgradeTier ? PLANS[upgradeTier]?.name : ""}</DialogTitle>
             <DialogDescription>
               You'll be charged a prorated amount today and your subscription will switch immediately.
             </DialogDescription>
