@@ -94,6 +94,7 @@ const NEXT_INTERNAL_URL = process.env.NEXT_INTERNAL_URL
 
 const verifyPendingCustomDomains = async () => {
   try {
+    console.log(NEXT_INTERNAL_URL)
     const r = await fetch(`${NEXT_INTERNAL_URL}/api/internal/customdomain/verify-pending`, {
       method: "POST",
     })
@@ -111,6 +112,7 @@ const verifyPendingCustomDomains = async () => {
 }
 
 cron.schedule("* * * * *", verifyPendingCustomDomains)
+verifyPendingCustomDomains()
 
 console.log(await getPublicKey())
 

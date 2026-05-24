@@ -44,3 +44,26 @@ export const getCustomDomainCheckRateLimiter = (conn) => {
   global.customDomainCheckRateLimiter = rateLimiter
   return rateLimiter
 }
+
+/**
+ * Caps brute-force attempts against the 6-digit magic-link code. Keyed on the
+ * MagicLink _id, so each cross-device sign-in gets its own budget. 10 tries
+ * over the link's 15m lifetime leaves ~6 orders of magnitude on the 6-digit
+ * space while still allowing a few honest typos.
+ *
+ * @param {*} conn
+ * @returns {RateLimiterMongo}
+ */
+export const getMagicLinkVerifyRateLimiter = (conn) => {
+  let cached = global.magicLinkVerifyRateLimiter;
+  if (cached) return cached
+
+  const rateLimiter = new RateLimiterMongo({
+    storeClient: conn.connections[0],
+    points: 10,
+    tableName: "ratelimit-magic-link-verify",
+    duration: 15 * 60,
+  })
+  global.magicLinkVerifyRateLimiter = rateLimiter
+  return rateLimiter
+}

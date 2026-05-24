@@ -6,6 +6,7 @@ import MagicLink from "@/lib/server/mongoose/models/MagicLink"
 import Session from "@/lib/server/mongoose/models/Session"
 import User from "@/lib/server/mongoose/models/User"
 import { createCookieParams, resp } from "@/lib/server/serverUtils"
+import { getMagicLinkVerifyRateLimiter } from "@/lib/server/rate-limits/rateLimiters"
 
 // Called by the originating browser to complete sign-in using the 6-digit
 // code displayed on the device that opened the email. The code is only valid
@@ -29,6 +30,14 @@ export async function POST(req, { params }) {
   const mlReqCookie = cookieStore.get("mlReq")?.value
   if (!mlReqCookie) {
     return NextResponse.json(resp("Sign-in session expired"), { status: 401 })
+  }
+
+  // Throttle code guesses per MagicLink. Consumed before any DB work so a
+  // brute-forcer can't outrun the limiter by spamming concurrent requests.
+  try {
+    await getMagicLinkVerifyRateLimiter(mongoose).consume(requestId)
+  } catch {
+    return NextResponse.json(resp("Too many attempts. Request a new magic link."), { status: 429 })
   }
 
   const magicLink = await MagicLink.findById(requestId)

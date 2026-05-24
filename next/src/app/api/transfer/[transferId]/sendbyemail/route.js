@@ -57,7 +57,7 @@ export async function POST(req, { params }) {
       await sendTransferShare(email, {
         name: transfer.name || 'Untitled Transfer',
         description: transfer.description,
-        link: transfer.getDownloadLink(),
+        link: await transfer.getDownloadLink(),
         brand,
       });
     }
