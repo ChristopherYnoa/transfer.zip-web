@@ -89,6 +89,8 @@ export async function runVerification(doc) {
   }
   await doc.save()
 
+  console.log("result:", result, "domain:", doc.domain)
+  
   if (result.verified && !wasVerified) {
     try {
       await notifyDomainConnected(doc)
