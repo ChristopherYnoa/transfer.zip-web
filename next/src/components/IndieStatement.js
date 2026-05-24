@@ -67,10 +67,10 @@ export default function IndieStatement({ compact }) {
             </div>
 
             {/* Subtle background accent */}
-            <div
+            {/* <div
               aria-hidden
               className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-amber-200/40 to-transparent blur-2xl"
-            />
+            /> */}
           </div>
         </div>
       </div>
