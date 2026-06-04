@@ -34,7 +34,7 @@ export default function ({ expand, quickLinkHref, quickLinkContent, showQuickLin
           {(leftSectionContent || leftSectionLowerBar) && (
             <div className={cn(
               rightSection ? "order-2 md:order-1 border-t md:border-0 col-span-2" : "col-span-5",
-              "flex flex-col overflow-hidden relative max-h-72 md:max-h-fit"
+              "flex flex-col overflow-hidden relative max-h-72 md:max-h-none"
             )}>
               <div className="flex-1 py-2 px-1 overflow-y-auto">
                 {leftSectionContent}
