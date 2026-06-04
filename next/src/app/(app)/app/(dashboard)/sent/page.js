@@ -1,16 +1,13 @@
 import GenericPage from "@/components/dashboard/GenericPage"
 import TransferList from "@/components/dashboard/TransferList"
-import { listTransfersForUser } from "@/lib/server/serverUtils"
+import { listSentAndReceivedForUser } from "@/lib/server/serverUtils"
 import { useServerAuth } from "@/lib/server/wrappers/auth"
 import EmptySpace from "@/components/elements/EmptySpace"
 
 export default async function ({ children }) {
   const { user } = await useServerAuth()
-  const transfers = await listTransfersForUser(user)
-
-  const sentTransfers = transfers.filter(transfer => !transfer.transferRequest)
-  // const receivedTransfers = transfers.filter(transfer => transfer.hasTransferRequest)
-  const sentTransfersJson = await Promise.all(sentTransfers.map(transfer => transfer.toJsonAsOwner()))
+  const { sent } = await listSentAndReceivedForUser(user)
+  const sentTransfersJson = await Promise.all(sent.map(transfer => transfer.toJsonAsOwner()))
 
   return (
     <GenericPage title={"Sent"}>

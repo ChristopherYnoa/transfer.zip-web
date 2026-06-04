@@ -30,19 +30,52 @@ export const createCookieParams = () => {
   )
 }
 
-export const listTransfersForUser = async (user) => {
-  // Two sources: transfers the user authored, plus transfers uploaded into
-  // any TransferRequest the user owns. Resolving the request IDs up front
-  // keeps the candidate set tight and means an orphan transfer (whose request
-  // was deleted) can never match — important because populate maps deleted
-  // refs to null, which would otherwise sneak past a post-query filter.
-  const myRequestIds = await TransferRequest.find({ author: user._id }).distinct("_id")
-  return Transfer.find({
+// Two sources: transfers the user authored, plus transfers uploaded into
+// any TransferRequest the user owns. Resolving the request IDs up front
+// keeps the candidate set tight and means an orphan transfer (whose request
+// was deleted) can never match — important because populate maps deleted
+// refs to null, which would otherwise sneak past a post-query filter.
+// Returns the owned request IDs alongside so callers can classify a transfer
+// by request *ownership* without a second query.
+const fetchUserTransfersWithOwnedRequests = async (user) => {
+  const ownedRequestIds = await TransferRequest.find({ author: user._id }).distinct("_id")
+  const transfers = await Transfer.find({
     $or: [
       { author: user._id },
-      { transferRequest: { $in: myRequestIds } }
+      { transferRequest: { $in: ownedRequestIds } }
     ]
   }).sort({ createdAt: -1 })
+  return { transfers, ownedRequestIds }
+}
+
+export const listTransfersForUser = async (user) => {
+  const { transfers } = await fetchUserTransfersWithOwnedRequests(user)
+  return transfers
+}
+
+// Split a user's transfers into the dashboard's Sent and Received buckets.
+// A transfer is "received" only when it was uploaded into a request THIS user
+// owns — not merely because it carries a transferRequest ref. Without the
+// ownership check, an authenticated user's upload into someone else's request
+// link (author = them, transferRequest = the other person's request) gets
+// filed as Received even though, to them, they sent it.
+// Pure + separately exported so the rule is unit-testable without a DB.
+// Assumes transferRequest refs are unpopulated ObjectIds (as fetched above).
+export const splitSentAndReceived = (transfers, ownedRequestIds) => {
+  const ownedIds = new Set(ownedRequestIds.map(id => id.toString()))
+  const sent = []
+  const received = []
+  for (const transfer of transfers) {
+    const intoOwnRequest = transfer.transferRequest && ownedIds.has(transfer.transferRequest.toString())
+    if (intoOwnRequest) received.push(transfer)
+    else sent.push(transfer)
+  }
+  return { sent, received }
+}
+
+export const listSentAndReceivedForUser = async (user) => {
+  const { transfers, ownedRequestIds } = await fetchUserTransfersWithOwnedRequests(user)
+  return splitSentAndReceived(transfers, ownedRequestIds)
 }
 
 // Team-wide list for the Owner/Admin dashboard.
