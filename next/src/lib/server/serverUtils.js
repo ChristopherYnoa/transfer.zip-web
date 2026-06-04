@@ -30,52 +30,23 @@ export const createCookieParams = () => {
   )
 }
 
-// Two sources: transfers the user authored, plus transfers uploaded into
-// any TransferRequest the user owns. Resolving the request IDs up front
-// keeps the candidate set tight and means an orphan transfer (whose request
-// was deleted) can never match — important because populate maps deleted
-// refs to null, which would otherwise sneak past a post-query filter.
-// Returns the owned request IDs alongside so callers can classify a transfer
-// by request *ownership* without a second query.
-const fetchUserTransfersWithOwnedRequests = async (user) => {
+// A user's dashboard holds two kinds of transfer: ones they SENT (authored,
+// not tied to a request) and ones RECEIVED into a request they OWN. An
+// authenticated upload into someone else's request link is authored by the
+// uploader but belongs to the request owner — so we match received transfers
+// by request ownership, never by author, and exclude authored transfers that
+// carry a transferRequest. That keeps an upload into a foreign request out of
+// the uploader's dashboard entirely (it shows only in the owner's Received).
+// Resolving the owned request IDs up front also means an orphan transfer
+// (request since deleted) can never match.
+export const listTransfersForUser = async (user) => {
   const ownedRequestIds = await TransferRequest.find({ author: user._id }).distinct("_id")
-  const transfers = await Transfer.find({
+  return Transfer.find({
     $or: [
-      { author: user._id },
+      { author: user._id, transferRequest: null },
       { transferRequest: { $in: ownedRequestIds } }
     ]
   }).sort({ createdAt: -1 })
-  return { transfers, ownedRequestIds }
-}
-
-export const listTransfersForUser = async (user) => {
-  const { transfers } = await fetchUserTransfersWithOwnedRequests(user)
-  return transfers
-}
-
-// Split a user's transfers into the dashboard's Sent and Received buckets.
-// A transfer is "received" only when it was uploaded into a request THIS user
-// owns — not merely because it carries a transferRequest ref. Without the
-// ownership check, an authenticated user's upload into someone else's request
-// link (author = them, transferRequest = the other person's request) gets
-// filed as Received even though, to them, they sent it.
-// Pure + separately exported so the rule is unit-testable without a DB.
-// Assumes transferRequest refs are unpopulated ObjectIds (as fetched above).
-export const splitSentAndReceived = (transfers, ownedRequestIds) => {
-  const ownedIds = new Set(ownedRequestIds.map(id => id.toString()))
-  const sent = []
-  const received = []
-  for (const transfer of transfers) {
-    const intoOwnRequest = transfer.transferRequest && ownedIds.has(transfer.transferRequest.toString())
-    if (intoOwnRequest) received.push(transfer)
-    else sent.push(transfer)
-  }
-  return { sent, received }
-}
-
-export const listSentAndReceivedForUser = async (user) => {
-  const { transfers, ownedRequestIds } = await fetchUserTransfersWithOwnedRequests(user)
-  return splitSentAndReceived(transfers, ownedRequestIds)
 }
 
 // Team-wide list for the Owner/Admin dashboard.
