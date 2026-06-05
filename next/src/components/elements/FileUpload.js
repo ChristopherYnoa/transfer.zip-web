@@ -20,15 +20,16 @@ export default function FileUpload({ initialFiles, onFilesChange, onFiles, onRec
   const _buttonText = buttonText ?? "Transfer"
 
   const [files, setFiles] = useState(initialFiles || [])
+  const [isDragOver, setIsDragOver] = useState(false)
+  const dragCounterRef = useRef(0)
 
   const fileInputRef = useRef()
   const folderInputRef = useRef()
 
   const [error, setError] = useState(null)
 
-  const handleFileInputChange = (e) => {
-    const newFiles = [...files, ...e.target.files]
-
+  const addFiles = (newFilesList) => {
+    const newFiles = [...files, ...newFilesList]
     const names = new Set()
 
     try {
@@ -65,6 +66,10 @@ export default function FileUpload({ initialFiles, onFilesChange, onFiles, onRec
     onFilesChange && onFilesChange(newFiles)
   }
 
+  const handleFileInputChange = (e) => {
+    addFiles([...e.target.files])
+  }
+
   const handlePickFiles = e => {
     e.preventDefault()
     e.stopPropagation()
@@ -75,6 +80,37 @@ export default function FileUpload({ initialFiles, onFilesChange, onFiles, onRec
     e.preventDefault()
     e.stopPropagation()
     folderInputRef.current.click()
+  }
+
+  const handleDragOver = e => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDragEnter = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current++
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current--
+    if (dragCounterRef.current === 0) {
+      setIsDragOver(false)
+    }
+  }
+
+  const handleDrop = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current = 0
+    setIsDragOver(false)
+    const droppedFiles = [...e.dataTransfer.files]
+    if (droppedFiles.length === 0) return
+    addFiles(singleFile ? droppedFiles.slice(0, 1) : droppedFiles)
   }
 
   const totalFileSize = useMemo(() => {
@@ -132,7 +168,14 @@ export default function FileUpload({ initialFiles, onFilesChange, onFiles, onRec
           </div>
         </PopoverContent>
       </Popover>
-      <div ref={divRef} className={`text-start relative w-full flex flex-col min-h-56 ${headless ? "" : "rounded-2xl bg-white border shadow-lg"} ${onReceiveClicked ? "mt-8" : ""}`}>
+      <div
+        ref={divRef}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`text-start relative w-full flex flex-col min-h-56 ${headless ? "" : `rounded-2xl bg-white border shadow-lg transition-colors ${isDragOver ? "border-2 border-dashed border-primary bg-primary-50" : ""}`} ${onReceiveClicked ? "mt-8" : ""}`}
+      >
         {onReceiveClicked && (
           <div className="absolute w-full flex">
             <button type="button" onClick={onReceiveClicked} className="text-sm font-medium text-gray-500 relative mx-auto bg-white border py-1 px-10 rounded-t-lg transition-all h-7 -top-7 hover:h-8 hover:-top-8 hover:text-primary">
@@ -145,11 +188,17 @@ export default function FileUpload({ initialFiles, onFilesChange, onFiles, onRec
             <div className="text-white rounded-full bg-primary w-12 h-12 flex group-hover:bg-primary-light">
               <BIcon name={"plus"} center className={"flex-grow text-3xl"} />
             </div>
-            <span className="font-medium mt-2 text-lg">{singleFile ? "Pick a file" : "Pick files"}</span>
-            {!singleFile && (
-              <button onClick={handleSelectFolder} className="text-gray-500 text-sm font-medium mt-2 underline hover:text-primary">
-                or select a folder
-              </button>
+            {isDragOver ? (
+              <span className="font-medium mt-2 text-lg text-primary">Drop files here</span>
+            ) : (
+              <>
+                <span className="font-medium mt-2 text-lg">{singleFile ? "Pick a file" : "Pick files or drag & drop"}</span>
+                {!singleFile && (
+                  <button onClick={handleSelectFolder} className="text-gray-500 text-sm font-medium mt-2 underline hover:text-primary">
+                    or select a folder
+                  </button>
+                )}
+              </>
             )}
           </div>
         </Transition>

@@ -1,7 +1,7 @@
 import { Html, Head, Body, Container, Img, Text } from '@react-email/components';
 
 export default function EmailLayout({ children, brand }) {
-  const iconUrl = brand?.iconUrl || `${process.env.SITE_URL}/img/icon.png`
+  const iconUrl = brand?.iconUrl || `${process.env.SITE_URL}/img/icon.png?v=2`
   return (
     <Html>
       <Head />

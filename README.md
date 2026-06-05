@@ -60,3 +60,40 @@ See the [self-hosting guide](SELFHOSTING.md).
 On Firefox mobile, sending files using Quick Transfer does not work at the moment. This could have something to do with the path being changed after the file has been chosen in the file picker, but not been read yet. This is under investigation and idk how to fix.
 
 Sending files from some Safari browsers is buggy at the moment, it has something to do with Safari terminating the WebSocket connection when unfocusing the window. Apple...
+
+
+
+Creating an account
+
+cd /Users/404server/Documents/transfer.zip-web
+./create-account.sh
+You set the initial password. Then tell the employee to immediately go to https://transfer.studio404.nyc/signin → Forgot password? and set their own — that way you never know their actual password.
+
+Listing all accounts
+
+cd /Users/404server/Documents/transfer.zip-web
+./list-accounts.sh
+Output example:
+
+
+alice@studio404.nyc - 6/2/2026
+bob@studio404.nyc - 6/3/2026
+chris@studio404.nyc - 6/5/2026
+Deleting an account (employee leaves)
+
+cd /Users/404server/Documents/transfer.zip-web
+./delete-account.sh
+Prompts for the email, removes the account and all their session data.
+
+Resetting a forgotten password
+Employees can do this themselves via Forgot password? on the sign-in page — it sends a reset link to their email. No admin action needed.
+
+If an employee is locked out and can't receive email, you can reset it from the terminal using the command from earlier in this session:
+
+
+docker exec transferzip-web-mongo-1 mongosh \
+  -u root -p changeme \
+  --authenticationDatabase admin transfer-zip \
+  --eval 'db.users.deleteOne({email: "employee@studio404.nyc"})'
+Then recreate their account with ./create-account.sh and have them use Forgot Password to set a new password.
+

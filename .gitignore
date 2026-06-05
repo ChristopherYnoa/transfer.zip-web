@@ -6,3 +6,10 @@ _local_dev_worker_data/
 
 /data/
 .DS_Store
+
+# Database backups — contain user data, never commit
+mongo-backup-*/
+
+# Claude conversation exports
+*.claude.md
+Transfer.zip self-hosting guide - Claude.md

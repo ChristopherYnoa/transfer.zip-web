@@ -1,17 +1,6 @@
 import colors from 'tailwindcss/colors'
 
-const primaryColor = {
-  50:  '#f9f9f9',
-  100: '#f0f0f0',
-  200: '#e0e0e0',
-  300: '#bdbdbd',
-  400: '#9e9e9e',
-  500: '#424242',
-  600: '#212121',
-  700: '#1a1a1a',
-  800: '#121212',
-  900: '#0a0a0a',
-}
+const primaryColor = colors.blue
 
 /** @type {import('tailwindcss').Config} */
 export const content = ["./src/**/*.{html,js}"]

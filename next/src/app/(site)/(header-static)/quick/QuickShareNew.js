@@ -1,6 +1,5 @@
 "use client"
 
-import BIcon from "@/components/BIcon"
 import FileUpload from "@/components/elements/FileUpload"
 import QuestionCircle from "@/components/elements/QuestionCircle"
 import { FileContext } from "@/context/FileProvider"
@@ -9,7 +8,7 @@ import { getComputedNewLocation } from "@/lib/client/hash"
 import { useRouter } from "next/navigation"
 import { useContext, useEffect } from "react"
 
-export default function ({ stars }) {
+export default function () {
 
   const { setFiles } = useContext(FileContext)
   const { hasBeenSentLink, k, remoteSessionId, transferDirection } = useQuickShare()
@@ -55,7 +54,7 @@ export default function ({ stars }) {
       </div>
       <FileUpload onFiles={handleFiles} onReceiveClicked={hasBeenSentLink ? undefined : onReceiveClicked} />
       <p className="text-gray-500 text-xs mt-2">
-        We do not use cookies. Your files are protected with end-to-end encryption, meaning they remain unreadable by anyone but you.<br /><a href="https://github.com/robinkarlberg/transfer.zip-web" className="text-primary hover:underline">GitHub {stars && <span>({stars} <BIcon name={"star"} />)</span>} </a>
+        We do not use cookies. Your files are protected with end-to-end encryption, meaning they remain unreadable by anyone but you.
       </p>
     </div>
   )
