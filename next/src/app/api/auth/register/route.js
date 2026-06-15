@@ -26,10 +26,6 @@ export async function POST(req, res) {
     return NextResponse.json(resp("Signup not allowed from non-private ip in self-hosted mode"), { status: 403 })
   }
 
-  if (IS_SELFHOST && await User.countDocuments() > 0) {
-    return NextResponse.json(resp("Signup not allowed: users already exist in self-hosted mode"), { status: 409 })
-  }
-
   const user = new User({ email })
   // user.addRole(ROLE_ADMIN)
   user.setPassword(pass)

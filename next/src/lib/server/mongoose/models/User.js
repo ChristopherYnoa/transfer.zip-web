@@ -158,7 +158,8 @@ UserSchema.methods.getStorage = async function () {
     const usedStorageBytes = transfers.reduce((total, transfer) => total + transfer.size, 0)
     const maxStorageBytes = this.customMaxStorageBytes || (
         IS_SELFHOST ?
-            10e12   // 10TB for good measure
+            100e9 // 100GB
+            //10e12   // 10TB for good measure
             : getMaxStorageForPlan(this.getPlan())
     )
 

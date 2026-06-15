@@ -56,8 +56,8 @@ export async function uploadFiles(files, idMap, transfer, progress) {
 
   const UPLOAD_WIN_MB = 20
   const UPLOAD_WIN = UPLOAD_WIN_MB * 1024 * 1024
-
-  const CHUNK_MB = 128
+  //changed CHUNK_MB from 128 to 64 to bypass Cloudflared's maximum 100mb request body cap
+  const CHUNK_MB = 64
   const chunkSize = CHUNK_MB * 1024 * 1024
 
   const fileLimiter = new Bottleneck({ maxConcurrent: FILES_PARALLEL })
